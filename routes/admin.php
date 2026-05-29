@@ -39,6 +39,9 @@ use App\Http\Controllers\Admin\PodcastSectionController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\PlaylistController;
+use App\Http\Controllers\Admin\AlbumController;
+use App\Http\Controllers\Admin\BlogController;
 use App\Models\Section;
 
 // Artisan
@@ -108,6 +111,12 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('podcastsection/status', [PodcastSectionController::class, 'changeStatus'])->name('podcastsection.status');
         Route::post('podcastsection/sortable', [PodcastSectionController::class, 'SectionSortable'])->name('podcastsection.sortable');
         Route::post('podcastsection/sortable/save', [PodcastSectionController::class, 'SectionSortableSave'])->name('podcastsection.sortable.save');
+        // Playlist
+        Route::resource('playlist', PlaylistController::class)->only(['index']);
+        // Album
+        Route::resource('album', AlbumController::class)->only(['index']);
+        // Blog
+        Route::resource('blog', BlogController::class)->only(['index']);
         // Song
         Route::resource('song', SongController::class)->only(['index', 'create', 'edit']);
         Route::get('song_status/{id}', [SongController::class, 'changeStatus'])->name('song.status');
@@ -168,6 +177,12 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('page', PageController::class)->only(['update']);
             // User
             Route::resource('user', UserController::class)->only(['store', 'update', 'destroy']);
+            // Playlist
+            Route::resource('playlist', PlaylistController::class)->only(['store', 'update', 'destroy']);
+            // Album
+            Route::resource('album', AlbumController::class)->only(['store', 'update', 'destroy']);
+            // Blog
+            Route::resource('blog', BlogController::class)->only(['store', 'update', 'destroy']);
             // Song
             Route::resource('song', SongController::class)->only(['store', 'update', 'show']);
             // Podcasts

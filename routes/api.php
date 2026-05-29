@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ArtistController;
+use App\Http\Controllers\Api\PlaylistController;
 
 Route::group(['middleware' => 'apipurchasecode'], function () {
 
@@ -83,4 +84,12 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('upload_song', [ArtistController::class, 'upload_song']);
     Route::post('update_song', [ArtistController::class, 'update_song']);
     Route::post('delete_song', [ArtistController::class, 'delete_song']);
+
+    // -------------------- PlaylistController --------------------
+    Route::post('create_playlist', [PlaylistController::class, 'create_playlist']);
+    Route::post('get_user_playlists', [PlaylistController::class, 'get_user_playlists']);
+    Route::post('get_playlist_songs', [PlaylistController::class, 'get_playlist_songs']);
+    Route::post('add_song_to_playlist', [PlaylistController::class, 'add_song_to_playlist']);
+    Route::post('remove_song_from_playlist', [PlaylistController::class, 'remove_song_from_playlist']);
+    Route::post('delete_playlist', [PlaylistController::class, 'delete_playlist']);
 });

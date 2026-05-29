@@ -108,6 +108,24 @@
                 <span>Live Event</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('playlist*') ? 'active' : '' }}">
+            <a href="{{ route('playlist.index') }}">
+                <i class="fa-solid fa-list-music fa-2xl menu-icon"></i>
+                <span>Playlist</span>
+            </a>
+        </li>
+        <li class="side_line {{ request()->routeIs('album*') ? 'active' : '' }}">
+            <a href="{{ route('album.index') }}">
+                <i class="fa-solid fa-compact-disc fa-2xl menu-icon"></i>
+                <span>Album</span>
+            </a>
+        </li>
+        <li class="side_line {{ request()->routeIs('blog*') ? 'active' : '' }}">
+            <a href="{{ route('blog.index') }}">
+                <i class="fa-solid fa-blog fa-2xl menu-icon"></i>
+                <span>Blog</span>
+            </a>
+        </li>
         <p class="partition"><span>{{__('Label.interaction')}}</span></p>
         <li class="side_line {{ request()->routeIs('comment*') ? 'active' : '' }}">
             <a href="{{ route('comment.index') }}">
