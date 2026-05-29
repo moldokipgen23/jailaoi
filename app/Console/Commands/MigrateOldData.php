@@ -112,22 +112,18 @@ class MigrateOldData extends Command
 
             try {
                 DB::table('tbl_user')->insert([
-                    'id'            => $id,
-                    'user_name'     => $old['username'],
-                    'full_name'     => $old['name'] ?: $old['username'],
-                    'email'         => $old['email'],
-                    'password'      => $old['password'],
-                    'image'         => $old['avatar'] ?? '',
-                    'biodata'       => $old['about'] ?? '',
-                    'role'          => $role,
-                    'bio'           => $old['about'] ?? '',
-                    'instagram_url' => $old['instagram'] ?? '',
-                    'facebook_url'  => $old['facebook'] ?? '',
-                    'twitter_url'   => $old['twitter'] ?? '',
-                    'type'          => 4,
-                    'status'        => (int) ($old['active'] ?? 1),
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
+                    'id'         => $id,
+                    'user_name'  => $old['username'],
+                    'full_name'  => $old['name'] ?: $old['username'],
+                    'email'      => $old['email'],
+                    'password'   => $old['password'],
+                    'image'      => $old['avatar'] ?? '',
+                    'role'       => $role,
+                    'bio'        => $old['about'] ?? '',
+                    'type'       => 4,
+                    'status'     => (int) ($old['active'] ?? 1),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             } catch (\Exception $e) {
                 $this->warn("  Skipped user ID {$id}: {$e->getMessage()}");
@@ -371,12 +367,11 @@ class MigrateOldData extends Command
 
             try {
                 DB::table('tbl_followers')->insert([
-                    'id'           => $id,
-                    'follower_id'  => (int) ($old['follower_id'] ?: 0),
-                    'following_id' => (int) ($old['following_id'] ?: 0),
-                    'artist_id'    => (int) ($old['artist_id'] ?: 0),
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'id'         => $id,
+                    'user_id'    => (int) ($old['follower_id'] ?: 0),
+                    'artist_id'  => (int) ($old['following_id'] ?: $old['artist_id'] ?: 0),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             } catch (\Exception $e) {
                 $this->warn("  Skipped follower ID {$id}: {$e->getMessage()}");
@@ -418,11 +413,9 @@ class MigrateOldData extends Command
                 DB::table('tbl_artist_requests')->insert([
                     'id'          => $id,
                     'user_id'     => (int) ($old['user_id'] ?: 0),
-                    'name'        => $old['name'] ?? '',
-                    'description' => $old['details'] ?? '',
-                    'category_id' => (int) ($old['category_id'] ?: 0),
-                    'image'       => $old['photo'] ?? '',
-                    'status'      => 0,
+                    'artist_name' => $old['name'] ?? '',
+                    'bio'         => $old['details'] ?? '',
+                    'status'      => 'pending',
                     'created_at'  => now(),
                     'updated_at'  => now(),
                 ]);
