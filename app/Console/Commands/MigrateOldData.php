@@ -807,17 +807,19 @@ class MigrateOldData extends Command
 
         if ($this->avatarFiles) {
             $avatarFiles = array_unique($this->avatarFiles);
-            $this->info('Copying avatar files to user/ folder...');
             $photosDir = $this->oldRoot . '/upload/photos';
-            $userDir = storage_path('app/public/user');
-            if (!is_dir($userDir)) {
-                mkdir($userDir, 0755, true);
+            foreach (['user', 'artist'] as $folder) {
+                $this->info("Copying avatar files to {$folder}/ folder...");
+                $dstDir = storage_path('app/public/' . $folder);
+                if (!is_dir($dstDir)) {
+                    mkdir($dstDir, 0755, true);
+                }
+                $count = 0;
+                foreach ($avatarFiles as $avatar) {
+                    $this->copyFileByName($photosDir, $avatar, $dstDir, $count);
+                }
+                $this->info("    Copied {$count} files to {$folder}/.");
             }
-            $count = 0;
-            foreach ($avatarFiles as $avatar) {
-                $this->copyFileByName($photosDir, $avatar, $userDir, $count);
-            }
-            $this->info("    Copied {$count} user avatar files.");
         }
 
         $this->info('File copy complete.');
