@@ -93,7 +93,7 @@
         <li class="side_line {{ request()->routeIs('song*') ? 'active' : '' }}">
             <a href="{{ route('song.index') }}">
                 <i class="fa-solid fa-film fa-2xl menu-icon"></i>
-                <span>Radio Station</span>
+                <span>Songs</span>
             </a>
         </li>
         <li class="side_line {{ request()->routeIs('podcast.*') ? 'active' : '' }}">

@@ -50,7 +50,7 @@ class SongController extends Controller
             }
 
             $this->common->imageNameToUrl($params['data'], 'image', $this->folder);
-            $this->common->imageNameToUrl($params['data'], 'song_url', $this->folder);
+            $this->common->songNameToUrl($params['data'], 'song_url', $this->folder);
 
             return view('admin.song.index', $params);
         } catch (Exception $e) {

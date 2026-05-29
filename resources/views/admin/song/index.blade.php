@@ -1,5 +1,5 @@
 @extends('admin.layout.page-app')
-@section('page_title', 'Radio Station')
+@section('page_title', 'Songs')
 
 @section('content')
     @include('admin.layout.sidebar')
@@ -9,13 +9,13 @@
 
         <div class="body-content">
             <!-- mobile title -->
-            <h1 class="page-title-sm"> Radio Station </h1>
+            <h1 class="page-title-sm">Songs</h1>
 
             <div class="border-bottom row mb-3">
                 <div class="col-sm-12">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('Label.Dashboard')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Radio Station</li>
+                        <li class="breadcrumb-item active" aria-current="page">Songs</li>
                     </ol>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                                 <i class="fa-solid fa-magnifying-glass fa-xl light-gray"></i>
                             </span>
                         </div>
-                        <input type="text" name="input_search" value="@if(isset($_GET['input_search'])){{$_GET['input_search']}}@endif" class="form-control" placeholder="Search Radio Station" aria-label="Search" aria-describedby="basic-addon1">
+                        <input type="text" name="input_search" value="@if(isset($_GET['input_search'])){{$_GET['input_search']}}@endif" class="form-control" placeholder="Search Songs" aria-label="Search" aria-describedby="basic-addon1">
                     </div>
                     <div class="sorting" style="width: 500px;">
                         <label>Sort by :</label>

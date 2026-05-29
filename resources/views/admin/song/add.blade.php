@@ -1,5 +1,5 @@
 @extends('admin.layout.page-app')
-@section('page_title', 'Add Radio Station')
+@section('page_title', 'Add Song')
 
 @section('content')
     @include('admin.layout.sidebar')
@@ -9,18 +9,18 @@
 
         <div class="body-content">
             <!-- mobile title -->
-            <h1 class="page-title-sm">Add Radio Station</h1>
+            <h1 class="page-title-sm">Add Song</h1>
 
             <div class="border-bottom row mb-3">
                 <div class="col-sm-10">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('Label.Dashboard')}}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('song.index') }}">Radio Station</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Add Radio Station</li>
+                        <li class="breadcrumb-item"><a href="{{ route('song.index') }}">Songs</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Add Song</li>
                     </ol>
                 </div>
                 <div class="col-sm-2 d-flex align-items-center justify-content-end">
-                    <a href="{{ route('song.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">Radio Station</a>
+                    <a href="{{ route('song.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">Songs</a>
                 </div>
             </div>
 
@@ -110,12 +110,10 @@
                             </div>
                             <div class="form-row">
                                 <div class="form-group col-lg-6">
-                                    <label>{{__('Label.Video_Upload_Type')}}<span class="text-danger">*</span></label>
+                                    <label>Upload Type<span class="text-danger">*</span></label>
                                     <select name="song_upload_type" id="song_upload_type" class="form-control">
-                                        <option selected="selected" value="server_video">{{__('Label.Server Video')}}</option>
+                                        <option selected="selected" value="server_video">Audio Upload</option>
                                         <option value="external_url">External URL</option>
-                                        <!-- <option value="youtube">Youtube</option>
-                                        <option value="vimeo">Vimeo</option> -->
                                     </select>
                                 </div>
                                 <div class="form-group col-lg-6 video_box">
