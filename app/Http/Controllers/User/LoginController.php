@@ -53,7 +53,7 @@ class LoginController extends Controller
             }
 
             $requestData = $request->all();
-            if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'user_penal_status' => 1])) {
+            if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'role' => 'artist', 'user_penal_status' => 1])) {
                 return response()->json(['status' => 200, 'success' => __('label.success_login')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_login')]);

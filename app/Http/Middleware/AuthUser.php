@@ -15,6 +15,11 @@ class AuthUser
                 return redirect(route('user.login'));
             }
         }
+        $user = Auth::guard('user')->user();
+        if ($user && $user->role !== 'artist') {
+            Auth::guard('user')->logout();
+            return redirect(route('user.login'));
+        }
         $response = $next($request);
         return $response;
     }
