@@ -231,6 +231,48 @@ class CreateAllMissingTables extends Migration
                 $t->integer('notification_id')->nullable();
                 $t->timestamps();
             },
+            'tbl_playlist' => function (Blueprint $t) {
+                $t->id();
+                $t->integer('user_id')->nullable();
+                $t->string('name');
+                $t->integer('privacy')->default(0);
+                $t->string('image')->nullable();
+                $t->integer('plays')->default(0);
+                $t->integer('status')->default(1);
+                $t->timestamps();
+            },
+            'tbl_playlist_song' => function (Blueprint $t) {
+                $t->id();
+                $t->integer('playlist_id');
+                $t->integer('song_id');
+                $t->integer('user_id')->nullable();
+                $t->integer('sort_order')->default(0);
+                $t->timestamps();
+            },
+            'tbl_album' => function (Blueprint $t) {
+                $t->id();
+                $t->integer('user_id')->nullable();
+                $t->string('title');
+                $t->text('description')->nullable();
+                $t->integer('category_id')->default(0);
+                $t->string('image')->nullable();
+                $t->float('price')->default(0);
+                $t->integer('status')->default(1);
+                $t->timestamps();
+            },
+            'tbl_blog' => function (Blueprint $t) {
+                $t->id();
+                $t->string('title');
+                $t->text('content')->nullable();
+                $t->text('description')->nullable();
+                $t->string('image')->nullable();
+                $t->integer('category')->default(0);
+                $t->integer('view')->default(0);
+                $t->string('tags')->nullable();
+                $t->integer('created_by')->nullable();
+                $t->integer('status')->default(1);
+                $t->timestamps();
+            },
         ];
     }
 

@@ -16,12 +16,13 @@ class MigrateOldData extends Command
                             {--old-pass= : Old database password}
                             {--old-root= : Absolute path to old project root (for file copying)}
                             {--skip-files : Skip copying audio/image files}
-                            {--steps= : Comma-separated steps to run (users,artists,categories,songs,followers,requests,comments,favorites,transactions,files)}';
+                                {--steps= : Comma-separated steps to run (users,artists,categories,songs,followers,requests,comments,favorites,transactions,playlists,albums,blog,files)}';
 
     protected $description = 'Migrate data from old DeepSound DB to new DTRadio DB';
 
     private ?PDO $oldPdo = null;
     private string $oldRoot = '';
+    private array $avatarFiles = [];
 
     public function handle(): int
     {
@@ -61,6 +62,9 @@ class MigrateOldData extends Command
             if (in_array('transactions', $steps)) $this->migrateTransactions();
             if (in_array('comments', $steps)) $this->migrateComments();
             if (in_array('favorites', $steps)) $this->migrateFavorites();
+            if (in_array('playlists', $steps)) $this->migratePlaylists();
+            if (in_array('albums', $steps)) $this->migrateAlbums();
+            if (in_array('blog', $steps)) $this->migrateBlog();
             if (in_array('files', $steps) && !$this->option('skip-files')) $this->copyFiles();
         } catch (\Throwable $e) {
             $this->error('Migration failed: ' . $e->getMessage());
@@ -80,7 +84,14 @@ class MigrateOldData extends Command
         if ($steps) {
             return array_map('trim', explode(',', $steps));
         }
-        return ['users', 'artists', 'categories', 'songs', 'followers', 'requests', 'transactions', 'comments', 'favorites', 'files'];
+        return ['users', 'artists', 'categories', 'songs', 'followers', 'requests', 'transactions', 'comments', 'favorites', 'playlists', 'albums', 'blog', 'files'];
+    }
+
+    private function extractFilename(string $path): string
+    {
+        if (empty($path)) return '';
+        $base = basename($path);
+        return $base;
     }
 
     private function migrateUsers(): void
@@ -110,6 +121,11 @@ class MigrateOldData extends Command
                 $role = 'artist';
             }
 
+            $avatar = $this->extractFilename($old['avatar'] ?? '');
+            if ($avatar) {
+                $this->avatarFiles[] = $avatar;
+            }
+
             try {
                 DB::table('tbl_user')->insert([
                     'id'         => $id,
@@ -117,7 +133,7 @@ class MigrateOldData extends Command
                     'full_name'  => $old['name'] ?: $old['username'],
                     'email'      => $old['email'],
                     'password'   => $old['password'],
-                    'image'      => $old['avatar'] ?? '',
+                    'image'      => $avatar,
                     'role'       => $role,
                     'bio'        => $old['about'] ?? '',
                     'type'       => 4,
@@ -167,11 +183,16 @@ class MigrateOldData extends Command
                     })
                     ->first();
 
+                $image = $this->extractFilename($old['avatar'] ?? '');
+                if ($image) {
+                    $this->avatarFiles[] = $image;
+                }
+
                 if ($artist) {
                     DB::table('tbl_artist')->where('id', $artist->id)->update([
                         'user_id' => $userId,
                         'name'    => $old['username'],
-                        'image'   => $old['avatar'] ?? $artist->image,
+                        'image'   => $image ?: $artist->image,
                         'bio'     => $old['about'] ?? $artist->bio,
                     ]);
                 } else {
@@ -179,7 +200,7 @@ class MigrateOldData extends Command
                         'id'         => $userId,
                         'user_id'    => $userId,
                         'name'       => $old['name'] ?: $old['username'],
-                        'image'      => $old['avatar'] ?? '',
+                        'image'      => $image,
                         'bio'        => $old['about'] ?? '',
                         'status'     => 1,
                         'created_at' => now(),
@@ -208,12 +229,16 @@ class MigrateOldData extends Command
             $old = $oldUser->fetch();
 
             if ($old) {
+                $image = $this->extractFilename($old['avatar'] ?? '');
+                if ($image) {
+                    $this->avatarFiles[] = $image;
+                }
                 try {
                     DB::table('tbl_artist')->insert([
                         'id'         => $artistId,
                         'user_id'    => $artistId,
                         'name'       => $old['name'] ?: $old['username'],
-                        'image'      => $old['avatar'] ?? '',
+                        'image'      => $image,
                         'bio'        => $old['about'] ?? '',
                         'status'     => 1,
                         'created_at' => now(),
@@ -270,7 +295,7 @@ class MigrateOldData extends Command
                 DB::table('tbl_category')->insert([
                     'id'         => $id,
                     'name'       => $old['cateogry_name'],
-                    'image'      => $old['background_thumb'] ?? '',
+                    'image'      => $this->extractFilename($old['background_thumb'] ?? ''),
                     'status'     => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -320,9 +345,9 @@ class MigrateOldData extends Command
                     'artist_id'        => $artistId,
                     'category_id'      => (int) ($old['category_id'] ?: 0),
                     'name'             => $old['title'] ?? 'Untitled',
-                    'image'            => $old['thumbnail'] ?? '',
+                    'image'            => $this->extractFilename($old['thumbnail'] ?? ''),
                     'song_upload_type' => 'server_video',
-                    'song_url'         => $old['audio_location'] ?? '',
+                    'song_url'         => $this->extractFilename($old['audio_location'] ?? ''),
                     'is_premium'       => ((int) ($old['price'] ?? 0) > 0) ? 1 : 0,
                     'total_play'       => (int) ($old['views'] ?? 0),
                     'status'           => ($old['availability'] ?? 1) ? 1 : 0,
@@ -572,11 +597,201 @@ class MigrateOldData extends Command
         $this->newLine(2);
     }
 
+    private function migratePlaylists(): void
+    {
+        $this->info('Migrating playlists...');
+
+        $oldPlaylists = $this->oldPdo->query(
+            "SELECT id, name, user_id, privacy, thumbnail, time FROM playlists"
+        )->fetchAll();
+
+        if (empty($oldPlaylists)) {
+            $this->warn('  No playlists to migrate.');
+            return;
+        }
+
+        $bar = $this->output->createProgressBar(count($oldPlaylists));
+        $bar->start();
+
+        $existingIds = DB::table('tbl_playlist')->pluck('id')->map(fn($v) => (int) $v)->toArray();
+
+        foreach ($oldPlaylists as $old) {
+            $id = (int) $old['id'];
+            if (in_array($id, $existingIds)) {
+                $bar->advance();
+                continue;
+            }
+
+            try {
+                DB::table('tbl_playlist')->insert([
+                    'id'         => $id,
+                    'user_id'    => (int) ($old['user_id'] ?: 0),
+                    'name'       => $old['name'] ?? '',
+                    'privacy'    => (int) ($old['privacy'] ?? 0),
+                    'image'      => $this->extractFilename($old['thumbnail'] ?? ''),
+                    'plays'      => 0,
+                    'status'     => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("  Skipped playlist ID {$id}: {$e->getMessage()}");
+            }
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+
+        // Migrate playlist songs
+        $this->info('Migrating playlist songs...');
+        $oldPlaylistSongs = $this->oldPdo->query(
+            "SELECT id, playlist_id, track_id, user_id, time FROM playlist_songs"
+        )->fetchAll();
+
+        if (empty($oldPlaylistSongs)) {
+            $this->warn('  No playlist songs to migrate.');
+            return;
+        }
+
+        $bar2 = $this->output->createProgressBar(count($oldPlaylistSongs));
+        $bar2->start();
+
+        $existingPsIds = DB::table('tbl_playlist_song')->pluck('id')->map(fn($v) => (int) $v)->toArray();
+
+        foreach ($oldPlaylistSongs as $old) {
+            $id = (int) $old['id'];
+            if (in_array($id, $existingPsIds)) {
+                $bar2->advance();
+                continue;
+            }
+
+            try {
+                DB::table('tbl_playlist_song')->insert([
+                    'id'          => $id,
+                    'playlist_id' => (int) ($old['playlist_id'] ?: 0),
+                    'song_id'     => (int) ($old['track_id'] ?: 0),
+                    'user_id'     => (int) ($old['user_id'] ?: 0),
+                    'sort_order'  => 0,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("  Skipped playlist song ID {$id}: {$e->getMessage()}");
+            }
+
+            $bar2->advance();
+        }
+
+        $bar2->finish();
+        $this->newLine(2);
+    }
+
+    private function migrateAlbums(): void
+    {
+        $this->info('Migrating albums...');
+
+        $oldAlbums = $this->oldPdo->query(
+            "SELECT id, user_id, title, description, category_id, thumbnail, price, time FROM albums"
+        )->fetchAll();
+
+        if (empty($oldAlbums)) {
+            $this->warn('  No albums to migrate.');
+            return;
+        }
+
+        $bar = $this->output->createProgressBar(count($oldAlbums));
+        $bar->start();
+
+        $existingIds = DB::table('tbl_album')->pluck('id')->map(fn($v) => (int) $v)->toArray();
+
+        foreach ($oldAlbums as $old) {
+            $id = (int) $old['id'];
+            if (in_array($id, $existingIds)) {
+                $bar->advance();
+                continue;
+            }
+
+            try {
+                DB::table('tbl_album')->insert([
+                    'id'          => $id,
+                    'user_id'     => (int) ($old['user_id'] ?: 0),
+                    'title'       => $old['title'] ?? '',
+                    'description' => $old['description'] ?? '',
+                    'category_id' => (int) ($old['category_id'] ?: 0),
+                    'image'       => $this->extractFilename($old['thumbnail'] ?? ''),
+                    'price'       => (float) ($old['price'] ?? 0),
+                    'status'      => 1,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("  Skipped album ID {$id}: {$e->getMessage()}");
+            }
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+    }
+
+    private function migrateBlog(): void
+    {
+        $this->info('Migrating blog posts...');
+
+        $oldBlog = $this->oldPdo->query(
+            "SELECT id, title, content, description, category, thumbnail, view, tags, created_at, created_by FROM blog"
+        )->fetchAll();
+
+        if (empty($oldBlog)) {
+            $this->warn('  No blog posts to migrate.');
+            return;
+        }
+
+        $bar = $this->output->createProgressBar(count($oldBlog));
+        $bar->start();
+
+        $existingIds = DB::table('tbl_blog')->pluck('id')->map(fn($v) => (int) $v)->toArray();
+
+        foreach ($oldBlog as $old) {
+            $id = (int) $old['id'];
+            if (in_array($id, $existingIds)) {
+                $bar->advance();
+                continue;
+            }
+
+            try {
+                DB::table('tbl_blog')->insert([
+                    'id'          => $id,
+                    'title'       => $old['title'] ?? '',
+                    'content'     => $old['content'] ?? '',
+                    'description' => $old['description'] ?? '',
+                    'image'       => $this->extractFilename($old['thumbnail'] ?? ''),
+                    'category'    => (int) ($old['category'] ?? 0),
+                    'view'        => (int) ($old['view'] ?? 0),
+                    'tags'        => $old['tags'] ?? '',
+                    'created_by'  => (int) ($old['created_by'] ?? 0),
+                    'status'      => 1,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("  Skipped blog post ID {$id}: {$e->getMessage()}");
+            }
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+    }
+
     private function copyFiles(): void
     {
         if (!$this->oldRoot) {
             $this->warn('  --old-root not specified. Skipping file copy.');
-            $this->warn('  To copy files later, run: php artisan migrate:old-data-files');
             return;
         }
 
@@ -585,13 +800,30 @@ class MigrateOldData extends Command
             return;
         }
 
-        $this->info('Copying audio files from old storage...');
-        $this->copyDirectory('upload/audio');
-        $this->copyDirectory('upload/photos');
+        $this->info('Copying audio files to song/ folder...');
+        $this->copyFilesFlat('upload/audio', 'song');
+        $this->info('Copying image files to song/ folder...');
+        $this->copyFilesFlat('upload/photos', 'song');
+
+        if ($this->avatarFiles) {
+            $avatarFiles = array_unique($this->avatarFiles);
+            $this->info('Copying avatar files to user/ folder...');
+            $photosDir = $this->oldRoot . '/upload/photos';
+            $userDir = storage_path('app/public/user');
+            if (!is_dir($userDir)) {
+                mkdir($userDir, 0755, true);
+            }
+            $count = 0;
+            foreach ($avatarFiles as $avatar) {
+                $this->copyFileByName($photosDir, $avatar, $userDir, $count);
+            }
+            $this->info("    Copied {$count} user avatar files.");
+        }
+
         $this->info('File copy complete.');
     }
 
-    private function copyDirectory(string $relativePath): void
+    private function copyFilesFlat(string $relativePath, string $targetFolder): void
     {
         $src = $this->oldRoot . '/' . $relativePath;
         if (!is_dir($src)) {
@@ -599,32 +831,46 @@ class MigrateOldData extends Command
             return;
         }
 
-        $dst = storage_path('app/public/' . $relativePath);
-        if (!is_dir(dirname($dst))) {
-            mkdir(dirname($dst), 0755, true);
+        $dst = storage_path('app/public/' . $targetFolder);
+        if (!is_dir($dst)) {
+            mkdir($dst, 0755, true);
         }
 
-        $this->info("  Copying {$relativePath}...");
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($src, \RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
         $count = 0;
         foreach ($files as $file) {
-            $relative = $file->getPathname();
-            $target = $dst . '/' . $files->getSubPathname();
-            $targetDir = dirname($target);
-
-            if (!is_dir($targetDir)) {
-                mkdir($targetDir, 0755, true);
-            }
-
-            if (!file_exists($target)) {
-                copy($file->getPathname(), $target);
-                $count++;
+            if ($file->isFile()) {
+                $target = $dst . '/' . $file->getFilename();
+                if (!file_exists($target)) {
+                    copy($file->getPathname(), $target);
+                    $count++;
+                }
             }
         }
 
-        $this->info("    Copied {$count} files.");
+        $this->info("    Copied {$count} files to {$targetFolder}/.");
+    }
+
+    private function copyFileByName(string $srcDir, string $filename, string $dstDir, int &$count): void
+    {
+        if (empty($filename)) return;
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($srcDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getFilename() === $filename) {
+                $target = $dstDir . '/' . $filename;
+                if (!file_exists($target)) {
+                    copy($file->getPathname(), $target);
+                    $count++;
+                }
+                return;
+            }
+        }
     }
 }
