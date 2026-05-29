@@ -16,7 +16,7 @@ class MigrateOldData extends Command
                             {--old-pass= : Old database password}
                             {--old-root= : Absolute path to old project root (for file copying)}
                             {--skip-files : Skip copying audio/image files}
-                                {--steps= : Comma-separated steps to run (users,artists,categories,songs,followers,requests,comments,favorites,transactions,playlists,albums,blog,files)}';
+                                {--steps= : Comma-separated steps to run (settings,users,artists,categories,songs,followers,requests,comments,favorites,transactions,playlists,albums,blog,files)}';
 
     protected $description = 'Migrate data from old DeepSound DB to new DTRadio DB';
 
@@ -62,6 +62,7 @@ class MigrateOldData extends Command
             if (in_array('transactions', $steps)) $this->migrateTransactions();
             if (in_array('comments', $steps)) $this->migrateComments();
             if (in_array('favorites', $steps)) $this->migrateFavorites();
+            if (in_array('settings', $steps)) $this->migrateSettings();
             if (in_array('playlists', $steps)) $this->migratePlaylists();
             if (in_array('albums', $steps)) $this->migrateAlbums();
             if (in_array('blog', $steps)) $this->migrateBlog();
@@ -84,7 +85,7 @@ class MigrateOldData extends Command
         if ($steps) {
             return array_map('trim', explode(',', $steps));
         }
-        return ['users', 'artists', 'categories', 'songs', 'followers', 'requests', 'transactions', 'comments', 'favorites', 'playlists', 'albums', 'blog', 'files'];
+        return ['settings', 'users', 'artists', 'categories', 'songs', 'followers', 'requests', 'transactions', 'comments', 'favorites', 'playlists', 'albums', 'blog', 'files'];
     }
 
     private function extractFilename(string $path): string
@@ -595,6 +596,141 @@ class MigrateOldData extends Command
 
         $bar->finish();
         $this->newLine(2);
+    }
+
+    private function migrateSettings(): void
+    {
+        $this->info('Migrating app settings from old DeepSound config...');
+
+        $oldConfigs = $this->oldPdo->query("SELECT name, value FROM config")->fetchAll();
+
+        if (empty($oldConfigs)) {
+            $this->warn('  No settings to migrate.');
+            return;
+        }
+
+        $map = [
+            'name'               => 'app_name',
+            'title'              => 'app_desripation',
+            'email'              => 'app_email',
+            'keyword'            => null, // skip
+            'description'        => null, // skip
+            'smtp_host'          => null, // handled separately
+            'smtp_username'      => null,
+            'smtp_password'      => null,
+            'smtp_encryption'    => null,
+            'smtp_port'          => null,
+        ];
+
+        $bar = $this->output->createProgressBar(count($oldConfigs));
+        $bar->start();
+
+        $configLookup = [];
+        foreach ($oldConfigs as $row) {
+            $configLookup[$row['name']] = $row['value'];
+        }
+
+        foreach ($oldConfigs as $old) {
+            $oldKey = $old['name'];
+            $newKey = $map[$oldKey] ?? null;
+
+            if ($newKey) {
+                try {
+                    DB::table('tbl_general_setting')
+                        ->where('key', $newKey)
+                        ->update(['value' => $old['value'], 'updated_at' => now()]);
+                } catch (\Exception $e) {
+                    $this->warn("  Skipped setting {$oldKey}: {$e->getMessage()}");
+                }
+            }
+            $bar->advance();
+        }
+
+        // Handle logo separately — copy from old system
+        $logoKey = $configLookup['logo_cache'] ?? null;
+        if ($logoKey && $this->oldRoot) {
+            $this->copyLogoFiles($configLookup);
+        }
+
+        // Handle SMTP settings separately
+        if (isset($configLookup['smtp_host']) && !empty($configLookup['smtp_host'])) {
+            try {
+                $smtpExists = DB::table('tbl_smtp_setting')->count();
+                if ($smtpExists == 0) {
+                    DB::table('tbl_smtp_setting')->insert([
+                        'protocol'   => $configLookup['smtp_encryption'] ?? 'ssl',
+                        'host'       => $configLookup['smtp_host'] ?? '',
+                        'port'       => $configLookup['smtp_port'] ?? '465',
+                        'user'       => $configLookup['smtp_username'] ?? '',
+                        'pass'       => $configLookup['smtp_password'] ?? '',
+                        'from_email' => $configLookup['email'] ?? 'support@jailaoi.com',
+                        'from_name'  => $configLookup['name'] ?? 'JailaOi',
+                        'status'     => 1,
+                    ]);
+                    $this->info('  SMTP settings migrated.');
+                }
+            } catch (\Exception $e) {
+                $this->warn('  SMTP migration skipped: ' . $e->getMessage());
+            }
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+    }
+
+    private function copyLogoFiles(array $configLookup): void
+    {
+        // DeepSound stores logo as uploaded files, look for logo.* in upload/photos
+        $srcDir = $this->oldRoot . '/upload/photos';
+        if (!is_dir($srcDir)) return;
+
+        $dstDir = storage_path('app/public/setting');
+        if (!is_dir($dstDir)) {
+            mkdir($dstDir, 0755, true);
+        }
+
+        $logoFile = null;
+        $faviconFile = null;
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($srcDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            $name = strtolower($file->getFilename());
+            if (strpos($name, 'logo') !== false) {
+                $logoFile = $file;
+            }
+            if (strpos($name, 'favicon') !== false) {
+                $faviconFile = $file;
+            }
+        }
+
+        if ($logoFile) {
+            $ext = $logoFile->getExtension();
+            $newName = 'logo.' . $ext;
+            $target = $dstDir . '/' . $newName;
+            if (!file_exists($target)) {
+                copy($logoFile->getPathname(), $target);
+                DB::table('tbl_general_setting')
+                    ->where('key', 'app_logo')
+                    ->update(['value' => $newName]);
+                $this->info('  Logo file copied.');
+            }
+        }
+
+        if ($faviconFile) {
+            $ext = $faviconFile->getExtension();
+            $newName = 'favicon.' . $ext;
+            $target = $dstDir . '/' . $newName;
+            if (!file_exists($target)) {
+                copy($faviconFile->getPathname(), $target);
+                DB::table('tbl_general_setting')
+                    ->where('key', 'app_favicon')
+                    ->update(['value' => $newName]);
+                $this->info('  Favicon file copied.');
+            }
+        }
     }
 
     private function migratePlaylists(): void
