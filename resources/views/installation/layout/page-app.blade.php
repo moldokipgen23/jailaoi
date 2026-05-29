@@ -2,25 +2,24 @@
 <html lang="en">
 
 <head>
-
     <!-- Meta Tag -->
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Title Tag  -->
-    <title>{{__('Label.divinetechs')}}</title>
+    <title>{{__('label.divinetechs')}}</title>
 
-    <link href="{{asset('assets/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{asset('assets/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="{{asset('assets/css/toastr.min.css')}}" rel="stylesheet" type="text/css">
-    <link href="{{asset('assets/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/toastr.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.css">
 
     <style>
         body {
-            background-color: #f5f5f5;
+            background-color: #f7f6ff;
         }
     </style>
 </head>
@@ -43,18 +42,15 @@
     <script src="{{ asset('assets/js/toastr.min.js')}}"></script>
 
     <script>
-
         function showLoder() {
             $("#dvloader").show();
         }
-
         // Listen for visibility change
         document.addEventListener("visibilitychange", function() {
             if (document.visibilityState === 'hidden') {
                 $("#dvloader").hide();
             }
         });
-
         // Listen for popstate event (browser back/forward buttons)
         window.addEventListener("popstate", function() {
             $("#dvloader").hide();

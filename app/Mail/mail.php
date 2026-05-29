@@ -12,15 +12,17 @@ class mail extends Mailable
     use Queueable, SerializesModels;
 
     public $details;
+    public $view;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($details)
+    public function __construct($details, $view)
     {
         $this->details = $details;
+        $this->view = $view;
     }
 
     /**
@@ -31,6 +33,6 @@ class mail extends Mailable
     public function build()
     {
         return $this->subject($this->details['title'])
-            ->view('mail.mail');
+            ->view($this->view);
     }
 }

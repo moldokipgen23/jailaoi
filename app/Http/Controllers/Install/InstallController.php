@@ -25,6 +25,11 @@ class InstallController extends Controller
     // Step 0
     public function step0(Request $request)
     {
+        $url = $request->url();
+        if (strpos($request->url(), '/public') === false) {
+            return redirect($url . '/public');
+        }
+
         Artisan::call('config:clear');
         $verflyDomain = Demo_Domain();
         if ($verflyDomain == 1) {
@@ -65,7 +70,7 @@ class InstallController extends Controller
             return view('installation.step1', compact('permission'));
         }
 
-        session()->flash('error', __('Label.access_denied'));
+        session()->flash('error', __('label.access_denied'));
         return redirect()->route('step0');
     }
 
@@ -80,13 +85,12 @@ class InstallController extends Controller
 
             return view('installation.step2', $params);
         }
-        session()->flash('error', __('Label.access_denied'));
+        session()->flash('error', __('label.access_denied'));
         return redirect()->route('step0');
     }
     public function purchase_code(Request $request)
     {
         try {
-
             $validator = Validator::make($request->all(), [
                 'user_name' => 'required',
                 'purchase_code' => 'required',
@@ -97,11 +101,11 @@ class InstallController extends Controller
                 return redirect()->route('step2', ['token' => bcrypt('step_2')]);
             }
 
-			$this->common->setEnvironmentValue('PURCHASE_CODE', $request[base64_decode('cHVyY2hhc2VfY29kZQ==')]);
-			$this->common->setEnvironmentValue('BUYER_USERNAME', 'nullname');
-			$this->common->setEnvironmentValue('PURCHASE_STATUS', 1);
+            Set_Environment_Value('PURCHASE_CODE', $request[base64_decode('cHVyY2hhc2VfY29kZQ==')]);
+            Set_Environment_Value('BUYER_USERNAME', 'buyer');
+            Set_Environment_Value('PURCHASE_STATUS', 1);
 
-			return redirect()->route('step3', ['token' => bcrypt('step_3')]);
+            return redirect()->route('step3', ['token' => bcrypt('step_3')]);
         } catch (Exception $e) {
             session()->flash('error', $e->getMessage());
             return back();
@@ -124,7 +128,7 @@ class InstallController extends Controller
 
             return view('installation.step3', $params);
         }
-        session()->flash('error', __('Label.access_denied'));
+        session()->flash('error', __('label.access_denied'));
         return redirect()->route('step0');
     }
     public function database_installation(Request $request)
@@ -171,7 +175,7 @@ class InstallController extends Controller
                     'DB_HOST=' . $request['host_name'],
                     'DB_DATABASE=' . $request['database_name'],
                     'DB_USERNAME=' . $request['username'],
-                    'DB_PASSWORD=' . $request['password']
+                    'DB_PASSWORD="' . $request['password'] . '"',
                 ];
                 file_put_contents($path, str_replace($key,  $value, $file_contents));
 
@@ -185,7 +189,7 @@ class InstallController extends Controller
             }
         } else {
 
-            session()->flash('error', __('Label.database_connection_failed'));
+            session()->flash('error', __('label.database_connection_failed'));
             return redirect()->route('step3', ['token' => bcrypt('step_3')]);
         }
     }
@@ -232,7 +236,7 @@ class InstallController extends Controller
             $params['backup'] = base64_decode($request['backup']);
             return view('installation.step4', $params);
         }
-        session()->flash('error', __('Label.access_denied'));
+        session()->flash('error', __('label.access_denied'));
         return redirect()->route('step0');
     }
     public function backup_db(Request $request)
@@ -308,10 +312,10 @@ class InstallController extends Controller
                 flush();
                 readfile(storage_path() . '/app/public/database/' . $file_name);
             }
-            session()->flash('error', __('Label.access_denied'));
+            session()->flash('error', __('label.access_denied'));
             return redirect()->route('step0');
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
     public function import_sql()
@@ -323,18 +327,18 @@ class InstallController extends Controller
                 Schema::drop($table_array[key($table_array)]);
             }
 
-            $sql_path = base_path('db/dt_radio.sql');
+            $sql_path = base_path('db/dt_tube.sql');
             if (file_exists($sql_path)) {
 
                 DB::unprepared(file_get_contents($sql_path));
                 return redirect()->route('step5', ['token' => bcrypt('step_5')]);
             } else {
 
-                session()->flash('error', __('Label.database_sql_file_not_found'));
+                session()->flash('error', __('label.database_sql_file_not_found'));
                 return redirect()->route('step0');
             }
         } catch (Exception $exception) {
-            session()->flash('error', __('Label.check_your_database_permission'));
+            session()->flash('error', __('label.check_your_database_permission'));
             return back();
         }
     }
@@ -345,13 +349,13 @@ class InstallController extends Controller
         if (Hash::check('step_5', $request['token'])) {
             return view('installation.step5');
         }
-        session()->flash('error', __('Label.access_denied'));
+        session()->flash('error', __('label.access_denied'));
         return redirect()->route('step0');
     }
     public function system_settings(Request $request)
     {
         if (!Hash::check('step_5', $request['token'])) {
-            session()->flash('error', __('Label.access_denied'));
+            session()->flash('error', __('label.access_denied'));
             return redirect()->route('step0');
         }
 

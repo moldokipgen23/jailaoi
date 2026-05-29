@@ -1,5 +1,6 @@
 @extends('admin.layout.page-app')
-@section('page_title', 'System Settings')
+@section('page_title', __('label.system_settings'))
+@section('tab_title', __('label.system_settings'))
 
 @section('content')
     @include('admin.layout.sidebar')
@@ -10,13 +11,13 @@
         <div class="body-content">
 
             <!-- mobile title -->
-            <h1 class="page-title-sm">App Settings</h1>
+            <h1 class="page-title-sm">{{__('label.system_settings')}}</h1>
 
             <div class="border-bottom row mb-3">
                 <div class="col-sm-12">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('Label.Dashboard')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">System Settings</li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('label.system_settings')}}</li>
                     </ol>
                 </div>
             </div>
@@ -25,14 +26,14 @@
                 <div class="col-6">
                     <div class="card custom-border-card">
                         <a data-bs-toggle="collapse" data-bs-target="#clear_data">
-                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>Clear Cache</h5>
+                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>{{__('label.clear_cache')}}</h5>
                         </a>
 
                         <div id="clear_data" class="collapse">
                             <div class="card-body">
-                                <p>This means that the extra uploaded files, images and videos in your system will be deleted.</p>
+                                <p>{{__('label.clear_cache_notes')}}</p>
                                 <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-default mw-120" onclick="clear_data()">Clear Cache</button>
+                                    <button type="button" class="btn btn-default mw-120" onclick="clear_data()">{{__('label.clear_cache')}}</button>
                                 </div>
                             </div>
                         </div>
@@ -40,15 +41,15 @@
                 </div>
                 <div class="col-6">
                     <div class="card custom-border-card">
-                        <a data-bs-toggle="collapse" data-bs-target="#download_database">
-                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>Backup Database</h5>
+                        <a data-bs-toggle="collapse" data-bs-target="#clear_interest">
+                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>{{__('label.clear_low_interests_activity')}}</h5>
                         </a>
 
-                        <div id="download_database" class="collapse">
+                        <div id="clear_interest" class="collapse">
                             <div class="card-body">
-                                <p>Download the SQL file of the current database.</p>
+                                <p>{{__('label.clear_interests_notes')}}</p>
                                 <div class="d-flex justify-content-end">
-                                    <a href="{{ route('system.setting.downloadsqlfile') }}" onclick="return confirm('You want to download this SQL file ?')" class="btn btn-default mw-120">Download</a>
+                                    <button type="button" class="btn btn-default mw-120" onclick="clear_interests()">{{__('label.clear_interests')}}</button>
                                 </div>
                             </div>
                         </div>
@@ -56,33 +57,33 @@
                 </div>
             </div>
             <div class="row">
-                <!-- <div class="col-6">
+                <div class="col-6">
                     <div class="card custom-border-card">
-                        <a data-bs-toggle="collapse" data-bs-target="#dummy_data">
-                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>Dummy Data</h5>
+                        <a data-bs-toggle="collapse" data-bs-target="#download_database">
+                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>{{__('label.backup_database')}}</h5>
                         </a>
-
-                        <div id="dummy_data" class="collapse">
+    
+                        <div id="download_database" class="collapse">
                             <div class="card-body">
-                                <p>Add the dummy data in this database.</p>
+                                <p>{{__('label.backup_data_notes')}}</p>
                                 <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-default mw-120" onclick="dummy_data()">Insert Data</button>
+                                    <a href="{{ route('admin.systemsetting.downloadsqlfile') }}" onclick="return confirm('{{__('label.you_want_to_download_this_sql_file')}}')" class="btn btn-default mw-120">{{__('label.download')}}</a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div> -->
+                </div>
                 <div class="col-6">
                     <div class="card custom-border-card">
                         <a data-bs-toggle="collapse" data-bs-target="#clean_database">
-                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>Clean Database</h5>
+                            <h5 class="card-header"><i class="fa-solid fa-chevron-down float-right"></i>{{__('label.clean_database')}}</h5>
                         </a>
 
                         <div id="clean_database" class="collapse">
                             <div class="card-body">
-                                <p>Dalete all data in database.</p>
+                                <p>{{__('label.clean_database_notes')}}</p>
                                 <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-default mw-120" onclick="clean_database()">Clean Database</button>
+                                    <button type="button" class="btn btn-default mw-120" onclick="clean_database()">{{__('label.clean_database')}}</button>
                                 </div>
                             </div>
                         </div>
@@ -96,42 +97,11 @@
 @section('pagescript')
     <script>
         // Sidebar Scroll Down
-		sidebar_down($(document).height());
-        
+        let sidebarHeight = $('.sidebar')[0].scrollHeight;
+        sidebar_down(sidebarHeight);
+
         function clear_data() {
-
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
-
-                if (confirm('Do you confirm Clear the Data !!!')) {
-
-                    $("#dvloader").show();
-                    $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        enctype: 'multipart/form-data',
-                        type: 'POST',
-                        url: '{{ route("system.setting.cleardata") }}',
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function(resp) {
-                            $("#dvloader").hide();
-                            get_responce_message(resp, '', '{{ route("system.setting.index") }}');
-                        },
-                        error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            $("#dvloader").hide();
-                            toastr.error(errorThrown, textStatus);
-                        }
-                    });
-                }
-            } else {
-                toastr.error('You have no right to add, edit, and delete.');
-            }
-        }
-        function dummy_data() {
-            if (confirm('Do you confirm Insert the Dummy Data !!!')) {
+            if (confirm('{{__('label.do_you_confirm_clear_the_data')}}')) {
 
                 $("#dvloader").show();
                 $.ajax({
@@ -140,13 +110,13 @@
                     },
                     enctype: 'multipart/form-data',
                     type: 'POST',
-                    url: '{{ route("system.setting.dummydata") }}',
+                    url: '{{ route("admin.systemsetting.cleardata") }}',
                     cache: false,
                     contentType: false,
                     processData: false,
                     success: function(resp) {
                         $("#dvloader").hide();
-                        get_responce_message(resp, '', '{{ route("system.setting.index") }}');
+                        get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         $("#dvloader").hide();
@@ -156,11 +126,10 @@
             }
         }
         function clean_database() {
+			var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if(Demo_Mode == 1){
 
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
-
-                if (confirm('Do you confirm Clean the Database !!!')) {
+                if (confirm('{{__('label.do_you_confirm_clean_the_database')}} ')) {
 
                     $("#dvloader").show();
                     $.ajax({
@@ -169,13 +138,13 @@
                         },
                         enctype: 'multipart/form-data',
                         type: 'POST',
-                        url: '{{ route("system.setting.cleandatabase") }}',
+                        url: '{{ route("admin.systemsetting.cleandatabase") }}',
                         cache: false,
                         contentType: false,
                         processData: false,
                         success: function(resp) {
                             $("#dvloader").hide();
-                            get_responce_message(resp, '', '{{ route("system.setting.index") }}');
+                            get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             $("#dvloader").hide();
@@ -183,8 +152,33 @@
                         }
                     });
                 }
-            } else {
-                toastr.error('You have no right to add, edit, and delete.');
+			} else {
+                showError();
+            }
+        }
+        function clear_interests() {
+            if (confirm('{{__('label.do_you_confirm_clear_the_data')}}')) {
+
+                $("#dvloader").show();
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    enctype: 'multipart/form-data',
+                    type: 'POST',
+                    url: '{{ route("admin.systemsetting.clearinterests") }}',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(resp) {
+                        $("#dvloader").hide();
+                        get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#dvloader").hide();
+                        toastr.error(errorThrown, textStatus);
+                    }
+                });
             }
         }
     </script>

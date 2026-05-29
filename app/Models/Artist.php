@@ -26,18 +26,8 @@ class Artist extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function songs()
+    public function content()
     {
-        return $this->hasMany(Song::class, 'artist_id');
-    }
-
-    public function followers()
-    {
-        return $this->hasMany(Follower::class, 'artist_id');
-    }
-
-    public function followerCount()
-    {
-        return $this->followers()->count();
+        return $this->hasManyThrough(Content::class, User::class, 'id', 'channel_id', 'user_id', 'channel_id');
     }
 }

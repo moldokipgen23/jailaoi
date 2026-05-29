@@ -14,9 +14,9 @@ class Page extends Model
 
     protected $casts = [
         'id' => 'integer',
-        'page_name' => 'string',
         'title' => 'string',
         'description' => 'string',
+        'storage_type' => 'integer',
         'icon' => 'string',
         'status' => 'integer',
     ];

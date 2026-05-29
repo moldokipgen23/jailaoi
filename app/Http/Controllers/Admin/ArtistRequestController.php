@@ -100,10 +100,8 @@ class ArtistRequestController extends Controller
                 return response()->json(array('status' => 400, 'errors' => 'User not found'));
             }
 
-            // Check if artist already exists for this user
             $existingArtist = Artist::where('user_id', $user->id)->first();
             if ($existingArtist) {
-                // Just update the request status and user role
                 $artistReq->status = 'approved';
                 $artistReq->save();
                 $user->role = 'artist';
@@ -111,7 +109,6 @@ class ArtistRequestController extends Controller
                 return response()->json(array('status' => 200, 'success' => 'Artist request approved'));
             }
 
-            // Create artist record linked to user
             $artist = Artist::create([
                 'user_id' => $user->id,
                 'name' => $artistReq->artist_name,
@@ -120,12 +117,10 @@ class ArtistRequestController extends Controller
                 'status' => 1,
             ]);
 
-            // Update user role
             $user->role = 'artist';
             $user->bio = $artistReq->bio ?? $user->bio;
             $user->save();
 
-            // Update request status
             $artistReq->status = 'approved';
             $artistReq->save();
 

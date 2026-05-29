@@ -1,15 +1,17 @@
 <html lang="en">
-
     <head>
         <meta charset="utf-8">
-        <title>{{ $result->title }} || {{ app_name() }}</title>
+        <title>{{ $result['title'] }} | {{ App_Name() }}</title>
+
+        <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <style type="text/css">
             :root {
-                --title-color: {{$settings['page_title_color']}};
-                --background-color: {{$settings['page_background_color']}};
+                --title-color: {{ $settings['page_title_color'] }};
+                --background-color: {{ $settings['page_background_color'] }};
             }
             body {
+                font-family: 'Rubik', sans-serif;
                 background-color: var(--background-color);
                 margin: 0px;
             }
@@ -27,13 +29,9 @@
     </head>
 
     <body>
-
-        <p class="page-title">{{ $result->title }}</p>
-
+        <p class="page-title">{{ $result['title'] }}</p>
         <div class="description">
-            <?php echo htmlspecialchars_decode($result->description); ?>
+            <?php echo htmlspecialchars_decode($result['description']); ?>
         </div>
-        
     </body>
-
 </html>

@@ -1,5 +1,6 @@
 @extends('admin.layout.page-app')
-@section('page_title', __('Label.section'))
+@section('page_title', __('label.section'))
+@section('tab_title', __('label.section'))
 
 @section('content')
     @include('admin.layout.sidebar')
@@ -7,401 +8,350 @@
     <div class="right-content">
         @include('admin.layout.header')
 
+        <!-- Select2 -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+
         <div class="body-content">
             <!-- mobile title -->
-            <h1 class="page-title-sm"> {{__('Label.section')}} </h1>
+            <h1 class="page-title-sm">{{__('label.section')}}</h1>
 
-            <div class="border-bottom row mb-3">
+            <div class="border-bottom row">
                 <div class="col-sm-11">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('Label.dashboard')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Label.section')}}</li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('label.section')}}</li>
                     </ol>
                 </div>
-                <div class="col-sm-1 d-flex justify-content-start mb-3" title="{{__('Label.sortable')}}">
-                    <button type="button" data-toggle="modal" data-target="#sortableModal" onclick="sortableBTN()" class="btn btn-default" style="border-radius: 10px;">
-                        <i class="fa-solid fa-sort fa-1x"></i>
+                <div class="col-sm-1 d-flex justify-content-start mb-3">
+                    <button type="button" data-toggle="modal" data-target="#sortOrderModal" onclick="sortOrderBTN()" class="btn btn-default" style="border-radius: 10px;">
+                        <i class="fa-solid fa-arrow-up-wide-short fa-1x"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="card custom-border-card mt-3">
-                <h5 class="card-header">{{__('Label.add_section')}}</h5>
-                <div class="card-body">
-                    <form id="section" enctype="multipart/form-data">
-                        <input type="hidden" name="id" value="">
-                        <div class="form-row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>{{__('Label.Title')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="title" class="form-control" placeholder="{{__('Label.enter_section_title')}}" autofocus>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>{{__('Label.sub_title')}}</label>
-                                    <input type="text" name="sub_title" class="form-control" placeholder="{{__('Label.enter_section_sub_title')}}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>{{__('Label.Type')}}<span class="text-danger">*</span></label>
-                                    <select name="type" class="form-control" id="type">
-                                        <option value="">{{__('Label.select_type')}}</option>
-                                        <option value="1">{{__('Label.radio_station')}}</option>
-                                        <option value="2">{{__('Label.poadcast')}}</option>
-                                        <option value="3">{{__('Label.live_event')}}</option>
-                                        <option value="4">{{__('Label.Artist')}}</option>
-                                        <option value="5">{{__('Label.Category')}}</option>
-                                        <option value="6">{{__('Label.Language')}}</option>
-                                        <option value="7">{{__('Label.City')}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 screen_layout">
-                                <div class="form-group">
-                                    <label>{{__('Label.screen_layout')}}<span class="text-danger">*</span></label>
-                                    <select name="screen_layout" class="form-control" id="screen_layout">
-                                        <option value="">{{__('Label.select_screen_layout')}}</option>
-                                        <option value="landscape">{{__('Label.landscape')}}</option>
-                                        <option value="portrait">{{__('Label.portrait')}}</option>
-                                        <option value="sqaure">{{__('Label.sqaure')}}</option>
-                                        <option value="live_event">{{__('Label.live_event')}}</option>
-                                        <option value="artist">{{__('Label.Artist')}}</option>
-                                        <option value="category">{{__('Label.Category')}}</option>
-                                        <option value="language">{{__('Label.Language')}}</option>
-                                        <option value="city">{{__('Label.City')}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 artist_drop">
-                                <div class="form-group ">
-                                    <label>{{__('Label.Artist')}}<span class="text-danger">*</span></label>
-                                    <select class="form-control" style="width:100%!important;" name="artist_id" id="artist_id">
-                                        <option value="0">{{__('Label.all_artist')}}</option>
-                                        @foreach ($artist as $key => $value)
-                                        <option value="{{ $value->id}}">
-                                            {{ $value->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 category_drop">
-                                <div class="form-group ">
-                                    <label>{{__('Label.Category')}}<span class="text-danger">*</span></label>
-                                    <select class="form-control" style="width:100%!important;" name="category_id" id="category_id">
-                                        <option value="0">{{__('Label.all_category')}}</option>
-                                        @foreach ($category as $key => $value)
-                                        <option value="{{ $value->id}}">
-                                            {{ $value->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 language_drop">
-                                <div class="form-group ">
-                                    <label>{{__('Label.Language')}}<span class="text-danger">*</span></label>
-                                    <select class="form-control" style="width:100%!important;" name="language_id" id="language_id">
-                                        <option value="0">{{__('Label.all_language')}}</option>
-                                        @foreach ($language as $key => $value)
-                                        <option value="{{ $value->id}}">
-                                            {{ $value->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 city_drop">
-                                <div class="form-group ">
-                                    <label>{{__('Label.City')}}<span class="text-danger">*</span></label>
-                                    <select class="form-control" style="width:100%!important;" name="city_id" id="city_id">
-                                        <option value="0">{{__('Label.all_city')}}</option>
-                                        @foreach ($city as $key => $value)
-                                        <option value="{{ $value->id}}">
-                                            {{ $value->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3 no_of_content">
-                                <div class="form-group">
-                                    <label>{{__('Label.no_of_content')}}<span class="text-danger">*</span></label>
-                                    <input type="number" name="no_of_content" class="form-control" placeholder="{{__('Label.enter_no_of_content')}}">
-                                </div>
-                            </div>
-                            <div class="col-md-2 view_all">
-                                <div class="form-group ml-1">
-                                    <label>{{__('Label.view_all')}}<span class="text-danger">*</span></label>
-                                    <div class="radio-group">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="view_all" id="view_all_yes" class="custom-control-input" value="1">
-                                            <label class="custom-control-label" for="view_all_yes">{{__('Label.Yes')}}</label>
+            <ul class="tabs nav nav-pills custom-tabs inline-tabs " id="pills-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="app-tab" onclick="Top_Content('1', '0')" data-is_home_screen="1" data-content_type="0" data-toggle="pill" href="#app" role="tab" aria-controls="home" aria-selected="true">{{__('label.home')}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="music-tab" onclick="Top_Content('2', '1')" data-is_home_screen="2" data-content_type="1" data-toggle="pill" href="#music" role="tab" aria-controls="music" aria-selected="true">{{__('label.music')}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="radio-tab" onclick="Top_Content('2', '3')" data-is_home_screen="2" data-content_type="3" data-toggle="pill" href="#radio" role="tab" aria-controls="radio" aria-selected="true">{{__('label.radio')}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="podcasts-tab" onclick="Top_Content('2', '2')" data-is_home_screen="2" data-content_type="2" data-toggle="pill" href="#podcasts" role="tab" aria-controls="podcasts" aria-selected="true">{{__('label.podcasts')}}</a>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="app" role="tabpanel" aria-labelledby="app-tab">
+                    <div class="card custom-border-card">
+                        <h5 class="card-header">{{__('label.add_section')}}</h5>
+                        <div class="card-body">
+                            <form id="save_section" enctype="multipart/form-data">
+                                <input type="hidden" name="id" value="">
+                                <input type="hidden" name="is_home_screen" id="is_home_screen" value="">
+                                <div class="form-row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>{{__('label.title')}}<span class="text-danger">*</span></label>
+                                            <input type="text" name="title" class="form-control" placeholder="{{__('label.title_here')}}" autofocus>
                                         </div>
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="view_all" id="view_all_no" class="custom-control-input" value="0" checked>
-                                            <label class="custom-control-label" for="view_all_no">{{__('Label.No')}}</label>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>{{__('label.short_title')}}<span class="text-danger">*</span></label>
+                                            <input type="text" name="short_title" class="form-control" placeholder="{{__('label.short_title_here')}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 content_type_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.content_type')}}<span class="text-danger">*</span></label>
+                                            <select name="content_type" class="form-control" id="content_type">
+                                                <option value="">{{__('label.select_type')}}</option>
+                                                <option value="1">{{__('label.music')}}</option>
+                                                <option value="2">{{__('label.podcasts')}}</option>
+                                                <option value="3">{{__('label.radio')}}</option>
+                                                <option value="4">{{__('label.playlist')}}</option>
+                                                <option value="5">{{__('label.category')}}</option>
+                                                <option value="6">{{__('label.language')}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 screen_layout_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.screen_layout')}}<span class="text-danger">*</span></label>
+                                            <select name="screen_layout" class="form-control" id="screen_layout">
+                                                <option value="">{{__('label.select_screen_layout')}}</option>
+                                                <option value="list_view">{{__('label.list_view')}}</option>
+                                                <option value="portrait">{{__('label.portrait')}}</option>
+                                                <option value="landscape">{{__('label.landscape')}}</option>
+                                                <option value="square">{{__('label.square')}}</option>
+                                                <option value="playlist">{{__('label.playlist')}}</option>
+                                                <option value="category">{{__('label.category')}}</option>
+                                                <option value="language">{{__('label.language')}}</option>
+                                                <option value="round">{{__('label.round')}}</option>
+                                                <option value="banner_view">{{__('label.banner_view')}}</option>
+                                                <option value="podcast_list_view">{{__('label.podcast_list_view')}}</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-2 is_premium">
-                                <div class="form-group  ml-1">
-                                    <label>{{__('Label.is_premium')}}<span class="text-danger">*</span></label>
-                                    <div class="radio-group">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="is_premium" id="is_premium_yes" class="custom-control-input" value="1">
-                                            <label class="custom-control-label" for="is_premium_yes">{{__('Label.Yes')}}</label>
+                                <div class="form-row">
+                                    <div class="col-md-3 category_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.category')}}<span class="text-danger">*</span></label>
+                                            <select name="category_id" class="form-control" id="category_id">
+                                                <option value="0">{{__('label.all_category')}}</option>
+                                                @for ($i = 0; $i < count($category); $i++) 
+                                                <option value="{{ $category[$i]['id'] }}">
+                                                    {{ $category[$i]['name'] }}
+                                                </option>
+                                                @endfor
+                                            </select>
                                         </div>
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="is_premium" id="is_premium_no" class="custom-control-input" value="0" checked>
-                                            <label class="custom-control-label" for="is_premium_no">{{__('Label.No')}}</label>
+                                    </div>
+                                    <div class="col-md-3 language_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.language')}}<span class="text-danger">*</span></label>
+                                            <select name="language_id" class="form-control" id="language_id">
+                                                <option value="0">{{__('label.all_language')}}</option>
+                                                @for ($i = 0; $i < count($language); $i++) 
+                                                <option value="{{ $language[$i]['id'] }}">
+                                                    {{ $language[$i]['name'] }}
+                                                </option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 no_of_content_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.no_of_content')}}<span class="text-danger">*</span></label>
+                                            <input type="number" name="no_of_content" min="1" value="1" class="form-control" placeholder="{{__('label.no_of_content_here')}}">
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-2 order_by_upload">
-                                <div class="form-group  ml-1">
-                                    <label>{{__('Label.order_by_upload')}}<span class="text-danger">*</span></label>
-                                    <div class="radio-group">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="order_by_upload" id="order_by_upload_asc" class="custom-control-input" value="0">
-                                            <label class="custom-control-label" for="order_by_upload_asc">{{__('Label.asc')}}</label>
+                                <div class="form-row">
+                                    <div class="col-md-3 order_by_upload_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_upload')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_upload" id="order_by_upload_asc" class="custom-control-input" value="1">
+                                                    <label class="custom-control-label" for="order_by_upload_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_upload" id="order_by_upload_desc" class="custom-control-input" value="2" checked>
+                                                    <label class="custom-control-label" for="order_by_upload_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="order_by_upload" id="order_by_upload_desc" class="custom-control-input" value="1" checked>
-                                            <label class="custom-control-label" for="order_by_upload_desc">{{__('Label.desc')}}</label>
+                                    </div>
+                                    <div class="col-md-3 order_by_view_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_view')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_view" id="order_by_view_asc" class="custom-control-input" value="1">
+                                                    <label class="custom-control-label" for="order_by_view_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_view" id="order_by_view_desc" class="custom-control-input" value="2" checked>
+                                                    <label class="custom-control-label" for="order_by_view_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 order_by_like_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_like')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_like" id="order_by_like_asc" class="custom-control-input" value="1">
+                                                    <label class="custom-control-label" for="order_by_like_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_like" id="order_by_like_desc" class="custom-control-input" value="2" checked>
+                                                    <label class="custom-control-label" for="order_by_like_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 view_all_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.view_all')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="view_all" id="view_all_yes" class="custom-control-input" value="1" checked>
+                                                    <label class="custom-control-label" for="view_all_yes">{{__('label.yes')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="view_all" id="view_all_no" class="custom-control-input" value="0">
+                                                    <label class="custom-control-label" for="view_all_no">{{__('label.no')}}</label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-2 order_by_play">
-                                <div class="form-group  ml-3">
-                                    <label>{{__('Label.order_by_play')}}<span class="text-danger">*</span></label>
-                                    <div class="radio-group">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="order_by_play" id="order_by_play_asc" class="custom-control-input" value="0">
-                                            <label class="custom-control-label" for="order_by_play_asc">{{__('Label.asc')}}</label>
-                                        </div>
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="order_by_play" id="order_by_play_desc" class="custom-control-input" value="1" checked>
-                                            <label class="custom-control-label" for="order_by_play_desc">{{__('Label.desc')}}</label>
-                                        </div>
-                                    </div>
+                                <div class="border-top pt-3 text-right">
+                                    <button type="button" class="btn btn-default mw-120" onclick="save_section(Is_home_screen, Content_type)">{{__('label.save')}}</button>
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                 </div>
-                            </div>
-                            <div class="col-md-2 is_paid">
-                                <div class="form-group  ml-4">
-                                    <label>{{__('Label.is_paid')}}<span class="text-danger">*</span></label>
-                                    <div class="radio-group">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="is_paid" id="is_paid_yes" class="custom-control-input" value="1">
-                                            <label class="custom-control-label" for="is_paid_yes">{{__('Label.Yes')}}</label>
-                                        </div>
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" name="is_paid" id="is_paid_no" class="custom-control-input" value="0" checked>
-                                            <label class="custom-control-label" for="is_paid_no">{{__('Label.No')}}</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            </form>
                         </div>
-                        <div class="border-top pt-3 text-right">
-                            <button type="button" class="btn btn-default mw-120" onclick="save_section()">{{__('Label.SAVE')}}</button>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        </div>
-                    </form>
+                    </div>
+                    <div class="after-add-more"></div>
                 </div>
             </div>
-            <div class="after-add-more"></div>
 
-            <!-- edit section -->
-            <div class="modal fade" id="editsectioneModal" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="editsectioneModalLabel" aria-hidden="true">
+            <!-- Modal -->
+            <div class="modal fade" id="updateModal" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editsectioneModalLabel">{{__('Label.edit_section')}}</h5>
+                            <h5 class="modal-title" id="updateModalLabel">{{__('label.edit_section')}}</h5>
                             <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <form id="edit_content_section" enctype="multipart/form-data">
+                        <form id="edit_section" enctype="multipart/form-data">
                             <div class="modal-body">
                                 <input type="hidden" name="id" id="edit_id" value="">
+                                <input type="hidden" name="is_home_screen" id="edit_is_home_screen" value="">
                                 <div class="form-row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>{{__('Label.Title')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="title" id="edit_title" class="form-control" placeholder="{{__('Label.enter_section_title')}}" autofocus>
+                                            <label>{{__('label.title')}}<span class="text-danger">*</span></label>
+                                            <input type="text" name="title" id="edit_title" class="form-control" placeholder="{{__('label.title_here')}}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>{{__('Label.sub_title')}}</label>
-                                            <input type="text" name="sub_title" id="edit_sub_title" class="form-control" placeholder="{{__('Label.enter_section_sub_title')}}">
+                                            <label>{{__('label.short_title')}}<span class="text-danger">*</span></label>
+                                            <input type="text" name="short_title" id="edit_short_title" class="form-control" placeholder="{{__('label.short_title_here')}}">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 edit_content_type_drop">
                                         <div class="form-group">
-                                            <label>{{__('Label.Type')}}<span class="text-danger">*</span></label>
-                                            <select name="type" class="form-control" id="edit_type">
-                                            <option value="1">{{__('Label.radio_station')}}</option>
-                                            <option value="2">{{__('Label.poadcast')}}</option>
-                                            <option value="3">{{__('Label.live_event')}}</option>
-                                            <option value="4">{{__('Label.Artist')}}</option>
-                                            <option value="5">{{__('Label.Category')}}</option>
-                                            <option value="6">{{__('Label.Language')}}</option>
-                                            <option value="7">{{__('Label.City')}}</option>
+                                            <label>{{__('label.content_type')}}<span class="text-danger">*</span></label>
+                                            <select name="content_type" class="form-control" id="edit_content_type">
+                                                <option value="">{{__('label.select_type')}}</option>
+                                                <option value="1">{{__('label.music')}}</option>
+                                                <option value="2">{{__('label.podcasts')}}</option>
+                                                <option value="3">{{__('label.radio')}}</option>
+                                                <option value="4">{{__('label.playlist')}}</option>
+                                                <option value="5">{{__('label.category')}}</option>
+                                                <option value="6">{{__('label.language')}}</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 edit_screen_layout">
+                                    <div class="col-md-6 edit_screen_layout_drop">
                                         <div class="form-group">
-                                            <label>{{__('Label.screen_layout')}}<span class="text-danger">*</span></label>
+                                            <label>{{__('label.screen_layout')}}<span class="text-danger">*</span></label>
                                             <select name="screen_layout" class="form-control" id="edit_screen_layout">
-                                                <option value="">{{__('Label.select_screen_layout')}}</option>
-                                                <option value="landscape">{{__('Label.landscape')}}</option>
-                                                <option value="portrait">{{__('Label.portrait')}}</option>
-                                                <option value="sqaure">{{__('Label.sqaure')}}</option>
-                                                <option value="live_event">{{__('Label.live_event')}}</option>
-                                                <option value="artist">{{__('Label.Artist')}}</option>
-                                                <option value="category">{{__('Label.Category')}}</option>
-                                                <option value="language">{{__('Label.Language')}}</option>
-                                                <option value="city">{{__('Label.City')}}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 edit_artist_drop">
-                                        <div class="form-group ">
-                                            <label>{{__('Label.Artist')}}<span class="text-danger">*</span></label>
-                                            <select class="form-control" style="width:100%!important;" name="artist_id" id="edit_artist_id">
-                                                <option value="0">{{__('Label.all_artist')}}</option>
-                                                @foreach ($artist as $key => $value)
-                                                <option value="{{ $value->id}}">
-                                                    {{ $value->name }}
-                                                </option>
-                                                @endforeach
+                                                <option value="">{{__('label.select_screen_layout')}}</option>
+                                                <option value="list_view">{{__('label.list_view')}}</option>
+                                                <option value="portrait">{{__('label.portrait')}}</option>
+                                                <option value="square">{{__('label.square')}}</option>
+                                                <option value="playlist">{{__('label.playlist')}}</option>
+                                                <option value="category">{{__('label.category')}}</option>
+                                                <option value="language">{{__('label.language')}}</option>
+                                                <option value="round">{{__('label.round')}}</option>
+                                                <option value="banner_view">{{__('label.banner_view')}}</option>
+                                                <option value="landscape">{{__('label.landscape')}}</option>
+                                                <option value="podcast_list_view">{{__('label.podcast_list_view')}}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6 edit_category_drop">
-                                        <div class="form-group ">
-                                            <label>{{__('Label.Category')}}<span class="text-danger">*</span></label>
-                                            <select class="form-control" style="width:100%!important;" name="category_id" id="edit_category_id">
-                                                <option value="0">{{__('Label.all_category')}}</option>
-                                                @foreach ($category as $key => $value)
-                                                <option value="{{ $value->id}}">
-                                                    {{ $value->name }}
+                                        <div class="form-group">
+                                            <label>{{__('label.category')}}<span class="text-danger">*</span></label>
+                                            <select name="category_id" class="form-control" id="edit_category_id" style="width:100%!important;">
+                                                <option value="0">{{__('label.all_category')}}</option>
+                                                @for ($i = 0; $i < count($category); $i++) 
+                                                <option value="{{ $category[$i]['id'] }}">
+                                                    {{ $category[$i]['name'] }}
                                                 </option>
-                                                @endforeach
+                                                @endfor
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6 edit_language_drop">
-                                        <div class="form-group ">
-                                            <label>{{__('Label.Language')}}<span class="text-danger">*</span></label>
-                                            <select class="form-control" style="width:100%!important;" name="language_id" id="edit_language_id">
-                                                <option value="0">{{__('Label.all_language')}}</option>
-                                                @foreach ($language as $key => $value)
-                                                <option value="{{ $value->id}}">
-                                                    {{ $value->name }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 edit_city_drop">
-                                        <div class="form-group ">
-                                            <label>{{__('Label.City')}}<span class="text-danger">*</span></label>
-                                            <select class="form-control" style="width:100%!important;" name="city_id" id="edit_city_id">
-                                                <option value="0">{{__('Label.all_city')}}</option>
-                                                @foreach ($city as $key => $value)
-                                                <option value="{{ $value->id}}">
-                                                    {{ $value->name }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 edit_no_of_content">
                                         <div class="form-group">
-                                            <label>{{__('Label.no_of_content')}}<span class="text-danger">*</span></label>
-                                            <input type="number" name="no_of_content" id="edit_no_of_content" class="form-control" placeholder="{{__('Label.enter_no_of_content')}}">
+                                            <label>{{__('label.language')}}<span class="text-danger">*</span></label>
+                                            <select name="language_id" class="form-control" id="edit_language_id" style="width:100%!important;">
+                                                <option value="0">{{__('label.all_language')}}</option>
+                                                @for ($i = 0; $i < count($language); $i++) 
+                                                <option value="{{ $language[$i]['id'] }}">
+                                                    {{ $language[$i]['name'] }}
+                                                </option>
+                                                @endfor
+                                            </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 edit_view_all">
-                                        <div class="form-group ml-1">
-                                            <label>{{__('Label.view_all')}}<span class="text-danger">*</span></label>
+                                    <div class="col-md-6 edit_no_of_content_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.no_of_content')}}<span class="text-danger">*</span></label>
+                                            <input type="number" name="no_of_content" min="1" id="edit_no_of_content" class="form-control" placeholder="{{__('label.no_of_content_here')}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 edit_order_by_upload_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_upload')}}<span class="text-danger">*</span></label>
                                             <div class="radio-group">
                                                 <div class="custom-control custom-radio">
-                                                    <input type="radio" name="view_all" id="edit_view_all_yes" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="edit_view_all_yes">{{__('Label.Yes')}}</label>
+                                                    <input type="radio" name="order_by_upload" id="edit_order_by_upload_asc" class="custom-control-input" value="1" checked>
+                                                    <label class="custom-control-label" for="edit_order_by_upload_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_upload" id="edit_order_by_upload_desc" class="custom-control-input" value="2">
+                                                    <label class="custom-control-label" for="edit_order_by_upload_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 edit_order_by_view_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_view')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_view" id="edit_order_by_view_asc" class="custom-control-input" value="1" checked>
+                                                    <label class="custom-control-label" for="edit_order_by_view_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_view" id="edit_order_by_view_desc" class="custom-control-input" value="2">
+                                                    <label class="custom-control-label" for="edit_order_by_view_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 edit_order_by_like_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.order_by_like')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_like" id="edit_order_by_like_asc" class="custom-control-input" value="1" checked>
+                                                    <label class="custom-control-label" for="edit_order_by_like_asc">{{__('label.asc')}}</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="order_by_like" id="edit_order_by_like_desc" class="custom-control-input" value="2">
+                                                    <label class="custom-control-label" for="edit_order_by_like_desc">{{__('label.desc')}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 edit_view_all_drop">
+                                        <div class="form-group">
+                                            <label>{{__('label.view_all')}}<span class="text-danger">*</span></label>
+                                            <div class="radio-group">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" name="view_all" id="edit_view_all_yes" class="custom-control-input" value="1" checked>
+                                                    <label class="custom-control-label" for="edit_view_all_yes">{{__('label.yes')}}</label>
                                                 </div>
                                                 <div class="custom-control custom-radio">
                                                     <input type="radio" name="view_all" id="edit_view_all_no" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="edit_view_all_no">{{__('Label.No')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 edit_is_premium">
-                                        <div class="form-group  ml-1">
-                                            <label>{{__('Label.is_premium')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="is_premium" id="edit_is_premium_yes" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="edit_is_premium_yes">{{__('Label.Yes')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="is_premium" id="edit_is_premium_no" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="edit_is_premium_no">{{__('Label.No')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 edit_order_by_upload">
-                                        <div class="form-group  ml-1">
-                                            <label>{{__('Label.order_by_upload')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="order_by_upload" id="edit_order_by_upload_asc" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="edit_order_by_upload_asc">{{__('Label.asc')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="order_by_upload" id="edit_order_by_upload_desc" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="edit_order_by_upload_desc">{{__('Label.desc')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 edit_order_by_play">
-                                        <div class="form-group  ml-1">
-                                            <label>{{__('Label.order_by_play')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="order_by_play" id="edit_order_by_play_asc" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="edit_order_by_play_asc">{{__('Label.asc')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="order_by_play" id="edit_order_by_play_desc" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="edit_order_by_play_desc">{{__('Label.desc')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 edit_is_paid">
-                                        <div class="form-group  ml-1">
-                                            <label>{{__('Label.is_paid')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="is_paid" id="edit_is_paid_yes" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="edit_is_paid_yes">{{__('Label.Yes')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" name="is_paid" id="edit_is_paid_no" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="edit_is_paid_no">{{__('Label.No')}}</label>
+                                                    <label class="custom-control-label" for="edit_view_all_no">{{__('label.no')}}</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -409,8 +359,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-default mw-120" onclick="update_section()">{{__('Label.UPDATE')}}</button>
-                                <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('Label.CLOSE')}}</button>
+                                <button type="button" class="btn btn-default mw-120" onclick="update_section()">{{__('label.update')}}</button>
+                                <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.close')}}</button>
                                 <input type="hidden" name="_method" value="PATCH">
                             </div>
                         </form>
@@ -418,27 +368,27 @@
                 </div>
             </div>
 
-            <!-- sortableModal -->
-            <div class="modal fade" id="sortableModal" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="sortableModalLabel" aria-hidden="true">
+            <!-- sortOrder Modal -->
+            <div class="modal fade" id="sortOrderModal" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="sortOrderModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title w-100 text-center" id="sortableModalLabel">{{__('Label.section_sortable_list')}}</h5>
+                            <h5 class="modal-title w-100 text-center" id="sortOrderModalLabel">{{__('label.section_sort_order_list')}}</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close">
                                 <span aria-hidden="true" class="text-dark">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            <div id="imageListId">
-
+                            <div id="contentListId">
+                                
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
-                            <form enctype="multipart/form-data" id="save_section_sortable">
+                            <form enctype="multipart/form-data" id="save_section_sortorder">
                                 @csrf
                                 <input id="outputvalues" type="hidden" name="ids" value="" />
                                 <div class="w-100 text-center">
-                                    <button type="button" class="btn btn-default mw-120" onclick="save_section_sortable()">{{__('Label.SAVE')}}</button>
+                                    <button type="button" class="btn btn-default mw-120" onclick="save_section_sortorder()">{{__('label.save')}}</button>
                                 </div>
                             </form>
                         </div>
@@ -450,201 +400,178 @@
 @endsection
 
 @section('pagescript')
+    <!-- Select2 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <!-- Sort Order -->
+    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
     <script>
-        $('#artist_id').select2();
-        $('#category_id').select2();
-        $('#language_id').select2();
-        $('#city_id').select2();
-        $('#edit_artist_id').select2({
-            dropdownParent: $('#editsectioneModal') 
-        });
-        $('#edit_category_id').select2({
-            dropdownParent: $('#editsectioneModal') 
-        });
-        $('#edit_language_id').select2({
-            dropdownParent: $('#editsectioneModal') 
-        });
-        $('#edit_city_id').select2({
-            dropdownParent: $('#editsectioneModal') 
-        });
+        $("#language_id").select2();
+        $("#category_id").select2();
+        $("#edit_language_id").select2();
+        $("#edit_category_id").select2();
 
-        $(document).ready(function() {
+        $(".category_drop").hide();
+        $(".language_drop").hide();
+        $(".no_of_content_drop").hide();
+        $(".order_by_upload_drop").hide();
+        $(".order_by_view_drop").hide();
+        $(".order_by_like_drop").hide();
+        $(".view_all_drop").hide();
+        $(".screen_layout_drop").hide();
 
-            $(".screen_layout").hide();
-            $(".artist_drop").hide();
-            $(".category_drop").hide();
-            $(".language_drop").hide();
-            $(".city_drop").hide();
-            $(".no_of_content").hide();
-            $(".view_all").hide();
-            $(".is_premium").hide();
-            $(".order_by_upload").hide();
-            $(".order_by_play").hide();
-            $(".is_paid").hide();
+        var Tab = $("ul.tabs li a.active");
+        var Is_home_screen = Tab.data("is_home_screen");
+        var Content_type = 0;
+        $("#is_home_screen").val(Is_home_screen);
 
+        $("#content_type").change(function() {
 
-            $('#type').change(function() {
+            var content_type = $(this).children("option:selected").val();
+            if(content_type == 1 || content_type == 2){
 
-                var optionValue = $(this).val();
+                $(".category_drop").show();
+                $(".language_drop").show();
+                $(".no_of_content_drop").show();
+                $(".order_by_upload_drop").show();
+                $(".order_by_view_drop").show();
+                $(".order_by_like_drop").show();
+                $(".view_all_drop").show();
 
-                if (optionValue == 1) {
-
-                    $(".is_paid").hide();
-
-                    $(".screen_layout").show();
-                    $("#screen_layout").children().removeAttr("selected");
-                    $("#screen_layout option[value='landscape']").show();
+                $(".screen_layout_drop").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='playlist']").hide();
+                $("#screen_layout option[value='round']").hide();
+                $("#screen_layout option[value='category']").hide();
+                $("#screen_layout option[value='language']").hide();
+                if(content_type == 1){
+                    $("#screen_layout option[value='list_view']").show();
                     $("#screen_layout option[value='portrait']").show();
-                    $("#screen_layout option[value='sqaure']").show();
-                    $("#screen_layout option[value='live_event']").hide();
-                    $("#screen_layout option[value='artist']").hide();
-                    $("#screen_layout option[value='category']").hide();
-                    $("#screen_layout option[value='language']").hide();
-                    $("#screen_layout option[value='city']").hide();
-
-                    $(".artist_drop").show();
-                    $(".category_drop").show();
-                    $(".language_drop").show();
-                    $(".city_drop").show();
-                    $(".no_of_content").show();
-                    $(".view_all").show();
-                    $(".order_by_upload").show();
-                    $(".order_by_play").show();
-                    $(".is_premium").show();
-                } else if (optionValue == 2){
-
-                    $(".artist_drop").hide();
-                    $(".city_drop").hide();
-                    $(".is_paid").hide();
-
-                    $(".screen_layout").show();
-                    $("#screen_layout").children().removeAttr("selected");
-                    $("#screen_layout option[value='landscape']").show();
-                    $("#screen_layout option[value='portrait']").show();
-                    $("#screen_layout option[value='sqaure']").show();
-                    $("#screen_layout option[value='live_event']").hide();
-                    $("#screen_layout option[value='artist']").hide();
-                    $("#screen_layout option[value='category']").hide();
-                    $("#screen_layout option[value='language']").hide();
-                    $("#screen_layout option[value='city']").hide();
-
-                    $(".category_drop").show();
-                    $(".language_drop").show();
-                    $(".no_of_content").show();
-                    $(".view_all").show();
-                    $(".order_by_upload").show();
-                    $(".order_by_play").show();
-                    $(".is_premium").show();
-                } else if (optionValue == 3 || optionValue == 4 || optionValue == 5 || optionValue == 6 || optionValue == 7){
-
-                    $(".artist_drop").hide();
-                    $(".city_drop").hide();
-                    $(".category_drop").hide();
-                    $(".language_drop").hide();
-                    $(".order_by_upload").hide();
-                    $(".order_by_play").hide();
-                    $(".is_premium").hide();
-
-                    $(".screen_layout").show();
-                    $("#screen_layout").children().removeAttr("selected");
+                    $("#screen_layout option[value='square']").show();
+                    $("#screen_layout option[value='banner_view']").hide();
                     $("#screen_layout option[value='landscape']").hide();
-                    $("#screen_layout option[value='portrait']").hide();
-                    $("#screen_layout option[value='sqaure']").hide();
-                    
-                    if(optionValue == 3){
-
-                        $("#screen_layout option[value='live_event']").show();
-                        $("#screen_layout option[value='artist']").hide();
-                        $("#screen_layout option[value='category']").hide();
-                        $("#screen_layout option[value='language']").hide();
-                        $("#screen_layout option[value='city']").hide();
-
-                        $(".no_of_content").show();
-                        $(".view_all").show();
-                        $(".is_paid").show();  
-                    } else if (optionValue == 4){
-
-                        $("#screen_layout option[value='live_event']").hide();
-                        $("#screen_layout option[value='artist']").show();
-                        $("#screen_layout option[value='category']").hide();
-                        $("#screen_layout option[value='language']").hide();
-                        $("#screen_layout option[value='city']").hide();
-
-                        $(".no_of_content").show();
-                        $(".order_by_upload").show();
-                        $(".view_all").show();
-                        $(".is_paid").hide();  
-                    } else if (optionValue == 5){
-
-                        $("#screen_layout option[value='live_event']").hide();
-                        $("#screen_layout option[value='artist']").hide();
-                        $("#screen_layout option[value='category']").show();
-                        $("#screen_layout option[value='language']").hide();
-                        $("#screen_layout option[value='city']").hide();
-
-                        $(".no_of_content").show();
-                        $(".order_by_upload").show();
-                        $(".view_all").show();
-                        $(".is_paid").hide();  
-                    } else if (optionValue == 6){
-
-                        $("#screen_layout option[value='live_event']").hide();
-                        $("#screen_layout option[value='artist']").hide();
-                        $("#screen_layout option[value='category']").hide();
-                        $("#screen_layout option[value='language']").show();
-                        $("#screen_layout option[value='city']").hide();
-
-                        $(".no_of_content").show();
-                        $(".order_by_upload").show();
-                        $(".view_all").show();
-                        $(".is_paid").hide();  
-                    } else if (optionValue == 7){
-
-                        $("#screen_layout option[value='live_event']").hide();
-                        $("#screen_layout option[value='artist']").hide();
-                        $("#screen_layout option[value='category']").hide();
-                        $("#screen_layout option[value='language']").hide();
-                        $("#screen_layout option[value='city']").show();
-
-                        $(".no_of_content").show();
-                        $(".order_by_upload").show();
-                        $(".view_all").show();
-                        $(".is_paid").hide();  
-                    }
+                    $("#screen_layout option[value='podcast_list_view']").hide();
                 } else {
-
-                    $(".screen_layout").hide();
-                    $(".artist_drop").hide();
-                    $(".category_drop").hide();
-                    $(".language_drop").hide();
-                    $(".city_drop").hide();
-                    $(".no_of_content").hide();
-                    $(".view_all").hide();
-                    $(".is_premium").hide();
-                    $(".order_by_upload").hide();
-                    $(".order_by_play").hide();
-                    $(".is_paid").hide();
+                    $("#screen_layout option[value='list_view']").hide();
+                    $("#screen_layout option[value='portrait']").hide();
+                    $("#screen_layout option[value='square']").hide();
+                    $("#screen_layout option[value='banner_view']").show();
+                    $("#screen_layout option[value='landscape']").show();
+                    $("#screen_layout option[value='podcast_list_view']").show();
                 }
-            });
+            } else if(content_type == 3){
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").show();
+                $(".order_by_upload_drop").show();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").show();
+
+                $(".screen_layout_drop").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='list_view']").hide();
+                $("#screen_layout option[value='portrait']").hide();
+                $("#screen_layout option[value='square']").show();
+                $("#screen_layout option[value='playlist']").hide();
+                $("#screen_layout option[value='category']").hide();
+                $("#screen_layout option[value='language']").hide();
+                $("#screen_layout option[value='round']").show();
+                $("#screen_layout option[value='banner_view']").hide();
+                $("#screen_layout option[value='landscape']").hide();
+                $("#screen_layout option[value='podcast_list_view']").hide();
+
+            } else if(content_type == 4){
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").show();
+                $(".order_by_upload_drop").show();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").show();
+
+                $(".screen_layout_drop").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='list_view']").hide();
+                $("#screen_layout option[value='portrait']").hide();
+                $("#screen_layout option[value='square']").hide();
+                $("#screen_layout option[value='playlist']").show();
+                $("#screen_layout option[value='category']").hide();
+                $("#screen_layout option[value='language']").hide();
+                $("#screen_layout option[value='round']").hide();
+                $("#screen_layout option[value='banner_view']").hide();
+                $("#screen_layout option[value='landscape']").hide();
+                $("#screen_layout option[value='podcast_list_view']").hide();
+            } else if(content_type == 5 || content_type == 6){
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").hide();
+                $(".order_by_upload_drop").hide();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").hide();
+
+                $(".screen_layout_drop").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='list_view']").hide();
+                $("#screen_layout option[value='portrait']").hide();
+                $("#screen_layout option[value='square']").hide();
+                $("#screen_layout option[value='playlist']").hide();
+                if(content_type == 5){
+                    $("#screen_layout option[value='category']").show();
+                    $("#screen_layout option[value='language']").hide();
+                } else {
+                    $("#screen_layout option[value='category']").hide();
+                    $("#screen_layout option[value='language']").show();
+                }
+                $("#screen_layout option[value='round']").hide();
+                $("#screen_layout option[value='banner_view']").hide();
+                $("#screen_layout option[value='landscape']").hide();
+                $("#screen_layout option[value='podcast_list_view']").hide();
+            } else {
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").hide();
+                $(".order_by_upload_drop").hide();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").hide();
+                $(".screen_layout_drop").hide();
+            }
         });
 
-        // section save
-        function save_section() {
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
+        // Save Section
+        function save_section(is_home_screen, content_type){
+
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
 
                 $("#dvloader").show();
-                var formData = new FormData($("#section")[0]);
+                var formData = new FormData($("#save_section")[0]);
+                formData.append('is_home_screen', is_home_screen);
+                if(is_home_screen == 2){
+
+                    var ContentType = content_type;
+                    if(content_type == 1){
+                        var ContentType = $('#content_type').find(":selected").val();
+                    }
+                    formData.append('content_type', ContentType);
+                }
+
                 $.ajax({
-                    type: 'POST',
-                    url: '{{ route("section.store") }}',
-                    data: formData,
-                    cache: false,
+                    type:'POST',
+                    url:'{{ route("admin.section.store") }}',
+                    data:formData,
+                    cache:false,
                     contentType: false,
                     processData: false,
-                    success: function(resp) {
+                    success:function(resp){
                         $("#dvloader").hide();
-                        get_responce_message(resp, 'section', '{{ route("section.index") }}');
+                        get_responce_message(resp, 'save_section', '{{ route("admin.section.index") }}');
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         $("#dvloader").hide();
@@ -652,440 +579,665 @@
                     }
                 });
             } else {
-                toastr.error('{{__("Label.you_have_no_right_to_add_edit_and_delete")}}');
+                showError();
             }
-        }
+		}
 
-         // sections list 
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            type: 'POST',
-            url: '{{ route("section.data") }}',
-            data: {
+        // List Section
+        if(Is_home_screen == 1) {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST',
+                url: '{{ route("admin.section.content.data") }}',
+                data: {
+                    is_home_screen: Is_home_screen,
+                },
+                success: function(resp) {
+                    $('.after-add-more').html('');
+                    for (var i = 0; i < resp.result.length; i++) {
 
-            },
-            success: function(resp) {
-                $('.after-add-more').html('');
-                for (var i = 0; i < resp.result.length; i++) {
+                        if (resp.result[i].content_type == 1) {
+                            var content_type = "{{ __('label.music') }}";
+                        } else if (resp.result[i].content_type == 2) {
+                            var content_type = "{{ __('label.podcasts') }}";
+                        } else if (resp.result[i].content_type == 3) {
+                            var content_type = "{{ __('label.radio') }}";
+                        } else if (resp.result[i].content_type == 4) {
+                            var content_type = "{{ __('label.playlist') }}";
+                        } else if (resp.result[i].content_type == 5) {
+                            var content_type = "{{ __('label.category') }}";
+                        } else if (resp.result[i].content_type == 6) {
+                            var content_type = "{{ __('label.language') }}";
+                        }
 
-                    if (resp.result[i].type == 1) {
-                        var type = "{{__('Label.radio_station')}}";
-                    } else if (resp.result[i].type == 2) {
-                        var type = "{{__('Label.poadcast')}}";
-                    } else if (resp.result[i].type == 3) {
-                        var type = "{{__('Label.live_event')}}";
-                    } else if (resp.result[i].type == 4) {
-                        var type = "{{__('Label.Artist')}}";
-                    } else if (resp.result[i].type == 5) {
-                        var type = "{{__('Label.Category')}}";
-                    } else if (resp.result[i].type == 6) {
-                        var type = "{{__('Label.Language')}}";
-                    } else if (resp.result[i].type == 7) {
-                        var type = "{{__('Label.City')}}";
-                    }  else {
-                        var type = "-";
+                        if (resp.result[i].screen_layout == "list_view") {
+                            var screen_layout = "{{ __('label.list_view') }}";"List View";
+                        } else if (resp.result[i].screen_layout == "portrait") {
+                            var screen_layout = "{{ __('label.portrait') }}";
+                        } else if (resp.result[i].screen_layout == "square") {
+                            var screen_layout = "{{ __('label.square') }}";
+                        } else if (resp.result[i].screen_layout == "playlist") {
+                            var screen_layout = "{{ __('label.playlist') }}";
+                        } else if (resp.result[i].screen_layout == "category") {
+                            var screen_layout = "{{ __('label.category') }}";
+                        } else if (resp.result[i].screen_layout == "language") {
+                            var screen_layout = "{{ __('label.language') }}";
+                        } else if (resp.result[i].screen_layout == "round") {
+                            var screen_layout = "{{ __('label.round') }}";
+                        } else if (resp.result[i].screen_layout == "banner_view") {
+                            var screen_layout = "{{ __('label.banner_view') }}";
+                        } else if (resp.result[i].screen_layout == "landscape") {
+                            var screen_layout = "{{ __('label.landscape') }}";
+                        } else if (resp.result[i].screen_layout == "podcast_list_view") {
+                            var screen_layout = "{{ __('label.podcast_list_view') }}";
+                        }
+
+                        var data = '<div class="card custom-border-card mt-3">'+
+                                '<div class="card-header d-flex justify-content-between">'+
+                                    '<h5>{{__("label.edit_section")}}</h5>';
+                                    if(resp.result[i].status == 1){
+                                        data += '<button class="btn show-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.show")}}</button>';
+                                    } else {
+                                        data += '<button class="btn hide-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.hide")}}</button>';
+                                    }
+                                data += '</div>'+
+                                '<div class="card-body">'+
+                                    '<form id="edit_section_'+resp.result[i].id+'" enctype="multipart/form-data">'+
+                                        '<input type="hidden" name="id" value="'+resp.result[i].id+'">'+
+                                        '<div class="form-row">'+
+                                            '<div class="col-md-4">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.title")}}</label>'+
+                                                    '<input type="text" name="title" value="'+resp.result[i].title+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-4">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.short_title")}}</label>'+
+                                                    '<input type="text" name="short_title" value="'+resp.result[i].short_title+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-2">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.content_type")}}</label>'+
+                                                    '<input type="text" name="content_type" value="'+content_type+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-2">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.screen_layout")}}</label>'+
+                                                    '<input type="text" name="screen_layout" value="'+screen_layout+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                        '</div>'+
+                                        '<div class="border-top pt-3 text-right">'+
+                                            '<button type="button" data-toggle="modal" data-target="#updateModal" class="btn btn-default mw-120" onclick="edit_section('+resp.result[i].id+')">{{__("label.update")}}</button>'+
+                                            '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section('+resp.result[i].id+')">{{__("label.delete")}}</button>'+
+                                            '<input type="hidden" name="_method" value="PATCH">'+
+                                        '</div>'+
+                                    '</form>'+
+                                '</div>'+
+                            '</div>';
+
+                        $('.after-add-more').append(data);
                     }
-
-                    if (resp.result[i].screen_layout == "landscape") {
-                        var screen_layout = "{{__('Label.landscape')}}";
-                    } else if (resp.result[i].screen_layout == "portrait") {
-                        var screen_layout = "{{__('Label.portrait')}}";
-                    } else if (resp.result[i].screen_layout == "sqaure") {
-                        var screen_layout = "{{__('Label.sqaure')}}";
-                    }  else if (resp.result[i].screen_layout == "live_event") {
-                        var screen_layout = "{{__('Label.live_event')}}";
-                    } else if (resp.result[i].screen_layout == "artist") {
-                        var screen_layout = "{{__('Label.Artist')}}";
-                    } else if (resp.result[i].screen_layout == "category") {
-                        var screen_layout = "{{__('Label.Category')}}";
-                    } else if (resp.result[i].screen_layout == "language") {
-                        var screen_layout = "{{__('Label.Language')}}";
-                    } else if (resp.result[i].screen_layout == "city") {
-                        var screen_layout = "{{__('Label.City')}}";
-                    } else {
-                        var screen_layout = "-";
-                    }
-
-                    var data = '<div class="card custom-border-card mt-3">' +
-                        '<div class="card-header d-flex justify-content-between">' +
-                        '<h5>{{__("Label.edit_section")}}</h5>';
-                    if (resp.result[i].status == 1) {
-                        data += '<button class="btn" id="' + resp.result[i].id + '" onclick="change_status(' + resp.result[i].id + ')" style="background:#058f00; font-weight:bold; border: none; color: white;">{{__("Label.show")}}</button>';
-                    } else {
-                        data += '<button class="btn" id="' + resp.result[i].id + '" onclick="change_status(' + resp.result[i].id + ')" style="background:#e3000b; font-weight:bold; border: none; color: white;">{{__("Label.hide")}}</button>';
-                    }
-                    data += '</div>' +
-                        '<div class="card-body">' +
-                        '<div class="form-row">' +
-                        '<div class="col-md-3">' +
-                        '<div class="form-group">' +
-                        '<label>{{__("Label.Title")}}</label>' +
-                        '<input type="text" value="' + resp.result[i].title + '" class="form-control" readonly>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="col-md-3">' +
-                        '<div class="form-group">' +
-                        '<label>{{__("Label.sub_title")}}</label>' +
-                        '<input type="text" value="' + resp.result[i].sub_title + '" class="form-control" readonly>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="col-md-3">' +
-                        '<div class="form-group">' +
-                        '<label>{{__("Label.Type")}}</label>' +
-                        '<input type="text" value="' + type + '" class="form-control" readonly>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="col-md-3">' +
-                        '<div class="form-group">' +
-                        '<label>{{__("Label.screen_layout")}}</label>' +
-                        '<input type="text" value="' + screen_layout + '" class="form-control" readonly>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="border-top pt-3 text-right">' +
-                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120" onclick="edit_section(' + resp.result[i].id + ')">{{__("Label.UPDATE")}}</button>' +
-                        '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("Label.Delete")}}</button>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>';
-
-                    $('.after-add-more').append(data);
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    toastr.error(errorThrown, textStatus);
                 }
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
-                $("#dvloader").hide();
-                toastr.error(errorThrown, textStatus);
+            });
+        }
+        function Top_Content(is_home_screen, content_type) {
+
+            Is_home_screen = is_home_screen;
+            Content_type = content_type;
+            $("#is_home_screen").val(is_home_screen);
+
+            document.getElementById("save_section").reset();
+            $("#language_id").val(0).trigger("change");
+            $("#category_id").val(0).trigger("change"); 
+
+            if(is_home_screen == 1){
+
+                $(".content_type_drop").show();
+                $(".content_type_drop option[value='1']").show();
+                $(".content_type_drop option[value='2']").show();
+                $(".content_type_drop option[value='3']").show();
+                $(".content_type_drop option[value='4']").show();
+                $(".content_type_drop option[value='5']").show();
+                $(".content_type_drop option[value='6']").show();
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").hide();
+                $(".order_by_upload_drop").hide();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").hide();
+                $(".screen_layout_drop").hide();
+            } else if(is_home_screen == 2) {
+
+                if(content_type == 1){
+
+                    $(".content_type_drop").show();
+                    $(".content_type_drop option[value='1']").show();
+                    $(".content_type_drop option[value='2']").hide();
+                    $(".content_type_drop option[value='3']").hide();
+                    $(".content_type_drop option[value='4']").show();
+                    $(".content_type_drop option[value='5']").hide();
+                    $(".content_type_drop option[value='6']").hide();
+
+                    $(".category_drop").show();
+                    $(".language_drop").show();
+                    $(".no_of_content_drop").show();
+                    $(".order_by_upload_drop").show();
+                    $(".order_by_view_drop").show();
+                    $(".order_by_like_drop").show();
+                    $(".view_all_drop").show();
+                    $(".screen_layout_drop").hide();
+                } else if(content_type == 2){
+
+                    $(".content_type_drop").hide();
+                    $(".content_type_drop option[value='1']").hide();
+                    $(".content_type_drop option[value='2']").show();
+                    $(".content_type_drop option[value='3']").hide();
+                    $(".content_type_drop option[value='4']").hide();
+                    $(".content_type_drop option[value='5']").hide();
+                    $(".content_type_drop option[value='6']").hide();
+
+                    $(".category_drop").show();
+                    $(".language_drop").show();
+                    $(".no_of_content_drop").show();
+                    $(".order_by_upload_drop").show();
+                    $(".order_by_view_drop").show();
+                    $(".order_by_like_drop").show();
+                    $(".view_all_drop").show();
+
+                    $(".screen_layout_drop").show();
+                    $("#screen_layout").children().removeAttr("selected");
+                    $("#screen_layout option[value='list_view']").hide();
+                    $("#screen_layout option[value='portrait']").hide();
+                    $("#screen_layout option[value='square']").hide();
+                    $("#screen_layout option[value='playlist']").hide();
+                    $("#screen_layout option[value='category']").hide();
+                    $("#screen_layout option[value='language']").hide();
+                    $("#screen_layout option[value='round']").hide();
+                    $("#screen_layout option[value='banner_view']").show();
+                    $("#screen_layout option[value='landscape']").show();
+                    $("#screen_layout option[value='podcast_list_view']").show();
+                } else if(content_type == 3){
+
+                    $(".content_type_drop").hide();
+                    $(".content_type_drop option[value='1']").hide();
+                    $(".content_type_drop option[value='2']").hide();
+                    $(".content_type_drop option[value='3']").show();
+                    $(".content_type_drop option[value='4']").hide();
+                    $(".content_type_drop option[value='5']").hide();
+                    $(".content_type_drop option[value='6']").hide();
+
+                    $(".category_drop").hide();
+                    $(".language_drop").hide();
+                    $(".no_of_content_drop").show();
+                    $(".order_by_upload_drop").show();
+                    $(".order_by_view_drop").hide();
+                    $(".order_by_like_drop").hide();
+                    $(".view_all_drop").show();
+
+                    $(".screen_layout_drop").show();
+                    $("#screen_layout").children().removeAttr("selected");
+                    $("#screen_layout option[value='list_view']").hide();
+                    $("#screen_layout option[value='portrait']").hide();
+                    $("#screen_layout option[value='square']").show();
+                    $("#screen_layout option[value='playlist']").hide();
+                    $("#screen_layout option[value='category']").hide();
+                    $("#screen_layout option[value='language']").hide();
+                    $("#screen_layout option[value='round']").show();
+                    $("#screen_layout option[value='banner_view']").hide();
+                    $("#screen_layout option[value='landscape']").hide();
+                    $("#screen_layout option[value='podcast_list_view']").hide();
+                } else {
+
+                    $(".content_type_drop").hide();
+                    $(".category_drop").hide();
+                    $(".language_drop").hide();
+                    $(".no_of_content_drop").hide();
+                    $(".order_by_upload_drop").hide();
+                    $(".order_by_view_drop").hide();
+                    $(".order_by_like_drop").hide();
+                    $(".view_all_drop").hide();
+                    $(".screen_layout_drop").hide();
+                }
             }
-        });
-
-
-         // Update Section
-         function edit_section(id) {
 
             $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
-                url: '{{ route("section.edit") }}',
+                url: '{{ route("admin.section.content.data") }}',
+                data: {
+                    is_home_screen: Is_home_screen,
+                    content_type: Content_type,
+                },
+                success: function(resp) {
+                    $('.after-add-more').html('');
+                    for (var i = 0; i < resp.result.length; i++) {
+
+                        if (resp.result[i].content_type == 1) {
+                            var content_type = "{{ __('label.music') }}";
+                        } else if (resp.result[i].content_type == 2) {
+                            var content_type = "{{ __('label.podcasts') }}";
+                        } else if (resp.result[i].content_type == 3) {
+                            var content_type = "{{ __('label.radio') }}";
+                        } else if (resp.result[i].content_type == 4) {
+                            var content_type = "{{ __('label.playlist') }}";
+                        } else if (resp.result[i].content_type == 5) {
+                            var content_type = "{{ __('label.category') }}";
+                        } else if (resp.result[i].content_type == 6) {
+                            var content_type = "{{ __('label.language') }}";
+                        }
+
+                        if (resp.result[i].screen_layout == "list_view") {
+                            var screen_layout = "{{ __('label.list_view') }}";"List View";
+                        } else if (resp.result[i].screen_layout == "portrait") {
+                            var screen_layout = "{{ __('label.portrait') }}";
+                        } else if (resp.result[i].screen_layout == "square") {
+                            var screen_layout = "{{ __('label.square') }}";
+                        } else if (resp.result[i].screen_layout == "playlist") {
+                            var screen_layout = "{{ __('label.playlist') }}";
+                        } else if (resp.result[i].screen_layout == "category") {
+                            var screen_layout = "{{ __('label.category') }}";
+                        } else if (resp.result[i].screen_layout == "language") {
+                            var screen_layout = "{{ __('label.language') }}";
+                        } else if (resp.result[i].screen_layout == "round") {
+                            var screen_layout = "{{ __('label.round') }}";
+                        } else if (resp.result[i].screen_layout == "banner_view") {
+                            var screen_layout = "{{ __('label.banner_view') }}";
+                        } else if (resp.result[i].screen_layout == "landscape") {
+                            var screen_layout = "{{ __('label.landscape') }}";
+                        } else if (resp.result[i].screen_layout == "podcast_list_view") {
+                            var screen_layout = "{{ __('label.podcast_list_view') }}";
+                        }
+
+                        var data = '<div class="card custom-border-card mt-3">'+
+                                '<div class="card-header d-flex justify-content-between">'+
+                                    '<h5>{{__("label.edit_section")}}</h5>';
+                                    if(resp.result[i].status == 1){
+                                        data += '<button class="btn show-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.show")}}</button>';
+                                    } else {
+                                        data += '<button class="btn hide-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.hide")}}</button>';
+                                    }
+                                data += '</div>'+
+                                '<div class="card-body">'+
+                                    '<form id="edit_section_'+resp.result[i].id+'" enctype="multipart/form-data">'+
+                                        '<input type="hidden" name="id" value="'+resp.result[i].id+'">'+
+                                        '<div class="form-row">'+
+                                            '<div class="col-md-4">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.title")}}</label>'+
+                                                    '<input type="text" name="title" value="'+resp.result[i].title+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-4">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.short_title")}}</label>'+
+                                                    '<input type="text" name="short_title" value="'+resp.result[i].short_title+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-2">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.content_type")}}</label>'+
+                                                    '<input type="text" name="content_type" value="'+content_type+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                            '<div class="col-md-2">'+
+                                                '<div class="form-group">'+
+                                                    '<label>{{__("label.screen_layout")}}</label>'+
+                                                    '<input type="text" name="screen_layout" value="'+screen_layout+'" class="form-control" readonly>'+
+                                                '</div>'+
+                                            '</div>'+
+                                        '</div>'+
+                                        '<div class="border-top pt-3 text-right">'+
+                                            '<button type="button" data-toggle="modal" data-target="#updateModal" class="btn btn-default mw-120" onclick="edit_section('+resp.result[i].id+')">{{__("label.update")}}</button>'+
+                                            '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section('+resp.result[i].id+')">{{__("label.delete")}}</button>'+
+                                            '<input type="hidden" name="_method" value="PATCH">'+
+                                        '</div>'+
+                                    '</form>'+
+                                '</div>'+
+                            '</div>';
+                        $('.after-add-more').append(data);
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        };
+
+        // Update Section
+        function edit_section(id){
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST',
+                url: '{{ route("admin.section.content.edit") }}',
                 data: {
                     id: id,
                 },
                 success: function(resp) {
-                    if (resp.result != null) {
 
+                    if(resp.result != null){
                         $("#edit_id").val(resp.result.id);
+                        $("#edit_is_home_screen").val(resp.result.is_home_screen);
                         $("#edit_title").val(resp.result.title);
-                        $("#edit_sub_title").val(resp.result.sub_title);
-                        $("#edit_type").val(resp.result.type).attr("selected", "selected");
-                        $("#edit_screen_layout").val(resp.result.screen_layout).attr("selected", "selected");
-                        $('#edit_artist_id').val(resp.result.artist_id).trigger('change');
+                        $("#edit_short_title").val(resp.result.short_title);
+                        $("#edit_content_type").val(resp.result.content_type).attr("selected","selected");
+                        $("#edit_screen_layout").val(resp.result.screen_layout).attr("selected","selected");
                         $('#edit_category_id').val(resp.result.category_id).trigger('change');
                         $('#edit_language_id').val(resp.result.language_id).trigger('change');
-                        $('#edit_city_id').val(resp.result.city_id).trigger('change');
                         $("#edit_no_of_content").val(resp.result.no_of_content);
-
-                        $("#edit_order_by_upload_asc").prop('checked', false);
-                        $("#edit_order_by_upload_desc").prop('checked', false);
-
-                        if (resp.result.order_by_upload == 0) {
-                            $("#edit_order_by_upload_asc").prop('checked', true);
+                        if(resp.result.order_by_upload == 1){
+                            $("#edit_order_by_upload_asc").attr('checked','checked');
                         } else {
-                            $("#edit_order_by_upload_desc").prop('checked', true);
+                            $("#edit_order_by_upload_desc").attr('checked','checked');
                         }
-
-                        $("#edit_order_by_play_asc").prop('checked', false);
-                        $("#edit_order_by_play_desc").prop('checked', false);
-                        if (resp.result.order_by_play == 0) {
-                            $("#edit_order_by_play_asc").prop('checked', true);
+                        if(resp.result.order_by_view == 1){
+                            $("#edit_order_by_view_asc").attr('checked','checked');
                         } else {
-                            $("#edit_order_by_play_desc").prop('checked', true);
+                            $("#edit_order_by_view_desc").attr('checked','checked');
                         }
-
-                        $("#edit_is_premium_no").prop('checked', false);
-                        $("#edit_is_premium_yes").prop('checked', false);
-                        if (resp.result.is_premium == 0) {
-                            $("#edit_is_premium_no").prop('checked', true);
+                        if(resp.result.order_by_like == 1){
+                            $("#edit_order_by_like_asc").attr('checked','checked');
                         } else {
-                            $("#edit_is_premium_yes").prop('checked', true);
+                            $("#edit_order_by_like_desc").attr('checked','checked');
                         }
-
-                        $("#edit_is_paid_yes").prop('checked', false);
-                        $("#edit_is_paid_no").prop('checked', false);
-                        if (resp.result.is_paid == 0) {
-                            $("#edit_is_paid_no").prop('checked', true);
+                        if(resp.result.view_all == 1){
+                            $("#edit_view_all_yes").attr('checked','checked');
                         } else {
-                            $("#edit_is_paid_yes").prop('checked', true);
+                            $("#edit_view_all_no").attr('checked','checked');
                         }
 
-                        $("#edit_view_all_yes").prop('checked', false);
-                        $("#edit_view_all_no").prop('checked', false);
-                        if (resp.result.view_all == 1) {
-                            $("#edit_view_all_yes").prop('checked', true);
-                        } else {
-                            $("#edit_view_all_no").prop('checked', true);
-                        }
-                    }
+                        if(resp.result.is_home_screen == 1){
+                            $(".edit_content_type_drop").show();
+                            $(".edit_content_type_drop option[value='1']").show();
+                            $(".edit_content_type_drop option[value='2']").show();
+                            $(".edit_content_type_drop option[value='3']").show();
+                            $(".edit_content_type_drop option[value='4']").show();
+                            $(".edit_content_type_drop option[value='5']").show();
+                            $(".edit_content_type_drop option[value='6']").show();
+                        } else if(resp.result.is_home_screen == 2){
 
-                    $(".edit_screen_layout").hide();
-                    $(".edit_artist_drop").hide();
-                    $(".edit_category_drop").hide();
-                    $(".edit_language_drop").hide();
-                    $(".edit_city_drop").hide();
-                    $(".edit_no_of_content").hide();
-                    $(".edit_view_all").hide();
-                    $(".edit_is_premium").hide();
-                    $(".edit_order_by_upload").hide();
-                    $(".edit_order_by_play").hide();
-                    $(".edit_is_paid").hide();
+                            if(resp.result.content_type == 1 || resp.result.content_type == 4){
 
-                    if (resp.result.type == 1) {
-
-                        $(".edit_screen_layout").show();
-                        $("#edit_screen_layout option[value='landscape']").show();
-                        $("#edit_screen_layout option[value='portrait']").show();
-                        $("#edit_screen_layout option[value='sqaure']").show();
-                        $("#edit_screen_layout option[value='live_event']").hide();
-                        $("#edit_screen_layout option[value='artist']").hide();
-                        $("#edit_screen_layout option[value='category']").hide();
-                        $("#edit_screen_layout option[value='language']").hide();
-                        $("#edit_screen_layout option[value='city']").hide();
-
-                        $(".edit_artist_drop").show();
-                        $(".edit_category_drop").show();
-                        $(".edit_language_drop").show();
-                        $(".edit_city_drop").show();
-                        $(".edit_no_of_content").show();
-                        $(".edit_view_all").show();
-                        $(".edit_order_by_upload").show();
-                        $(".edit_order_by_play").show();
-                        $(".edit_is_premium").show();
-                    } else if (resp.result.type == 2) {
-
-                        $(".edit_screen_layout").show();
-                        $("#edit_screen_layout option[value='landscape']").show();
-                        $("#edit_screen_layout option[value='portrait']").show();
-                        $("#edit_screen_layout option[value='sqaure']").show();
-                        $("#edit_screen_layout option[value='live_event']").hide();
-                        $("#edit_screen_layout option[value='artist']").hide();
-                        $("#edit_screen_layout option[value='category']").hide();
-                        $("#edit_screen_layout option[value='language']").hide();
-                        $("#edit_screen_layout option[value='city']").hide();
-
-                        $(".edit_category_drop").show();
-                        $(".edit_language_drop").show();
-                        $(".edit_no_of_content").show();
-                        $(".edit_view_all").show();
-                        $(".edit_is_premium").show();
-                        $(".edit_order_by_upload").show();
-                        $(".edit_order_by_play").show();
-                    } else if (resp.result.type == 3 || resp.result.type == 4 || resp.result.type == 5 || resp.result.type == 6 || resp.result.type == 7) {
-
-                        $(".edit_screen_layout").show();
-                        $("#edit_screen_layout option[value='landscape']").hide();
-                        $("#edit_screen_layout option[value='portrait']").hide();
-                        $("#edit_screen_layout option[value='sqaure']").hide();
-                        $("#edit_screen_layout option[value='live_event']").hide();
-                        $("#edit_screen_layout option[value='artist']").hide();
-                        $("#edit_screen_layout option[value='category']").hide();
-                        $("#edit_screen_layout option[value='language']").hide();
-                        $("#edit_screen_layout option[value='city']").hide();
-
-                        $(".edit_no_of_content").show();
-                        $(".edit_view_all").show();
-                        if(resp.result.type == 3){
-                            $(".edit_is_paid").show();
-                            $("#edit_screen_layout option[value='live_event']").show();
-
-                        } else if(resp.result.type == 4){
-                            $(".edit_order_by_upload").show();
-                            $("#edit_screen_layout option[value='artist']").show();
-                        } else if(resp.result.type == 5){
-                            $(".edit_order_by_upload").show();
-                            $("#edit_screen_layout option[value='category']").show();
-                        } else if(resp.result.type == 6){
-                            $(".edit_order_by_upload").show();
-                            $("#edit_screen_layout option[value='language']").show();
-                        } else if(resp.result.type == 7){
-                            $(".edit_order_by_upload").show();
-                            $("#edit_screen_layout option[value='city']").show();
-                        }
-                    }
-                    
-                    $('#edit_type').change(function() {
-
-                        var type = $(this).val();
-                        if (type == 1) {
-
-                            $(".edit_is_paid").hide();
-
-                            $(".edit_screen_layout").show();
-                            $("#edit_screen_layout").children().removeAttr("selected");
-                            $("#edit_screen_layout option[value='landscape']").show();
-                            $("#edit_screen_layout option[value='portrait']").show();
-                            $("#edit_screen_layout option[value='sqaure']").show();
-                            $("#edit_screen_layout option[value='live_event']").hide();
-                            $("#edit_screen_layout option[value='artist']").hide();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='city']").hide();
-
-                            $(".edit_artist_drop").show();
-                            $(".edit_category_drop").show();
-                            $(".edit_language_drop").show();
-                            $(".edit_city_drop").show();
-                            $(".edit_no_of_content").show();
-                            $(".edit_view_all").show();
-                            $(".edit_order_by_upload").show();
-                            $(".edit_order_by_play").show();
-                            $(".edit_is_premium").show();
-                        } else if (type == 2){
-
-                            $(".edit_artist_drop").hide();
-                            $(".edit_city_drop").hide();
-                            $(".edit_is_paid").hide();
-
-                            $(".edit_screen_layout").show();
-                            $("#edit_screen_layout").children().removeAttr("selected");
-                            $("#edit_screen_layout option[value='landscape']").show();
-                            $("#edit_screen_layout option[value='portrait']").show();
-                            $("#edit_screen_layout option[value='sqaure']").show();
-                            $("#edit_screen_layout option[value='live_event']").hide();
-                            $("#edit_screen_layout option[value='artist']").hide();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='city']").hide();
-
-                            $(".edit_category_drop").show();
-                            $(".edit_language_drop").show();
-                            $(".edit_no_of_content").show();
-                            $(".edit_view_all").show();
-                            $(".edit_order_by_upload").show();
-                            $(".edit_order_by_play").show();
-                            $(".edit_is_premium").show();
-                        } else if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7){
-
-                            $(".edit_artist_drop").hide();
-                            $(".edit_city_drop").hide();
-                            $(".edit_category_drop").hide();
-                            $(".edit_language_drop").hide();
-                            $(".edit_order_by_upload").hide();
-                            $(".edit_order_by_play").hide();
-                            $(".edit_is_premium").hide();
-
-                            $(".edit_screen_layout").show();
-                            $("#edit_screen_layout").children().removeAttr("selected");
-                            $("#edit_screen_layout option[value='live_event']").show();
-                            $("#edit_screen_layout option[value='landscape']").hide();
-                            $("#edit_screen_layout option[value='portrait']").hide();
-                            $("#edit_screen_layout option[value='sqaure']").hide();
-                            $("#edit_screen_layout option[value='artist']").hide();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='city']").hide();
-
-                            if(type == 3) {
-
-                                $("#edit_screen_layout option[value='live_event']").show();
-                                $("#edit_screen_layout option[value='artist']").hide();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='city']").hide();
-
-                                $(".edit_no_of_content").show();
-                                $(".edit_view_all").show();
-                                $(".edit_is_paid").show();  
-                            } else if (type == 4) {
-
-                                $("#edit_screen_layout option[value='live_event']").hide();
-                                $("#edit_screen_layout option[value='artist']").show();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='city']").hide();
-
-                                $(".edit_no_of_content").show();
-                                $(".edit_view_all").show();
-                                $(".edit_order_by_upload").show();
-                                $(".edit_is_paid").hide();  
-                            } else if (type == 5) {
-
-                                $("#edit_screen_layout option[value='live_event']").hide();
-                                $("#edit_screen_layout option[value='artist']").hide();
-                                $("#edit_screen_layout option[value='category']").show();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='city']").hide();
-
-                                $(".edit_no_of_content").show();
-                                $(".edit_view_all").show();
-                                $(".edit_order_by_upload").show();
-                                $(".edit_is_paid").hide();  
-                            } else if (type == 6) {
-
-                                $("#edit_screen_layout option[value='live_event']").hide();
-                                $("#edit_screen_layout option[value='artist']").hide();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").show();
-                                $("#edit_screen_layout option[value='city']").hide();
-
-                                $(".edit_no_of_content").show();
-                                $(".edit_view_all").show();
-                                $(".edit_order_by_upload").show();
-                                $(".edit_is_paid").hide();  
-                            } else if (type == 7) {
-
-                                $("#edit_screen_layout option[value='live_event']").hide();
-                                $("#edit_screen_layout option[value='artist']").hide();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").show();
-                                $("#edit_screen_layout option[value='city']").hide();
-
-                                $(".edit_no_of_content").show();
-                                $(".edit_view_all").show();
-                                $(".edit_order_by_upload").show();
-                                $(".edit_is_paid").hide();  
+                                $(".edit_content_type_drop").show();
+                                $(".edit_content_type_drop option[value='1']").show();
+                                $(".edit_content_type_drop option[value='2']").hide();
+                                $(".edit_content_type_drop option[value='3']").hide();
+                                $(".edit_content_type_drop option[value='4']").show();
+                                $(".edit_content_type_drop option[value='5']").hide();
+                                $(".edit_content_type_drop option[value='6']").hide();
+                            } else if(resp.result.content_type == 2){
+                                $(".edit_content_type_drop").hide();
+                            } else if(resp.result.content_type == 3){
+                                $(".edit_content_type_drop").hide();
+                            } else {
+                                $(".edit_content_type_drop").hide();
                             }
                         } else {
+                            $(".edit_content_type_drop").hide();
+                        }
 
-                            $(".edit_screen_layout").hide();
-                            $(".edit_artist_drop").hide();
+                        if(resp.result.content_type == 1 || resp.result.content_type == 2){
+
+                            $(".edit_category_drop").show();
+                            $(".edit_language_drop").show();
+                            $(".edit_no_of_content_drop").show();
+                            $(".edit_order_by_upload_drop").show();
+                            $(".edit_order_by_view_drop").show();
+                            $(".edit_order_by_like_drop").show();
+                            $(".edit_view_all_drop").show();
+
+                            $("#edit_screen_layout option[value='playlist']").hide();
+                            $("#edit_screen_layout option[value='category']").hide();
+                            $("#edit_screen_layout option[value='language']").hide();
+                            $("#edit_screen_layout option[value='round']").hide();
+                            if(resp.result.content_type == 1){
+                                $("#edit_screen_layout option[value='list_view']").show();
+                                $("#edit_screen_layout option[value='portrait']").show();
+                                $("#edit_screen_layout option[value='square']").show();
+                                $("#edit_screen_layout option[value='banner_view']").hide();
+                                $("#edit_screen_layout option[value='landscape']").hide();
+                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                            } else {
+                                $("#edit_screen_layout option[value='list_view']").hide();
+                                $("#edit_screen_layout option[value='portrait']").hide();
+                                $("#edit_screen_layout option[value='square']").hide();
+                                $("#edit_screen_layout option[value='banner_view']").show();
+                                $("#edit_screen_layout option[value='landscape']").show();
+                                $("#edit_screen_layout option[value='podcast_list_view']").show();
+                            }
+                        } else if(resp.result.content_type == 3){
+
                             $(".edit_category_drop").hide();
                             $(".edit_language_drop").hide();
-                            $(".edit_city_drop").hide();
-                            $(".edit_no_of_content").hide();
-                            $(".edit_view_all").hide();
-                            $(".edit_is_premium").hide();
-                            $(".edit_order_by_upload").hide();
-                            $(".edit_order_by_play").hide();
-                            $(".edit_is_paid").hide();
+                            $(".edit_no_of_content_drop").show();
+                            $(".edit_order_by_upload_drop").show();
+                            $(".edit_order_by_view_drop").hide();
+                            $(".edit_order_by_like_drop").hide();
+                            $(".edit_view_all_drop").show();
+
+                            $("#edit_screen_layout option[value='list_view']").hide();
+                            $("#edit_screen_layout option[value='portrait']").hide();
+                            $("#edit_screen_layout option[value='square']").show();
+                            $("#edit_screen_layout option[value='playlist']").hide();
+                            $("#edit_screen_layout option[value='category']").hide();
+                            $("#edit_screen_layout option[value='language']").hide();
+                            $("#edit_screen_layout option[value='round']").show();
+                            $("#edit_screen_layout option[value='banner_view']").hide();
+                            $("#edit_screen_layout option[value='landscape']").hide();
+                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                        } else if(resp.result.content_type == 4){
+
+                            $(".edit_category_drop").hide();
+                            $(".edit_language_drop").hide();
+                            $(".edit_no_of_content_drop").show();
+                            $(".edit_order_by_upload_drop").show();
+                            $(".edit_order_by_view_drop").hide();
+                            $(".edit_order_by_like_drop").hide();
+                            $(".edit_view_all_drop").show();
+
+                            $("#edit_screen_layout option[value='list_view']").hide();
+                            $("#edit_screen_layout option[value='portrait']").hide();
+                            $("#edit_screen_layout option[value='square']").hide();
+                            $("#edit_screen_layout option[value='playlist']").show();
+                            $("#edit_screen_layout option[value='category']").hide();
+                            $("#edit_screen_layout option[value='language']").hide();
+                            $("#edit_screen_layout option[value='round']").hide();
+                            $("#edit_screen_layout option[value='banner_view']").hide();
+                            $("#edit_screen_layout option[value='landscape']").hide();
+                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                        } else if(resp.result.content_type == 5 || resp.result.content_type == 6){
+
+                            $(".edit_category_drop").hide();
+                            $(".edit_language_drop").hide();
+                            $(".edit_no_of_content_drop").hide();
+                            $(".edit_order_by_upload_drop").hide();
+                            $(".edit_order_by_view_drop").hide();
+                            $(".edit_order_by_like_drop").hide();
+                            $(".edit_view_all_drop").hide();
+
+                            $("#edit_screen_layout option[value='list_view']").hide();
+                            $("#edit_screen_layout option[value='portrait']").hide();
+                            $("#edit_screen_layout option[value='square']").hide();
+                            $("#edit_screen_layout option[value='playlist']").hide();
+                            if(resp.result.content_type == 5){
+                                $("#edit_screen_layout option[value='category']").show();
+                                $("#edit_screen_layout option[value='language']").hide();
+                            } else {
+                                $("#edit_screen_layout option[value='category']").hide();
+                                $("#edit_screen_layout option[value='language']").show();
+                            }
+                            $("#edit_screen_layout option[value='round']").hide();
+                            $("#edit_screen_layout option[value='banner_view']").hide();
+                            $("#edit_screen_layout option[value='landscape']").hide();
+                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                        } else {
+
+                            $(".edit_category_drop").hide();
+                            $(".edit_language_drop").hide();
+                            $(".edit_no_of_content_drop").hide();
+                            $(".edit_order_by_upload_drop").hide();
+                            $(".edit_order_by_view_drop").hide();
+                            $(".edit_order_by_like_drop").hide();
+                            $(".edit_view_all_drop").hide();
+                            $(".edit_screen_layout_drop").hide();
                         }
-                    });
+
+                        $("#edit_content_type").change(function() {
+
+                            var content_type = $(this).children("option:selected").val();
+                            if(content_type == 1 || content_type == 2){
+
+                                $(".edit_category_drop").show();
+                                $(".edit_language_drop").show();
+                                $(".edit_no_of_content_drop").show();
+                                $(".edit_order_by_upload_drop").show();
+                                $(".edit_order_by_view_drop").show();
+                                $(".edit_order_by_like_drop").show();
+                                $(".edit_view_all_drop").show();
+
+                                $(".edit_screen_layout_drop").show();
+                                $("#edit_screen_layout").children().removeAttr("selected");
+                                $("#edit_screen_layout option[value='playlist']").hide();
+                                $("#edit_screen_layout option[value='category']").hide();
+                                $("#edit_screen_layout option[value='language']").hide();
+                                $("#edit_screen_layout option[value='round']").hide();
+                                if(content_type == 1){
+                                    $("#edit_screen_layout option[value='list_view']").show();
+                                    $("#edit_screen_layout option[value='portrait']").show();
+                                    $("#edit_screen_layout option[value='square']").show();
+                                    $("#edit_screen_layout option[value='banner_view']").hide();
+                                    $("#edit_screen_layout option[value='landscape']").hide();
+                                    $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                                } else {
+                                    $("#edit_screen_layout option[value='list_view']").hide();
+                                    $("#edit_screen_layout option[value='portrait']").hide();
+                                    $("#edit_screen_layout option[value='square']").hide();
+                                    $("#edit_screen_layout option[value='banner_view']").show();
+                                    $("#edit_screen_layout option[value='landscape']").show();
+                                    $("#edit_screen_layout option[value='podcast_list_view']").show();
+                                }
+                            } else if(content_type == 3){
+
+                                $(".edit_category_drop").hide();
+                                $(".edit_language_drop").hide();
+                                $(".edit_no_of_content_drop").show();
+                                $(".edit_order_by_upload_drop").show();
+                                $(".edit_order_by_view_drop").hide();
+                                $(".edit_order_by_like_drop").hide();
+                                $(".edit_view_all_drop").show();
+
+                                $(".edit_screen_layout_drop").show();
+                                $("#edit_screen_layout").children().removeAttr("selected");
+                                $("#edit_screen_layout option[value='list_view']").hide();
+                                $("#edit_screen_layout option[value='portrait']").hide();
+                                $("#edit_screen_layout option[value='square']").show();
+                                $("#edit_screen_layout option[value='playlist']").hide();
+                                $("#edit_screen_layout option[value='category']").hide();
+                                $("#edit_screen_layout option[value='language']").hide();
+                                $("#edit_screen_layout option[value='round']").show();
+                                $("#edit_screen_layout option[value='banner_view']").hide();
+                                $("#edit_screen_layout option[value='landscape']").hide();
+                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                            } else if(content_type == 4){
+
+                                $(".edit_category_drop").hide();
+                                $(".edit_language_drop").hide();
+                                $(".edit_no_of_content_drop").show();
+                                $(".edit_order_by_upload_drop").show();
+                                $(".edit_order_by_view_drop").hide();
+                                $(".edit_order_by_like_drop").hide();
+                                $(".edit_view_all_drop").show();
+
+                                $(".edit_screen_layout_drop").show();
+                                $("#edit_screen_layout").children().removeAttr("selected");
+                                $("#edit_screen_layout option[value='list_view']").hide();
+                                $("#edit_screen_layout option[value='portrait']").hide();
+                                $("#edit_screen_layout option[value='square']").hide();
+                                $("#edit_screen_layout option[value='playlist']").show();
+                                $("#edit_screen_layout option[value='category']").hide();
+                                $("#edit_screen_layout option[value='language']").hide();
+                                $("#edit_screen_layout option[value='round']").hide();
+                                $("#edit_screen_layout option[value='banner_view']").hide();
+                                $("#edit_screen_layout option[value='landscape']").hide();
+                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                            } else if(content_type == 5 || content_type == 6){
+
+                                $(".edit_category_drop").hide();
+                                $(".edit_language_drop").hide();
+                                $(".edit_no_of_content_drop").hide();
+                                $(".edit_order_by_upload_drop").hide();
+                                $(".edit_order_by_view_drop").hide();
+                                $(".edit_order_by_like_drop").hide();
+                                $(".edit_view_all_drop").hide();
+
+                                $(".edit_screen_layout_drop").show();
+                                $("#edit_screen_layout").children().removeAttr("selected");
+                                $("#edit_screen_layout option[value='list_view']").hide();
+                                $("#edit_screen_layout option[value='portrait']").hide();
+                                $("#edit_screen_layout option[value='square']").hide();
+                                $("#edit_screen_layout option[value='playlist']").hide();
+                                $("#edit_screen_layout option[value='round']").hide();
+                                $("#edit_screen_layout option[value='banner_view']").hide();
+                                $("#edit_screen_layout option[value='landscape']").hide();
+                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
+                                if(content_type == 5){
+                                    $("#edit_screen_layout option[value='category']").show();
+                                    $("#edit_screen_layout option[value='language']").hide();
+                                } else {
+                                    $("#edit_screen_layout option[value='category']").hide();
+                                    $("#edit_screen_layout option[value='language']").show();   
+                                }
+                            } else {
+
+                                $(".edit_category_drop").hide();
+                                $(".edit_language_drop").hide();
+                                $(".edit_no_of_content_drop").hide();
+                                $(".edit_order_by_upload_drop").hide();
+                                $(".edit_order_by_view_drop").hide();
+                                $(".edit_order_by_like_drop").hide();
+                                $(".edit_view_all_drop").hide();
+                                $(".edit_screen_layout_drop").hide();
+                            }
+                        });
+                    }
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    $("#dvloader").hide();
                     toastr.error(errorThrown, textStatus);
                 }
             });
         }
+        function update_section(){
 
-        function update_section() {
-
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
 
                 $("#dvloader").show();
                 var id = $('#edit_id').val();
-                var formData = new FormData($("#edit_content_section")[0]);
+                var formData = new FormData($("#edit_section")[0]);
 
-                var url = '{{ route("section.update", ":id") }}';
-                url = url.replace(':id', id);
+                var url = '{{ route("admin.section.update", ":id") }}';
+                    url = url.replace(':id', id);
 
                 $.ajax({
                     headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    enctype: 'multipart/form-data',
+					    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				    },
+				    enctype: 'multipart/form-data',
                     type: 'POST',
                     url: url,
                     data: formData,
@@ -1095,10 +1247,10 @@
                     success: function(resp) {
 
                         $("#dvloader").hide();
-                        if (resp.status == 200) {
-                            $('#editsectioneModal').modal('toggle');
+                        if(resp.status == 200){
+                            $('#updateModal').modal('toggle');
                         }
-                        get_responce_message(resp, 'edit_content_section', '{{ route("section.index") }}');
+                        get_responce_message(resp, 'edit_section', '{{ route("admin.section.index") }}');
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         $("#dvloader").hide();
@@ -1106,24 +1258,24 @@
                     }
                 });
             } else {
-                toastr.error('{{__("Label.you_have_no_right_to_add_edit_and_delete")}}');
+                showError();
             }
         }
 
-         // Delete Section
-         function delete_section(id) {
+        // Delete Section
+        function delete_section(id){
 
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
 
-                var result = confirm('{{__("Label.are_you_sure_you_want_to_delete_this_section")}}');
-                if (result) {
+                var result = confirm("{{__('label.delete_section')}}");
+                if(result){
 
                     $("#dvloader").show();
-
-                    var url = '{{ route("section.show", ":id") }}';
-                    url = url.replace(':id', id);
-
+    
+                    var url = '{{ route("admin.section.show", ":id") }}';
+                        url = url.replace(':id', id);
+    
                     $.ajax({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1135,7 +1287,7 @@
                         processData: false,
                         success: function(resp) {
                             $("#dvloader").hide();
-                            get_responce_message(resp, '', '{{ route("section.index") }}');
+                            get_responce_message(resp, '', '{{ route("admin.section.index") }}');
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             $("#dvloader").hide();
@@ -1144,47 +1296,34 @@
                     });
                 }
             } else {
-                toastr.error('{{__("Label.you_have_no_right_to_add_edit_and_delete")}}');
+                showError();
             }
         }
-
-        // Change Status
+        // Hide-Show Status
         function change_status(id) {
 
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if(Demo_Mode == 1){
 
                 $("#dvloader").show();
+                var url = `{{ route('admin.section.status', '') }}/${id}`;
+
                 $.ajax({
+                    type: "GET",
+                    url: url,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    type: "POST",
-                    url: "{{route('section.status')}}",
-                    data: {
-                        id: id
-                    },
                     success: function(resp) {
                         $("#dvloader").hide();
-                        if (resp.status == 200) {
 
-                            if (resp.Status == 1) {
-                                $('#' + id).text('Show');
-                                $('#' + id).css({
-                                    "background": "#058f00",
-                                    "color": "white",
-                                    "font-weight": "bold",
-                                    "border": "none"
-                                });
+                        if (resp.status == 200) {
+                            if (resp.status_code == 1) {
+                                $('#' + id).text('{{__("label.show")}}').removeClass('hide-btn').addClass('show-btn');
                             } else {
-                                $('#' + id).text('Hide');
-                                $('#' + id).css({
-                                    "background": "#e3000b",
-                                    "color": "white",
-                                    "font-weight": "bold",
-                                    "border": "none"
-                                });
+                                $('#' + id).text('{{__("label.hide")}}').removeClass('show-btn').addClass('hide-btn');
                             }
+                            toastr.success(resp.success);
                         } else {
                             toastr.error(resp.errors);
                         }
@@ -1195,18 +1334,18 @@
                     }
                 });
             } else {
-                toastr.error('{{__("Label.you_have_no_right_to_add_edit_and_delete")}}');
+                showError();
             }
         };
 
-        // Sortable Section
-        $("#imageListId").sortable({
+        // Sort Order Section
+        $("#contentListId").sortable({
             update: function(event, ui) {
-                getIdsOfImages();
-            } //end update
+                getIdsOfContent();
+            }
         });
 
-        function getIdsOfImages() {
+        function getIdsOfContent() {
             var values = [];
             $('.listitemClass').each(function(index) {
                 values.push($(this).attr("id")
@@ -1214,26 +1353,33 @@
             });
             $('#outputvalues').val(values);
         }
-
-        // Sortable section get data 
-        function sortableBTN() {
+        function sortOrderBTN(){
+            var Tab = $("ul.tabs li a.active");
+            var Is_home_screen = Tab.data("is_home_screen");
+            var Content_type = Tab.data("content_type");
+            
             $("#dvloader").show();
             $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'POST',
-                url: '{{ route("section.sortable") }}',
+                url: '{{ route("admin.section.content.sortorder") }}',
+                data: {
+                    is_home_screen: Is_home_screen,
+                    content_type: Content_type,
+                },
                 success: function(resp) {
                     $("#dvloader").hide();
-                    $('#imageListId').html('');
+
+                    $('#contentListId').html('');
                     for (var i = 0; i < resp.result.length; i++) {
 
-                        var data = '<div id="' + resp.result[i].id + '" class="listitemClass mb-2" style="background-color: #e9ecef;border: 1px solid black; cursor: s-resize;">' +
-                            '<p class="m-2">' + resp.result[i].title + '</p>' +
-                            '</div>';
+                        var data = '<div id="'+ resp.result[i].id+'" class="listitemClass mb-2" style="background-color: #e9ecef;border: 1px solid black;cursor: s-resize;">'+
+                                    '<p class="m-2">'+resp.result[i].title+'</p>'+
+                                '</div>';
 
-                        $('#imageListId').append(data);
+                        $('#contentListId').append(data);
                     }
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -1242,23 +1388,23 @@
                 }
             });
         }
+        function save_section_sortorder() {
 
-        // Sortable save
-        function save_section_sortable() {
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if (Check_Admin == 1) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if(Demo_Mode == 1){
+
                 $("#dvloader").show();
-                var formData = new FormData($("#save_section_sortable")[0]);
+                var formData = new FormData($("#save_section_sortorder")[0]);
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route("section.sortable.save") }}',
+                    url: '{{ route("admin.section.content.sortorder.save") }}',
                     data: formData,
                     cache: false,
                     contentType: false,
                     processData: false,
                     success: function(resp) {
                         $("#dvloader").hide();
-                        get_responce_message(resp, 'save_section_sortable', '{{ route("section.index") }}');
+                        get_responce_message(resp, 'save_section_sortorder', '{{ route("admin.section.index") }}');
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         $("#dvloader").hide();
@@ -1266,7 +1412,7 @@
                     }
                 });
             } else {
-                toastr.error('{{__("Label.you_have_no_right_to_add_edit_and_delete")}}');
+                showError();
             }
         }
     </script>

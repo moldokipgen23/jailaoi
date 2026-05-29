@@ -2,12 +2,19 @@
 <html lang="en">
 
 <head>
+
+    <!-- Tab Icon -->
+    <link rel="shortcut icon" href="{{ Tab_Icon() }}">
+    <!-- Tab Title -->
+    <title>{{ App_Name() }}</title>
     
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
     <style type="text/css">
         body {
             background-color: #f7f6ff;
+            font-family: 'Rubik', sans-serif;
         }
         svg {
             position: absolute;
@@ -25,23 +32,22 @@
             margin-top: -175px;
             margin-left: 10px;
             color: #FFF;
-            font-family: Roboto;
             font-weight: 300;
         }
         .message-box h1 {
-        color:#4e45b8;
-        font-size: 200px;
-        line-height: 50px;
-        margin-bottom: 40px;
+            color:#4e45b8;
+            font-size: 200px;
+            line-height: 50px;
+            margin-bottom: 40px;
         }
         .message-box p {
-        color:#4e45b8;
-        font-size: 50px;
-        line-height: 50px;
-        margin-bottom: 40px;
-        margin-top: 60px;
-        margin-left: -16px;
-        word-spacing: 5px;
+            color:#4e45b8;
+            font-size: 50px;
+            line-height: 50px;
+            margin-bottom: 40px;
+            margin-top: 60px;
+            margin-left: -16px;
+            word-spacing: 5px;
         }
         #Polygon-1,
         #Polygon-2,
@@ -117,8 +123,8 @@
     </svg>
 
     <div class="message-box">
-        <h1 class="">404</h1>
-        <p class="">Page Not Found</p>
+        <h1>404</h1>
+        <p>Page Not Found</p>
     </div>
     
 </body>

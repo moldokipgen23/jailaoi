@@ -28,11 +28,11 @@ class ApiPurchaseCode
                 if (!empty($pc) && !empty($un) && $status == 1) {
                     return $next($request);
                 } else {
-                    return response()->json(array('status' => 400, 'errors' =>  __('Label.purchase_code_is_not_verifly')));
+                    return response()->json(['status' => 400, 'errors' =>  __('label.purchase_code_is_not_verifly')]);
                 }
             }
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
 }

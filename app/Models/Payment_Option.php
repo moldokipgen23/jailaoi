@@ -20,5 +20,6 @@ class Payment_Option extends Model
         'key_1' => 'string',
         'key_2' => 'string',
         'key_3' => 'string',
+        'key_4' => 'string',
     ];
 }

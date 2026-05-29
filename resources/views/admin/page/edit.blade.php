@@ -1,5 +1,6 @@
 @extends('admin.layout.page-app')
-@section('page_title',  __('Label.Edit_Page'))
+@section('page_title', __('label.edit_page'))
+@section('tab_title', __('label.edit_page'))
 
 @section('content')
 	@include('admin.layout.sidebar')
@@ -7,71 +8,79 @@
 	<div class="right-content">
 		@include('admin.layout.header')
 
-            <!-- summernote background color  -->
-            <style>
-                    :root{
-                        --page-background-color : {{ $settings['page_background_color'] }} ;
-                    }
-                    .note-editable {
-                        background-color: var(--page-background-color) !important;
-                    }
-            </style>
+        <!-- Summer notes -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css">
+
+        <!-- summernote background color  -->
+        <style>
+            :root{
+                --page-background-color : {{ $settings['page_background_color'] }} ;
+            }
+            .note-editable {
+                background-color: var(--page-background-color) !important;
+            }
+        </style>
 
 		<div class="body-content">
 			<!-- mobile title -->
-			<h1 class="page-title-sm">{{__('Label.Edit_Page')}}</h1>
+			<h1 class="page-title-sm">{{__('label.edit_page')}}</h1>
 
 			<div class="border-bottom row mb-3">
                 <div class="col-sm-10">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('Label.Dashboard')}}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('page.index') }}">{{__('Label.Page')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Label.Edit Page')}}</li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.page.index') }}">{{__('label.pages')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('label.edit_page')}}</li>
                     </ol>
                 </div>
                 <div class="col-sm-2 d-flex align-items-center justify-content-end">
-                    <a href="{{ route('page.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">Page</a>
+                    <a href="{{ route('admin.page.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">{{__('label.page_list')}}</a>
                 </div>
             </div>
 
 			<div class="card custom-border-card mt-3">
-                <form id="page_update" enctype="multipart/form-data" autocomplete="off">				 
-                    <input type="hidden" name="id" value="@if($data){{$data->id}}@endif">
+                <form id="page_update" enctype="multipart/form-data">				 
+                    <input type="hidden" name="id" value="{{ $data['id'] }}">
+                    <input type="hidden" name="old_storage_type" value="{{ $data['storage_type'] }}">
                     <div class="form-row">
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label>{{__('Label.Title')}}<span class="text-danger">*</span></label>
-                                <input name="title" type="text" class="form-control" value="@if($data){{$data->title}}@endif" placeholder="Please Enter Title"  autofocus>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group ml-5">
-                                <label class="ml-5">Image<span class="text-danger">*</span></label>
-                                <div class="avatar-upload ml-5">
-                                    <div class="avatar-edit">
-                                        <input type='file' name="icon" id="imageUpload" accept=".png, .jpg, .jpeg" />
-                                        <label for="imageUpload" title="Select File"></label>
-                                    </div>
-                                    <div class="avatar-preview">
-                                        <img src="{{$data->icon}}" alt="upload_img.png" id="imagePreview">
+                            <div class="form-row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>{{__('label.title')}}<span class="text-danger">*</span></label>
+                                        <input name="title" type="text" class="form-control" value="{{ $data['title'] }}" placeholder="{{__('label.title_here')}}" autofocus>
                                     </div>
                                 </div>
-                                <label class="mt-3 ml-5 text-gray">Maximum size 2MB.</label>
-                                <input type="hidden" name="old_icon" value="@if($data){{$data->icon}}@endif">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group ml-5">
+                                <label class="ml-5">{{__('label.icon')}}<span class="text-danger">*</span></label>
+                                <div class="avatar-upload ml-5">
+                                    <div class="avatar-edit">
+                                        <input type='file' name="icon" id="imageUpload1" accept=".png, .jpg, .jpeg" />
+                                        <label for="imageUpload1" title="{{__('label.upload_file')}}"></label>
+                                    </div>
+                                    <div class="avatar-preview">
+                                        <img src="{{ $data['icon'] }}" id="imagePreview1">
+                                    </div>
+                                </div>
+                                <label class="mt-3 ml-5 text-gray">{{__('label.max_size_5mb')}}</label>
+                                <input type="hidden" name="old_icon" value="{{ $data['icon'] }}">
                             </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label>{{__('Label.Description')}}<span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="description" id="summernote">@if($data){{$data->description}}@endif</textarea>
+                                <label>{{__('label.description')}}<span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="description" id="summernote">{{ $data['description'] }}</textarea>
                             </div>
                         </div>
                     </div>
                     <div class="border-top mt-2 pt-3 text-right">
-                        <button type="button" class="btn btn-default mw-120" onclick="edit_page()">{{__('Label.UPDATE')}}</button>
-                        <a href="{{route('page.index')}}" class="btn btn-cancel mw-120 ml-2">{{__('Label.CANCEL')}}</a>
+                        <button type="button" class="btn btn-default mw-120" onclick="edit_page()">{{__('label.update')}}</button>
+                        <a href="{{route('admin.page.index')}}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
                         <input type="hidden" name="_method" value="PATCH">
                     </div>
                 </form>
@@ -81,13 +90,18 @@
 @endsection
 
 @section('pagescript')
+    <!-- Summer notes -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
     <script>
         // Sidebar Scroll Down
-		sidebar_down($(document).height());
+        let sidebarHeight = $('.sidebar')[0].scrollHeight;
+        sidebar_down(sidebarHeight);
 
         $(document).ready(function() {
             $('#summernote').summernote({
-                placeholder: "Type your text here...",
+                placeholder: "{{__('label.description_here')}}",
                 height: 500,
                 toolbar: [
                     // Style Formatting
@@ -114,8 +128,8 @@
 
         function edit_page(){
 
-            var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
-            if(Check_Admin == 1){
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if(Demo_Mode == 1){
 
                 $("#dvloader").show();
                 var formData = new FormData($("#page_update")[0]);
@@ -125,14 +139,14 @@
                     },
                     enctype: 'multipart/form-data',
                     type: 'POST',
-                    url: '{{route("page.update", [$data->id])}}',
+                    url: '{{route("admin.page.update", [$data->id])}}',
                     data: formData,
                     cache:false,
                     contentType: false,
                     processData: false,
                     success:function(resp){
                         $("#dvloader").hide();
-                        get_responce_message(resp, 'page_update', '{{ route("page.index") }}');
+                        get_responce_message(resp, 'page_update', '{{ route("admin.page.index") }}');
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         $("#dvloader").hide();
@@ -140,7 +154,7 @@
                     }
                 });
             } else {
-                toastr.error('You have no right to add, edit, and delete.');
+                showError();
             }
         }
 	</script>

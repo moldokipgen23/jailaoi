@@ -14,8 +14,23 @@ class Notification extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'type' => 'integer',
         'title' => 'string',
-        'description' => 'string',
+        'message' => 'string',
+        'storage_type' => 'integer',
         'image' => 'string',
+        'user_id' => 'integer',
+        'from_user_id' => 'integer',
+        'content_id' => 'integer',
+        'status' => 'integer',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    public function content()
+    {
+        return $this->belongsTo(Content::class, 'content_id',);
+    }
 }

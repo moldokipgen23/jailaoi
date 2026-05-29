@@ -3,13 +3,15 @@
 }
 
 .toast-message {
-    -ms-word-wrap: break-word;
-    word-wrap: break-word
+    /* -ms-word-wrap: break-word; */
+    /* word-wrap: break-word; */
+    font-weight: bold
 }
 
 .toast-message a,
 .toast-message label {
-    color: #fff
+    color: #fff;
+    font-weight: bold
 }
 
 .toast-message a:hover {
@@ -106,21 +108,22 @@ button.toast-close-button {
 }
 
 #toast-container>div {
-    margin: 0 0 6px;
+    margin: 0 0 10px;
     padding: 15px 15px 15px 50px;
-    width: 300px;
+    width: 350px;
     -moz-border-radius: 3px 3px 3px 3px;
     -webkit-border-radius: 3px 3px 3px 3px;
     border-radius: 3px 3px 3px 3px;
     background-position: 15px center;
     background-repeat: no-repeat;
-    -moz-box-shadow: 0 0 12px #999;
-    -webkit-box-shadow: 0 0 12px #999;
-    box-shadow: 0 0 12px #999;
+    /* -moz-box-shadow: 0 0 12px #999; */
+    /* -webkit-box-shadow: 0 0 12px #999; */
+    /* box-shadow: 0 0 12px #999; */
     color: #fff;
-    /* opacity: .8;
-    -ms-filter: alpha(opacity=80);
-    filter: alpha(opacity=80) */
+    font-size: 18px;
+    /* opacity: 1;
+    -ms-filter: alpha(opacity=100);
+    filter: alpha(opacity=100) */
 }
 
 #toast-container>:hover {
@@ -160,11 +163,20 @@ button.toast-close-button {
     width: 96%;
     margin: auto
 }
-
 .toast {
-    background-color: #030303
+    background-color: #030303;
+    animation: fadeInRight 0.5s ease-in;
 }
-
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 .toast-success {
     background-color: #51a351
 }

@@ -22,12 +22,16 @@ class ProfileController extends Controller
     {
         try {
 
-            $params['data'] = [];
-            $params['data'] = Admin::latest()->first();
+            $admin = Admin_Data();
+            if (isset($admin) && isset($admin['id'])) {
 
-            return view('admin.profile.index', $params);
+                $params['data'] = Admin::where('id', $admin['id'])->first();
+                return view('admin.profile.index', $params);
+            } else {
+                return redirect()->route('admin.logout');
+            }
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
     public function store(Request $request)
@@ -39,20 +43,19 @@ class ProfileController extends Controller
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(array('status' => 400, 'errors' => $errs));
+                return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
             $requestData = $request->all();
 
-            $check_admin = Admin::where('id', $requestData['id'])->first();
-            if (isset($check_admin) && $check_admin != null) {
-                $admin = Admin::where('id', $requestData['id'])->update(['user_name' => $requestData['user_name'], 'email' => $requestData['email']]);
-                return response()->json(array('status' => 200, 'success' => __('Label.data_edit_successfully')));
+            $data = Admin::updateOrCreate(['id' => $requestData['id']], $requestData);
+            if (isset($data['id'])) {
+                return response()->json(['status' => 200, 'success' => __('label.data_edit_successfully')]);
             } else {
                 return redirect()->route('admin.logout');
             }
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
     public function ChangePassword(Request $request)
@@ -65,26 +68,26 @@ class ProfileController extends Controller
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(array('status' => 400, 'errors' => $errs));
+                return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $check_admin = Admin::where('id', $request['id'])->first();
-            if (isset($check_admin) && $check_admin != null) {
+            $admin = Admin::where('id', $request['id'])->first();
+            if (isset($admin) && $admin != null) {
 
-                if (Hash::check($request['current_password'], $check_admin['password'])) {
+                if (Hash::check($request['current_password'], $admin['password'])) {
 
-                    $check_admin->password = Hash::make($request['new_password']);
-                    if ($check_admin->save()) {
-                        return response()->json(array('status' => 200, 'success' => 'Password Change Successfully.'));
+                    $admin['password'] = Hash::make($request['new_password']);
+                    if ($admin->save()) {
+                        return response()->json(['status' => 200, 'success' => __('label.password_change_successfully')]);
                     }
                 } else {
-                    return response()->json(array('status' => 400, 'errors' => 'Please Enter Right Current Password.'));
+                    return response()->json(['status' => 400, 'errors' => __('label.please_enter_right_current_password')]);
                 }
             } else {
                 return redirect()->route('admin.logout');
             }
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
 }

@@ -50,17 +50,11 @@ class ArtistController extends Controller
                         return '<span class="badge badge-secondary">Legacy</span>';
                     })
                     ->addColumn('action', function ($row) {
-                        $delete = '<form onsubmit="return confirm(\'Are you sure !!! You want to Delete this Artist ?\');" method="POST"  action="' . route('artist.destroy', [$row->id]) . '">
-                                <input type="hidden" name="_token" value="' . csrf_token() . '">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="edit-delete-btn" style="outline: none;" title="Delete"><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
-
                         $btn = '<div class="d-flex justify-content-around" title="Edit">';
                         $btn .= '<a class="edit-delete-btn edit_artist" title="Edit" data-toggle="modal" href="#EditModel" data-id="' . $row->id . '" data-name="' . $row->name . '" data-image="' . $row->image . '" data-bio="' . $row->bio . '">';
                         $btn .= '<i class="fa-solid fa-pen-to-square fa-xl"></i>';
                         $btn .= '</a>';
-                        $btn .= $delete;
-                        $btn .= '</a></div>';
+                        $btn .= '</div>';
                         return $btn;
                     })
                     ->rawColumns(['action', 'linked_user', 'type_badge'])
@@ -71,6 +65,7 @@ class ArtistController extends Controller
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
     public function store(Request $request)
     {
         try {
@@ -80,69 +75,61 @@ class ArtistController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($validator->fails()) {
-                $errs = $validator->errors()->all();
-                return response()->json(array('status' => 400, 'errors' => $errs));
+                return response()->json(array('status' => 400, 'errors' => $validator->errors()->all()));
             }
 
-            $requestData = $request->all();
-            if (isset($requestData['image'])) {
-                $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_');
-            }
+            $artist = new Artist();
+            $artist->name = $request->name;
+            $artist->bio = $request->bio;
+            $artist->image = $this->common->saveImage($request->file('image'), $this->folder);
+            $artist->save();
 
-            $artist_data = Artist::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($artist_data->id)) {
-                return response()->json(array('status' => 200, 'success' => __('Label.data_add_successfully')));
-            } else {
-                return response()->json(array('status' => 400, 'errors' => __('Label.data_not_added')));
-            }
+            return response()->json(array('status' => 200, 'success' => 'Artist created successfully'));
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
     public function update(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
+                'id' => 'required|numeric',
                 'name' => 'required|min:2',
                 'bio' => 'required|min:2',
                 'image' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($validator->fails()) {
-                $errs = $validator->errors()->all();
-                return response()->json(array('status' => 400, 'errors' => $errs));
+                return response()->json(array('status' => 400, 'errors' => $validator->errors()->all()));
             }
 
-            $requestData = $request->all();
-
-            if (isset($requestData['image'])) {
-                $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_');
-
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_image']));
+            $artist = Artist::find($request->id);
+            if (!$artist) {
+                return response()->json(array('status' => 400, 'errors' => 'Artist not found'));
             }
-            unset($requestData['old_image']);
 
-            $artist_data = Artist::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($artist_data->id)) {
-                return response()->json(array('status' => 200, 'success' => __('Label.data_edit_successfully')));
-            } else {
-                return response()->json(array('status' => 400, 'errors' => __('Label.data_not_updated')));
+            $artist->name = $request->name;
+            $artist->bio = $request->bio;
+            if ($request->hasFile('image')) {
+                $artist->image = $this->common->saveImage($request->file('image'), $this->folder);
             }
+            $artist->save();
+
+            return response()->json(array('status' => 200, 'success' => 'Artist updated successfully'));
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
     public function destroy($id)
     {
         try {
-            $data = Artist::where('id', $id)->first();
-
-            if (isset($data)) {
-                $this->common->deleteImageToFolder($this->folder, $data['image']);
-                $data->delete();
+            $artist = Artist::find($id);
+            if (!$artist) {
+                return response()->json(array('status' => 400, 'errors' => 'Artist not found'));
             }
-            return redirect()->route('artist.index')->with('success', __('Label.data_delete_successfully'));
+            $artist->delete();
+            return redirect()->back()->with('success', 'Artist deleted successfully');
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }

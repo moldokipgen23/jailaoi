@@ -31,11 +31,12 @@ class Kernel extends HttpKernel
         'web' => [
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \App\Http\Middleware\SetSessionCookie::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LanguageSwitcher::class,
         ],
 
         'api' => [
@@ -63,10 +64,9 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'authadmin' => \App\Http\Middleware\AuthAdmin::class,
-        'auth.artist' => \App\Http\Middleware\AuthArtist::class,
-        'artist.role' => \App\Http\Middleware\CheckArtistRole::class,
-        'checkadmin' => \App\Http\Middleware\checkadmin::class,
+        'authuser' => \App\Http\Middleware\AuthUser::class,
         'installation' => \App\Http\Middleware\Installation::class,
+        'checkadmin' => \App\Http\Middleware\CheckAccess::class,
         'apipurchasecode' => \App\Http\Middleware\ApiPurchaseCode::class,
     ];
 }
