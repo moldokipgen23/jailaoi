@@ -1,7 +1,7 @@
 # AGENTS.md — Instructions for AI agents
 
 ## Project
-**DTTube** — Multi-media platform (video, music, reels, radio, podcasts, live streaming) with admin panel + Flutter app.
+**JailaOi** — Multi-media platform (video, music, reels, radio, podcasts, live streaming) with admin panel + Flutter app.
 
 ## Artist System (just added)
 - `tbl_artist` + `tbl_artist_requests` tables
@@ -12,7 +12,7 @@
 ## Key Commands
 - **Run dev**: `php artisan serve --port=8000`
 - **Tests**: N/A (no tests yet)
-- **DB**: MySQL 8.0, database `dt_tube`
+- **DB**: MySQL 8.0, database `jailaoi_tube`
 
 ## Structure
 - `/dttube/backend/` — Laravel backend

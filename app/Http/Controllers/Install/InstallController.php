@@ -327,7 +327,7 @@ class InstallController extends Controller
                 Schema::drop($table_array[key($table_array)]);
             }
 
-            $sql_path = base_path('db/dt_tube.sql');
+            $sql_path = base_path('db/dt_tube.sql'); // rename file later if needed
             if (file_exists($sql_path)) {
 
                 DB::unprepared(file_get_contents($sql_path));

@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `clean_dt_tube`
+-- Database: `jailaoi_tube`
 --
 
 -- --------------------------------------------------------
@@ -431,7 +431,7 @@ CREATE TABLE `tbl_general_setting` (
 --
 
 INSERT INTO `tbl_general_setting` (`id`, `key`, `value`, `created_at`, `updated_at`) VALUES
-(1, 'app_name', 'DTTube', '2023-04-21 05:09:12', '2025-06-03 13:37:02'),
+(1, 'app_name', 'JailaOi', '2023-04-21 05:09:12', '2025-06-03 13:37:02'),
 (2, 'app_version', '1.4', '2023-04-21 05:09:12', '2025-10-09 08:41:13'),
 (3, 'app_logo', '', '2023-04-21 05:09:12', '2025-10-09 08:41:16'),
 (4, 'app_description', 'DivineTechs, a top web & mobile app development company offering innovative solutions for diverse industry verticals. \r\nWe have creative and dedicated group of developers who are mastered in Apps Developments and Web Development with a nice in delivering quality solutions to customers across the globe.', '2023-04-21 05:09:12', '2025-10-06 10:27:37'),
@@ -960,7 +960,7 @@ CREATE TABLE `tbl_smtp_setting` (
 --
 
 INSERT INTO `tbl_smtp_setting` (`id`, `protocol`, `host`, `port`, `user`, `pass`, `from_name`, `from_email`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'smtp123', 'smtp.gmail.com', '587', 'admin@admin.com', 'admin', 'DTTube-DivineTechs', 'admin@admin.com', 0, '2023-08-26 06:19:33', '2025-10-09 08:43:31');
+(1, 'smtp123', 'smtp.gmail.com', '587', 'admin@admin.com', 'admin', 'JailaOi-DivineTechs', 'admin@admin.com', 0, '2023-08-26 06:19:33', '2025-10-09 08:43:31');
 
 -- --------------------------------------------------------
 
