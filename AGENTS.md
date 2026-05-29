@@ -82,8 +82,9 @@ Host: localhost
 - API (Flutter): `get_artist_list`, `get_artist_profile`, `get_artist_content`, `apply_artist`, `get_artist_request_status`, `follow_artist`, `unfollow_artist`, `get_artist_dashboard`
 - Admin web: `/admin/artist` (CRUD), `/admin/artist-requests` (approve/reject)
 - Flutter: artistlist.dart, artistprofile.dart, applyartist.dart
-- `tbl_user.role`: 'user' or 'artist'
+- `tbl_user.role`: 'user' (listener) or 'artist'
 - `tbl_user.bio`: text field
+- **Web dashboard** (`/user/`): locked to artists only. `LoginController` checks `role='artist'`. `AuthUser` middleware enforces it. Listeners cannot access any web dashboard.
 
 ## Admin Login
 - URL: `https://m.jailaoi.com/admin/login`
@@ -95,7 +96,7 @@ Host: localhost
 
 ## To-Do List
 - [ ] DeepSound → JailaOi data migration (users, songs, playlists)
-- [ ] Build web artist dashboard (currently API-only)
+- [ ] N/A: Web dashboard = `/user/` repurposed for artists only (done)
 - [ ] Set up socket.io on live: `pm2 start socket.js --name jailaoi-socket`
 - [ ] Test Flutter app connected to live API
 - [ ] Set up SSL for m.jailaoi.com
