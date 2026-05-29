@@ -30,7 +30,12 @@ class MigrateOldData extends Command
         $oldDb   = $this->option('old-db');
         $oldUser = $this->option('old-user');
         $oldPass = $this->option('old-pass');
-        $this->oldRoot = $this->option('old-root') ? rtrim($this->option('old-root'), '/') : '';
+        $rawRoot = $this->option('old-root') ?? '';
+        if ($rawRoot && strpos($rawRoot, '~') === 0) {
+            $home = getenv('HOME') ?: (getenv('USERPROFILE') ?: '');
+            $rawRoot = $home . substr($rawRoot, 1);
+        }
+        $this->oldRoot = $rawRoot ? rtrim($rawRoot, '/') : '';
 
         if (!$oldHost || !$oldDb || !$oldUser) {
             $this->error('Missing required options: --old-host, --old-db, --old-user');
@@ -680,56 +685,69 @@ class MigrateOldData extends Command
 
     private function copyLogoFiles(array $configLookup): void
     {
-        // DeepSound stores logo as uploaded files, look for logo.* in upload/photos
-        $srcDir = $this->oldRoot . '/upload/photos';
-        if (!is_dir($srcDir)) return;
-
         $dstDir = storage_path('app/public/setting');
         if (!is_dir($dstDir)) {
             mkdir($dstDir, 0755, true);
         }
 
-        $logoFile = null;
-        $faviconFile = null;
+        // Search multiple locations for logo/favicon files
+        $searchDirs = [
+            $this->oldRoot . '/upload/photos',
+            $this->oldRoot . '/upload/photos/logo',
+            $this->oldRoot . '/upload/logo',
+            $this->oldRoot,
+        ];
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($srcDir, \RecursiveDirectoryIterator::SKIP_DOTS)
-        );
+        $foundLogo = false;
+        $foundFavicon = false;
 
-        foreach ($iterator as $file) {
-            $name = strtolower($file->getFilename());
-            if (strpos($name, 'logo') !== false) {
-                $logoFile = $file;
-            }
-            if (strpos($name, 'favicon') !== false) {
-                $faviconFile = $file;
+        foreach ($searchDirs as $srcDir) {
+            if (!is_dir($srcDir)) continue;
+
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($srcDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $file) {
+                $name = strtolower($file->getFilename());
+
+                if (!$foundLogo && preg_match('/logo/', $name)) {
+                    $ext = $file->getExtension();
+                    $newName = 'logo.' . $ext;
+                    $target = $dstDir . '/' . $newName;
+                    if (!file_exists($target)) {
+                        copy($file->getPathname(), $target);
+                        DB::table('tbl_general_setting')
+                            ->where('key', 'app_logo')
+                            ->update(['value' => $newName]);
+                        $this->info('  Logo copied: ' . $newName);
+                    }
+                    $foundLogo = true;
+                }
+
+                if (!$foundFavicon && preg_match('/favicon/', $name)) {
+                    $ext = $file->getExtension();
+                    $newName = 'favicon.' . $ext;
+                    $target = $dstDir . '/' . $newName;
+                    if (!file_exists($target)) {
+                        copy($file->getPathname(), $target);
+                        DB::table('tbl_general_setting')
+                            ->where('key', 'app_favicon')
+                            ->update(['value' => $newName]);
+                        $this->info('  Favicon copied: ' . $newName);
+                    }
+                    $foundFavicon = true;
+                }
+
+                if ($foundLogo && $foundFavicon) break 2;
             }
         }
 
-        if ($logoFile) {
-            $ext = $logoFile->getExtension();
-            $newName = 'logo.' . $ext;
-            $target = $dstDir . '/' . $newName;
-            if (!file_exists($target)) {
-                copy($logoFile->getPathname(), $target);
-                DB::table('tbl_general_setting')
-                    ->where('key', 'app_logo')
-                    ->update(['value' => $newName]);
-                $this->info('  Logo file copied.');
-            }
+        if (!$foundLogo) {
+            $this->warn('  No logo file found in old storage.');
         }
-
-        if ($faviconFile) {
-            $ext = $faviconFile->getExtension();
-            $newName = 'favicon.' . $ext;
-            $target = $dstDir . '/' . $newName;
-            if (!file_exists($target)) {
-                copy($faviconFile->getPathname(), $target);
-                DB::table('tbl_general_setting')
-                    ->where('key', 'app_favicon')
-                    ->update(['value' => $newName]);
-                $this->info('  Favicon file copied.');
-            }
+        if (!$foundFavicon) {
+            $this->warn('  No favicon file found in old storage.');
         }
     }
 
