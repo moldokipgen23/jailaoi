@@ -11,9 +11,11 @@ use App\Models\Favorite;
 use App\Models\Language;
 use App\Models\Song;
 use App\Models\Banner;
+use App\Services\AudioProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 // Song Upload Type : server_video, external_url
 class SongController extends Controller
@@ -114,6 +116,13 @@ class SongController extends Controller
                 $requestData['song_url'] = $request->url;
             }
             unset($requestData['url']);
+
+            // Attach audio processing results if available
+            $audioProcess = session()->pull('audio_process_' . ($request->song_url ?? ''));
+            if ($audioProcess) {
+                $requestData['duration'] = $audioProcess['duration'] ?? '0';
+                $requestData['waveform'] = $audioProcess['waveform'] ?? null;
+            }
 
             $song_data = Song::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($song_data->id)) {
@@ -353,6 +362,16 @@ class SongController extends Controller
 
             // Rename the uploaded file to the new filename
             rename($filePath, $newFilePath);
+
+            // Process audio (duration, compression, waveform)
+            try {
+                $processor = new AudioProcessor;
+                $result = $processor->process($newFilePath);
+                // Store processing result in session so store() can save it
+                session()->flash('audio_process_' . $newFileName, $result);
+            } catch (\Throwable $e) {
+                Log::error('Audio processing failed: ' . $e->getMessage());
+            }
 
             // Send the new file name back to the client
             die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
