@@ -65,13 +65,29 @@
                                 </div>
                             </div>
                             <div class="form-row">
-                                <div class="col-md-8">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label>{{__('label.description')}}</label>
                                         <textarea name="description" class="form-control" rows="6" placeholder="{{__('label.description_here')}}">{{ strip_tags($data['description']) }}</textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Lyrics</label>
+                                        <textarea name="lyrics" class="form-control" rows="6" placeholder="Add lyrics here...">{{ $data['lyrics'] ?? '' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Album</label>
+                                        <select name="album_id" class="form-control">
+                                            <option value="">None</option>
+                                            @php $albums = \App\Models\Album::where('status', 1)->get(); @endphp
+                                            @foreach ($albums as $album)
+                                                <option value="{{ $album->id }}" {{ ($data['album_id'] ?? '') == $album->id ? 'selected' : '' }}>{{ $album->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                     <div class="form-group">
                                         <label>{{__('label.category')}}<span class="text-danger">*</span></label>
                                         <select name="category_id" id="category_id" class="form-control" style="width:100%!important;">
@@ -135,7 +151,8 @@
                                                     <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
                                                 </div>
                                                 <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>@endif
+                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }} &nbsp; <a href="javascript:void(0)" onclick="previewAudio('{{ $data['content'] }}')"><i class="fa-solid fa-play"></i> Preview</a></label>@endif
+                                                <div id="audioPreviewBox" style="display:none;margin-top:5px;"><audio controls style="width:100%;height:36px;" id="audioPreviewPlayer"><source src="" type="audio/mpeg"></audio></div>
                                             </div>
                                         </div>
                                     </div>
@@ -149,7 +166,7 @@
                                     <div class="form-group">
                                         <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
                                         <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>@endif
+                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }} &nbsp; <a href="javascript:void(0)" onclick="previewAudio('{{ $data['content'] }}')"><i class="fa-solid fa-play"></i> Preview</a></label>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-6 url_box">
@@ -259,7 +276,7 @@
         $("#language_id").select2();
 
         // Time Picker
-        var duration = '<?php echo $data['content_duration']; ?>';
+        var duration = parseInt('<?php echo $data['content_duration'] ?? 0; ?>') || 0;
         let hours = msToHours(duration);
         let minutes = msToMinutes(duration);
         let seconds = msToSeconds(duration);
@@ -278,6 +295,14 @@
                 close: "fa fa-times",
             }
         })
+
+        function previewAudio(url) {
+            if (!url || url == '') return;
+            $('#audioPreviewPlayer source').attr('src', url);
+            $('#audioPreviewBox').show();
+            $('#audioPreviewPlayer')[0].load();
+            $('#audioPreviewPlayer')[0].play();
+        }
 
         $(document).ready(function() {
             var storage_type = "<?php echo Storage_Type(); ?>";
