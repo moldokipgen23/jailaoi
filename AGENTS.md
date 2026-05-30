@@ -1,8 +1,28 @@
 # AGENTS.md — Instructions for AI agents
 
+## ⚠️ PROJECT CONTEXT — DeepSound → JailaOi Migration
+**JailaOi** is a rebrand from **DeepSound** (old music platform). The codebase started as **DTTube** (multi-media platform), which itself was a fork - but the critical migration was from DeepSound.
+
+### Folder Structure (DON'T GET CONFUSED)
+- **`Jailaoi admin/`** — **GIT REPO ROOT**. This is the Laravel app. DeepSound migration code is here (`app/Console/Commands/MigrateDeepSound.php`).
+- **`Jailaoi Old/`** — OLD DeepSound source code (from jailaoi.com). Reference only. DB was already migrated from here.
+- **`dttube/`** — DELETED (was old DTTube copy)
+- **`flutter_app/`** — Inside `Jailaoi admin/`. Actually moved here from `dttube/`.
+
+### What "Migration" Means
+1. **Database**: `php artisan migrate:deepsound` copies from old DeepSound DB (`jailaoic_jailaoi`) to new JailaOi DB (`jailaoic_jailaoinew`) — users, songs, playlists, likes, comments, followers, etc.
+2. **Media files**: Manual copy from `~/public_html/upload/` (old DeepSound) to `~/m.jailaoi.com/storage/app/public/` (new Laravel app) — audio + photos already done.
+3. **Path mapping**: `transformPath()` strips old prefixes (`upload/photos/`, `upload/audio/`) so DB stores clean relative paths like `2024/01/filename.jpg`.
+
+### Current State
+- **New app**: `m.jailaoi.com` (Laravel)
+- **Old app**: `jailaoi.com` (DeepSound, `~/public_html/`) — can be deleted after migration verified
+- **DB path**: `~/m.jailaoi.com` — git repo, Laravel backend
+- **Storage**: `storage/app/public/{user,artist,content}/` — all media files copied, URLs resolve correctly
+
 ## Project
 **JailaOi** — Multi-media platform (video, music, reels, radio, podcasts, live streaming) with admin panel + Flutter app.
-Rebranded from DTTube.
+Rebranded from DTTube / DeepSound.
 
 ## Structure
 - `Jailaoi admin/` — **Git repo root** for Laravel backend
@@ -35,12 +55,24 @@ Rebranded from DTTube.
 - `php artisan serve --port=8000`
 - Skip install wizard (already configured, just login)
 
+## Storage Setup (DON'T CHANGE)
+- **Symlink**: `public/storage -> ~/m.jailaoi.com/storage/app/public` ✅ exists
+- **image_url config**: `config/app.php` → `APP_URL/storage/` (NOT `/storage/app/public/`)
+  - This is critical: URL `/storage/user/file.jpg` resolves through symlink to `storage/app/public/user/file.jpg`
+  - If a future session changes this, revert immediately
+- **Media directories** (all under `storage/app/public/`):
+  - `content/` — audio (2,786 files) + photos (1,123 files) = 3,862 total
+  - `user/` — user avatars (1,123 files)
+  - `artist/` — artist images (1,123 files)
+- **New uploads**: `saveImage()` saves directly to `storage/app/public/{folder}/filename.jpg` — works automatically
+- **Migrated files**: stored with subdirectories like `2024/01/filename.jpg` — also works because `getImage()` checks same path
+
 ## Live Server (cPanel Deploy)
 **Host**: terra (cPanel terminal, no SSH)
 **User**: jailaoic
 **Paths**:
-- `~/m.jailaoi.com/` — Laravel backend (jailaoi.com)
-- `~/public_html/` — DeepSound (jailaoi.com) — DO NOT TOUCH
+- `~/m.jailaoi.com/` — Laravel backend (m.jailaoi.com)
+- `~/public_html/` — DeepSound old site (jailaoi.com) — OLD, can delete `upload/` to free ~14GB
 
 ### Deploy Steps (run in order):
 1. **Push to GitHub** first (see Git section)
@@ -56,9 +88,9 @@ Rebranded from DTTube.
    ```bash
    /opt/alt/php84/usr/bin/php -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo.so -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo_mysql.so -d extension=/opt/alt/php84/usr/lib64/php/modules/dom.so artisan migrate --force
    ```
-5. **Clear cache**:
+5. **Clear cache** (MUST do after config changes):
    ```bash
-   /opt/alt/php84/usr/bin/php -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo.so -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo_mysql.so -d extension=/opt/alt/php84/usr/lib64/php/modules/dom.so artisan config:clear
+   cd ~/m.jailaoi.com && /opt/alt/php84/usr/bin/php -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo.so -d extension=/opt/alt/php84/usr/lib64/php/modules/pdo_mysql.so -d extension=/opt/alt/php84/usr/lib64/php/modules/dom.so artisan config:clear
    ```
 6. **Set permissions**:
    ```bash
@@ -106,14 +138,23 @@ Host: localhost
 - On live: `php artisan migrate:deepsound --old-db=jailaoic_jailaoi`
 - Migrates: users, songs, playlists, likes, comments, followers, views, history, artists
 
-## To-Do List
+## To-Do List (see TODO.md for full list)
+### ✅ COMPLETED
 - [x] DeepSound → JailaOi data migration (users, songs, playlists, artists)
-- [x] Admin UI redesign (CSS, sidebar, header, login, dashboard, layout)
+- [x] Admin UI redesign (CSS, sidebar, header, login, dashboard, layout, stat cards, grids)
 - [x] Content toggles (video_status, reels_status, feed_status)
 - [x] Channel → Artist labels
 - [x] Artist DataTable fix, image path fix (transformPath)
-- [ ] Copy media files from live DeepSound (`~/public_html/upload/`) to `storage/app/public/`
-- [ ] Finish admin redesign touch-ups (old stat-card pages, video-card grid)
-- [ ] Set up socket.io on live: `pm2 start socket.js --name jailaoi-socket`
-- [ ] Test Flutter app connected to live API
-- [ ] Set up SSL for m.jailaoi.com
+- [x] Audio copied: `upload/audio/` → `storage/app/public/content/` (2,786 files)
+- [x] Photos copied: `upload/photos/` → `storage/app/public/{user,artist,content}/` (1,123 files)
+- [x] Fixed image_url config (`/storage/` not `/storage/app/public/`)
+- [x] git pull + media verified on live
+
+### ❌ PENDING
+- [ ] Deploy: composer install → config:clear → chmod on live
+- [ ] Delete old `~/public_html/upload/` to free ~14GB (optional)
+- [ ] Socket.io: `pm2 start socket.js --name jailaoi-socket`
+- [ ] Flutter app: update API calls for content toggles
+- [ ] SSL for m.jailaoi.com
+- [ ] High-priority features: Albums, Lyrics, Download Toggle, Bulk Upload, Waveform
+- [ ] Monetization: Pro subscriptions, Earnings/Withdrawals, Referral program

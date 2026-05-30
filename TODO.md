@@ -1,59 +1,70 @@
 # JailaOi Project Todo List
 
-## ✅ Admin UI Redesign
+## ⚠️ ORIGIN: DeepSound → JailaOi
+This project migrated from **DeepSound** (old music platform at jailaoi.com) to **JailaOi** (Laravel at m.jailaoi.com).
+- Old DB: `jailaoic_jailaoi` (DeepSound) → New DB: `jailaoic_jailaoinew` (Laravel)
+- Old files: `~/public_html/upload/` → New storage: `storage/app/public/{user,artist,content}/`
+- Migration command: `php artisan migrate:deepsound --old-db=jailaoic_jailaoi`
+- See `AGENTS.md` for full project context.
+
+## ✅ COMPLETED — Admin UI Redesign
 - [x] Rewrite CSS with modern indigo theme (style.css)
-- [x] Redesign sidebar (sidebar.blade.php)
-- [x] Redesign header (header.blade.php)
-- [x] Redesign layout (page-app.blade.php with sidebar toggle JS)
-- [x] Update js.js with toggle handlers
-- [x] Redesign login page (login.blade.php)
-- [x] Redesign dashboard summary cards (dashboard.blade.php)
-- [x] Add CSS fallbacks for all old class patterns (card-color-primary, video-card, page-search, sorting, breadcrumbs, profile-card, custom-tabs, border-card, avatar, etc.)
+- [x] Redesign sidebar, header, layout, login page, dashboard
+- [x] js.js toggle handlers, CSS fallbacks for all old class patterns
+- [x] Stat cards updated: dashboard, earning_dashboard, ads/edit
+- [x] Video-card grid pages modernized (music, video, reels, feed, radio, podcast episodes)
 
-## ✅ Content Toggles (video_status, reels_status, feed_status)
-- [x] Separate toggles for video, reels, feed in App Settings tab
-- [x] updateOrCreate for settings saving
-- [x] Sidebar hides menu items when toggled off
-- [x] API filters: get_video_list, get_reels_list, search_content, get_feed return empty when disabled
-- [x] get_music_section skips video/reel sections, get_music_section_detail returns empty
+## ✅ COMPLETED — Content Toggles
+- [x] video_status, reels_status, feed_status — separate toggles in App Settings
+- [x] Admin sidebar hides toggled-off items + API returns empty when disabled
+- [x] Artist portal already blocks video/reels (music only)
 
-## ✅ Labels & Channel → Artist
-- [x] Renamed channel_info, channel_name, channel, channel_:, all_channel, select_channel in label.php
+## ✅ COMPLETED — Migration
+- [x] migrate:deepsound command: 11,226 users, 75 artists, 1,045 songs, 65 playlists, 1,664 likes, 95 comments, 8,228 followers, 2,684 history, 9 categories
+- [x] transformPath strips old prefixes, stores clean relative paths
 
-## ✅ Migration
-- [x] migrate:deepsound command with --old-db, --old-host, --old-user, --old-pass params
-- [x] Migrated 11,226 users, 75 artists, 1,045 songs, 65 playlists, 1,664 likes, 95 comments, 8,228 followers, 2,684 history, 9 categories
-- [x] Artists mapped to both tbl_artist and tbl_user.role='artist'
-- [x] Channel names use real names, not @username
-- [x] Content ownership uses artist_id from songs table
+## ✅ COMPLETED — Media Files (on live server)
+- [x] Audio: 2,786 files from `upload/audio/` → `storage/app/public/content/`
+- [x] Photos: 1,123 files from `upload/photos/` → `storage/app/public/{user,artist,content}/`
+- [x] Fixed config/app.php: `image_url` changed to `APP_URL/storage/` (was `/storage/app/public/`) so URLs resolve correctly through symlink
+- [x] No SQL path fixes needed — transformPath already stored clean paths
 
-## ✅ Artist Image / DataTable Fixes
-- [x] transformPath preserves date subdirectory (YYYY/MM/filename.jpg)
-- [x] ArtistController uses query builder (not collection) for DataTables
-- [x] Image rendered as <img> tag
-- [x] Virtual columns set orderable: false
+## ✅ COMPLETED — Labels & Fixes
+- [x] Channel → Artist rename in label.php
+- [x] Artist DataTable fix (query builder, image render, orderable:false)
 
-## ❌ PENDING — Admin Redesign Touch-ups
-- [x] Bulk-replace `border-bottom row mb-3` → CSS fallback added (handled globally)
-- [x] Update user/dashboard.blade.php stat cards → new stat-card pattern  
-- [x] Update earning_dashboard.blade.php stat cards → new stat-card pattern
-- [x] Update ads/edit.blade.php stat cards → new stat-card pattern
-- [x] Update video-card grid pages (music, video, reels, feed, radio, podcast episodes) → modern card grid
+## ❌ PENDING — Live Server Deploy (run on cPanel)
+- [x] git pull origin main ✅ done
+- [ ] composer install --no-dev --optimize-autoloader (with -d flags)
+- [ ] artisan config:clear (with -d flags)
+- [ ] chmod -R 777 storage bootstrap/cache
+- [ ] Delete old `~/public_html/upload/` to free ~14GB (optional)
 
-## ❌ PENDING — Media Copy (needs cPanel terminal)
-- [ ] Check if audio copy finished: `upload/audio/.` → `storage/app/public/content/` (2739 files, ~14GB)
-- [ ] Copy/hardlink: `upload/photos/.` → `user/`, hardlink to `artist/` and `content/`
-- [ ] SQL fixes: update DB paths to strip `upload/photos/` and `upload/audio/` prefixes
-- [ ] Delete old `~/public_html/upload/` to free ~14GB
-- [ ] Re-run migration with fixed transformPath
+## ❌ PENDING — High Priority Features
+- [ ] Albums: table, artist CRUD, assign songs, API
+- [ ] Lyrics: column/table, artist input, API, player display
+- [ ] Download toggle: per-track allow_download, artist control, API
+- [ ] Bulk upload: multi-file, queue with progress
+- [ ] Waveform visualization on upload, music player UI
+- [ ] Embeddable player: /embed/{track_id}, shareable code
 
-## ❌ PENDING — Live Server Deploy
-- [ ] git pull on server
-- [ ] composer install / migrate / cache clear
-
-## ❌ PENDING — Flutter App
-- [ ] Update API calls to respect video_status, reels_status, feed_status
+## ❌ PENDING — Monetization
+- [ ] Pro subscriptions: plans, payments, ad-free, artist perks
+- [ ] Earnings & withdrawals: stream tracking, commission, payouts
+- [ ] Referral program: codes, sign-up tracking, rewards
 
 ## ❌ PENDING — Infrastructure
 - [ ] Socket.io: `pm2 start socket.js --name jailaoi-socket`
 - [ ] SSL for m.jailaoi.com
+
+## ❌ PENDING — Flutter App
+- [ ] Update API calls to respect video_status, reels_status, feed_status
+
+## ❌ PENDING — Medium Priority
+- [ ] Import from SoundCloud/YouTube/Deezer
+- [ ] User verification badges
+- [ ] Comment timestamps (tied to playback position)
+- [ ] Two-factor auth (2FA)
+- [ ] FAQs management
+- [ ] Announcement system
+- [ ] Sitemap generation
