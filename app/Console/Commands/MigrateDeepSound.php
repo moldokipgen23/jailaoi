@@ -447,14 +447,22 @@ class MigrateDeepSound extends Command
             return '';
         }
 
-        $parts = explode('/', $oldPath);
-        $filename = end($parts);
+        // Old DeepSound stores paths like "upload/photos/2024/01/filename.jpg"
+        // We need the path relative to the upload subfolder (e.g., "2024/01/filename.jpg")
+        $prefixes = [
+            'upload/photos/',
+            'upload/audio/',
+        ];
 
-        if (!$filename || $filename === '') {
-            return '';
+        $relativePath = $oldPath;
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($oldPath, $prefix)) {
+                $relativePath = substr($oldPath, strlen($prefix));
+                break;
+            }
         }
 
-        return $filename;
+        return $relativePath;
     }
 
     protected function parseDuration(?string $duration): int
