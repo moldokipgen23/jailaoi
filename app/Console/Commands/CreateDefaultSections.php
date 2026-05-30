@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Section;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CreateDefaultSections extends Command
 {
@@ -12,6 +14,22 @@ class CreateDefaultSections extends Command
 
     public function handle()
     {
+        $this->info('Seeding default languages...');
+        if (Schema::hasTable('tbl_language')) {
+            $langCount = DB::table('tbl_language')->count();
+            if ($langCount === 0) {
+                DB::table('tbl_language')->insert([
+                    ['name' => 'English', 'storage_type' => 0, 'image' => '', 'sort_order' => 1, 'status' => 1, 'created_at' => now(), 'updated_at' => now()],
+                    ['name' => 'Hindi', 'storage_type' => 0, 'image' => '', 'sort_order' => 2, 'status' => 1, 'created_at' => now(), 'updated_at' => now()],
+                ]);
+                $this->info('Added 2 default languages.');
+            } else {
+                $this->warn("Languages already exist ($langCount found), skipping.");
+            }
+        } else {
+            $this->error('tbl_language table does not exist. Run php artisan migrate first.');
+        }
+
         $this->info('Creating default sections...');
 
         $sections = [
