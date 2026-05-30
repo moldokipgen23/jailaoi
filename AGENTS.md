@@ -107,8 +107,8 @@ Host: localhost
 - Migrates: users, songs, playlists, likes, comments, followers, views, history
 
 ## To-Do List
-- [x] DeepSound → JailaOi data migration (users, songs, playlists)
-- [ ] Copy media files from live DeepSound (`~/public_html/upload/`) to local `storage/app/public/`
+- [x] DeepSound → JailaOi data migration (users, songs, playlists, artists)
+- [ ] Copy media files from live DeepSound (`~/public_html/upload/`) to `storage/app/public/`
 - [ ] Set up socket.io on live: `pm2 start socket.js --name jailaoi-socket`
 - [ ] Test Flutter app connected to live API
 - [ ] Set up SSL for m.jailaoi.com

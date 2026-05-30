@@ -42,10 +42,11 @@ class MigrateDeepSound extends Command
         $this->table(
             ['Table', 'Records Migrated'],
             [
-                ['Users', count($this->userMap)],
-                ['Songs', $this->getCount('tbl_content', 'content_type', 2)],
-                ['Playlists', $this->getCount('tbl_content', 'content_type', 5)],
-                ['Categories', $this->getCount('tbl_category', '', null)],
+            ['Users', count($this->userMap)],
+            ['Artists', $this->getCount('tbl_artist', '', null)],
+            ['Songs', $this->getCount('tbl_content', 'content_type', 2)],
+            ['Playlists', $this->getCount('tbl_content', 'content_type', 5)],
+            ['Categories', $this->getCount('tbl_category', '', null)],
             ]
         );
 
@@ -161,6 +162,18 @@ class MigrateDeepSound extends Command
                     'created_at' => $user->time ? date('Y-m-d H:i:s', $user->time) : now(),
                     'updated_at' => now(),
                 ]);
+
+                if (($user->artist ?? 0) == 1) {
+                    DB::connection($this->newConn)->table('tbl_artist')->insert([
+                        'user_id' => $newId,
+                        'name' => $user->name ?: $user->username,
+                        'image' => $this->transformPath($user->avatar, 'artist'),
+                        'bio' => $user->about ?? '',
+                        'status' => 1,
+                        'created_at' => $user->time ? date('Y-m-d H:i:s', $user->time) : now(),
+                        'updated_at' => now(),
+                    ]);
+                }
 
                 $this->userMap[$user->id] = [
                     'new_id' => $newId,
