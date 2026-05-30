@@ -11,7 +11,7 @@ return new class extends Migration
         if (!Schema::hasTable('tbl_album')) {
             Schema::create('tbl_album', function (Blueprint $table) {
                 $table->id()->unsigned();
-                $table->unsignedBigInteger('user_id')->nullable();
+                $table->unsignedBigInteger('user_id')->nullable()->index();
                 $table->string('channel_id', 255);
                 $table->string('name');
                 $table->text('description')->nullable();
@@ -20,7 +20,6 @@ return new class extends Migration
                 $table->date('release_date')->nullable();
                 $table->integer('status')->default(1);
                 $table->timestamps();
-                $table->foreign('user_id')->references('id')->on('tbl_user')->onDelete('cascade');
             });
         }
 
