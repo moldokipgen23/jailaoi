@@ -108,7 +108,12 @@ Host: localhost
 
 ## To-Do List
 - [x] DeepSound → JailaOi data migration (users, songs, playlists, artists)
+- [x] Admin UI redesign (CSS, sidebar, header, login, dashboard, layout)
+- [x] Content toggles (video_status, reels_status, feed_status)
+- [x] Channel → Artist labels
+- [x] Artist DataTable fix, image path fix (transformPath)
 - [ ] Copy media files from live DeepSound (`~/public_html/upload/`) to `storage/app/public/`
+- [ ] Finish admin redesign touch-ups (old stat-card pages, video-card grid)
 - [ ] Set up socket.io on live: `pm2 start socket.js --name jailaoi-socket`
 - [ ] Test Flutter app connected to live API
 - [ ] Set up SSL for m.jailaoi.com
