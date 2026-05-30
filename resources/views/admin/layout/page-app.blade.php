@@ -234,6 +234,31 @@
                 seconds = (seconds < 10) ? "0" + seconds : seconds;
                 return seconds;
         }
+
+        // Sidebar toggle (desktop)
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-collapsed');
+        }
+
+        // Mobile sidebar toggle
+        function toggleMobileSidebar() {
+            document.querySelector('.sidebar').classList.toggle('mobile-open');
+        }
+
+        // Close mobile sidebar on click outside
+        document.addEventListener('click', function(e) {
+            var sidebar = document.querySelector('.sidebar');
+            var toggle = document.getElementById('mobileToggle');
+            if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open') &&
+                !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+
+        // Remove sidebar-collapsed class on small screens
+        if (window.innerWidth <= 768) {
+            document.body.classList.remove('sidebar-collapsed');
+        }
     </script>
 
     @yield('pagescript')

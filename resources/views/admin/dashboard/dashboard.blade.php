@@ -12,165 +12,141 @@
             <!-- mobile title -->
             <h1 class="page-title-sm">{{__('label.dashboard')}}</h1>
 
-            <!-- Card -->
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-users fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($UserCount ?? 0) }}</h3>
-                                <span>{{__('label.users')}}</span>
-                            </div>
+            <!-- Summary Cards -->
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.users')}}</div>
+                            <div class="stat-value">{{ No_Format($UserCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-shapes fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CategoryCount ?? 0) }}</h3>
-                                <span>{{__('label.category')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-shapes"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.category')}}</div>
+                            <div class="stat-value">{{ No_Format($CategoryCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-globe fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($LanguageCount ?? 0) }}</h3>
-                                <span>{{__('label.language')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.language')}}</div>
+                            <div class="stat-value">{{ No_Format($LanguageCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-hashtag fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($HashtagCount ?? 0) }}</h3>
-                                <span>{{__('label.hashtag')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-hashtag"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.hashtag')}}</div>
+                            <div class="stat-value">{{ No_Format($HashtagCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-video fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($VideoCount ?? 0) }}</h3>
-                                <span>{{__('label.videos')}}</span>
-                            </div>
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.videos')}}</div>
+                            <div class="stat-value">{{ No_Format($VideoCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-music fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($MusicCount ?? 0) }}</h3>
-                                <span>{{__('label.music')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.music')}}</div>
+                            <div class="stat-value">{{ No_Format($MusicCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-film fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($ReelsCount ?? 0) }}</h3>
-                                <span>{{__('label.reels')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fa-solid fa-film"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.reels')}}</div>
+                            <div class="stat-value">{{ No_Format($ReelsCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-podcast fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($PodcastsCount ?? 0) }}</h3>
-                                <span>{{__('label.podcasts')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-podcast"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.podcasts')}}</div>
+                            <div class="stat-value">{{ No_Format($PodcastsCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-camera-retro fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($FeedCount ?? 0) }}</h3>
-                                <span>{{__('label.feeds')}}</span>
-                            </div>
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-camera-retro"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.feeds')}}</div>
+                            <div class="stat-value">{{ No_Format($FeedCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-headphones fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($PlaylistCount ?? 0) }}</h3>
-                                <span>{{__('label.playlists')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-headphones"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.playlists')}}</div>
+                            <div class="stat-value">{{ No_Format($PlaylistCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-radio fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($RadioCount ?? 0) }}</h3>
-                                <span>{{__('label.radio')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-radio"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.radio')}}</div>
+                            <div class="stat-value">{{ No_Format($RadioCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-gift fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($GiftCount ?? 0) }}</h3>
-                                <span>{{__('label.gift')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-gift"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.gift')}}</div>
+                            <div class="stat-value">{{ No_Format($GiftCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>

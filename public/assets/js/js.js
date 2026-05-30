@@ -1,4 +1,3 @@
 $(".side-toggle").click(function () {
-  $(".sidebar").toggleClass("hide-sidebar");
-  $(".right-content").toggleClass("right-content-0");
+    document.body.classList.toggle('sidebar-collapsed');
 });
