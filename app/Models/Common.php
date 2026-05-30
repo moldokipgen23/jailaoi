@@ -18,7 +18,7 @@ class Common extends Model
     {
         try {
             $name = $this->stripFolderPrefix($folder, $name);
-            if ($storage_type == 1) {
+            if ($storage_type == 1 || $storage_type == 0) {
 
                 $appName = Config::get('app.image_url');
                 if ($folder != "" && $name != "") {
@@ -103,7 +103,7 @@ class Common extends Model
     {
         try {
             $name = $this->stripFolderPrefix($folder, $name);
-            if ($storage_type == 1) {
+            if ($storage_type == 1 || $storage_type == 0) {
 
                 $appName = Config::get('app.image_url');
                 if ($folder != "" && $name != "") {
@@ -150,7 +150,7 @@ class Common extends Model
                     $value[$column] = $this->stripFolderPrefix($folder, $value[$column]);
                 }
 
-                if ($value[$storage_field] == 1) { // Local Storage
+                if ($value[$storage_field] == 1 || $value[$storage_field] == 0) { // Local Storage
 
                     $appName = Config::get('app.image_url');
 
