@@ -41,6 +41,7 @@
                 <input type="hidden" name="old_landscape_img_storage_type" value="{{ $data['landscape_img_storage_type'] }}">
                 <input type="hidden" name="old_content_storage_type" value="{{ $data['content_storage_type'] }}">
                 <div class="card custom-border-card mt-3">
+                    <div class="card-body">
                     <div class="form-row">
                         <div class="col-md-10">
                             <div class="form-row">
@@ -151,8 +152,7 @@
                                                     <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
                                                 </div>
                                                 <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }} &nbsp; <a href="javascript:void(0)" onclick="previewAudio('{{ $data['content'] }}')"><i class="fa-solid fa-play"></i> Preview</a></label>@endif
-                                                <div id="audioPreviewBox" style="display:none;margin-top:5px;"><audio controls style="width:100%;height:36px;" id="audioPreviewPlayer"><source src="" type="audio/mpeg"></audio></div>
+                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $data['content'] }}" type="audio/mpeg"></audio>@endif
                                             </div>
                                         </div>
                                     </div>
@@ -166,7 +166,7 @@
                                     <div class="form-group">
                                         <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
                                         <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }} &nbsp; <a href="javascript:void(0)" onclick="previewAudio('{{ $data['content'] }}')"><i class="fa-solid fa-play"></i> Preview</a></label>@endif
+                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $data['content'] }}" type="audio/mpeg"></audio>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-6 url_box">
@@ -246,6 +246,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>
                     <div class="border-top pt-3 text-right">
                         <button type="button" class="btn btn-default mw-120" onclick="save_music()">{{__('label.update')}}</button>
                         <a href="{{ route('admin.music.index') }}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
@@ -295,14 +296,6 @@
                 close: "fa fa-times",
             }
         })
-
-        function previewAudio(url) {
-            if (!url || url == '') return;
-            $('#audioPreviewPlayer source').attr('src', url);
-            $('#audioPreviewBox').show();
-            $('#audioPreviewPlayer')[0].load();
-            $('#audioPreviewPlayer')[0].play();
-        }
 
         $(document).ready(function() {
             var storage_type = "<?php echo Storage_Type(); ?>";

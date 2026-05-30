@@ -33,6 +33,7 @@
             <form id="music" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="">
                 <div class="card custom-border-card mt-3">
+                    <div class="card-body">
                     <div class="form-row">
                         <div class="col-md-10">
                             <div class="form-row">
@@ -236,6 +237,7 @@
                                 <label class="mt-3 text-gray">{{__('label.max_size_5mb')}}</label>
                             </div>
                         </div>
+                    </div>
                     </div>
                     <div class="border-top pt-3 text-right">
                         <button type="button" class="btn btn-default mw-120" onclick="save_music()">{{__('label.save')}}</button>
