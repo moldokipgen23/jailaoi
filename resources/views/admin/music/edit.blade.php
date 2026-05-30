@@ -152,7 +152,11 @@
                                                     <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
                                                 </div>
                                                 <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio id="audioPlayer" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $data['content'] }}" type="audio/mpeg"></audio><div id="waveform" style="width:100%;height:100px;margin-top:4px;background:#f0f0f0;border-radius:4px;"></div>@endif
+                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>
+                                                @php $audioUrl = $data['content'] ?: (config('app.image_url') . 'content/' . $data['content_file']); @endphp
+                                                <audio id="audioPlayer" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>
+                                                <div id="waveform" style="width:100%;height:100px;margin-top:4px;background:#f0f0f0;border-radius:4px;"></div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -166,7 +170,7 @@
                                     <div class="form-group">
                                         <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
                                         <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio id="audioPlayerS3" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $data['content'] }}" type="audio/mpeg"></audio>@endif
+                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio id="audioPlayerS3" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-6 url_box">
@@ -301,29 +305,34 @@
 
         // Initialize WaveSurfer.js for waveform visualization
         @if($data['content_file'])
-        var wavesurfer = WaveSurfer.create({
-            container: '#waveform',
-            waveColor: '#6a11cb',
-            progressColor: '#4e45b8',
-            height: 100,
-            barWidth: 2,
-            barGap: 1,
-            barRadius: 2,
-            cursorColor: '#333',
-            normalize: true,
-            mediaControls: false,
-            backend: 'MediaElement',
-        });
-        wavesurfer.load(document.querySelector('#audioPlayer'));
+        try {
+            var wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#6a11cb',
+                progressColor: '#4e45b8',
+                height: 100,
+                barWidth: 2,
+                barGap: 1,
+                barRadius: 2,
+                cursorColor: '#333',
+                normalize: true,
+                mediaControls: false,
+                backend: 'MediaElement',
+            });
+            var audioEl = document.getElementById('audioPlayer');
+            if (audioEl && audioEl.querySelector('source').src) {
+                wavesurfer.load(audioEl);
+            }
+        } catch(e) { console.log('WaveSurfer init skipped:', e); }
         @endif
 
         $(document).ready(function() {
-            var storage_type = "<?php echo Storage_Type(); ?>";
-            var content_upload_type = "<?php echo $data['content_upload_type']; ?>";
+            var storage_type = parseInt("<?php echo Storage_Type() ?: 1; ?>");
+            var content_upload_type = "<?php echo addslashes($data['content_upload_type']); ?>";
             if (content_upload_type == "server_video") {
                 if(storage_type == 1){
                     $(".s3_video_box").hide();
-                } else if(storage_type == 2){
+                } else {
                     $(".video_box").hide();
                 }
                 $(".url_box").hide();
