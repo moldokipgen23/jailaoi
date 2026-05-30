@@ -8,6 +8,7 @@
 
         <a href="{{ route('user.dashboard') }}" class="side-logo primary-color">
             <h3>{{ App_Name() }}</h3>
+            <small class="d-block" style="font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:1px;margin-top:-6px;color:var(--text-secondary)">{{__('label.artist_portal')}}</small>
         </a>
 
         <h1 class="page-title">@yield('page_title')</h1>

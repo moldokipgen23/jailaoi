@@ -825,5 +825,25 @@ return [
     'user_name' => 'User Name',
     'whoops_the_code_you_entered_seems_to_be_for_a_different_product' => 'Whoops! The code you entered seems to be for a different product.',
     'you_want_to_download_this_sql_file' => 'You want to download this SQL file...',
-]
+
+    'artist_dashboard' => 'Artist Dashboard',
+    'welcome_back_artist' => 'Welcome back, Artist',
+    'my_content' => 'My Content',
+    'my_music' => 'My Music',
+    'my_videos' => 'My Videos',
+    'my_reels' => 'My Reels',
+    'my_podcasts' => 'My Podcasts',
+    'my_playlists' => 'My Playlists',
+    'my_radio' => 'My Radio',
+    'my_feeds' => 'My Feeds',
+    'my_ads' => 'My Ads',
+    'artist_portal' => 'Artist Portal',
+    'sign_in_as_artist' => 'Sign in to manage your content',
+    'total_content' => 'Total Content',
+    'total_earnings' => 'Total Earnings',
+    'dashboard_content_title' => 'Content Overview',
+    'content_upload_type' => 'Upload Type',
+    'monthly' => 'Monthly',
+    'yearly' => 'Yearly',
+];
 ?>
