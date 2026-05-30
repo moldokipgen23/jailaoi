@@ -516,11 +516,11 @@
                                         <label for="video_reels_status">{{__('label.video_reels_status')}}</label>
                                         <div class="mt-2">
                                             <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="video_reels_status" id="video_reels_status_yes" class="custom-control-input" {{ $result['video_reels_status'] == '1' ? "checked" : "" }} value="1">
+                                                <input type="radio" name="video_reels_status" id="video_reels_status_yes" class="custom-control-input" {{ ($result['video_reels_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
                                                 <label class="custom-control-label" for="video_reels_status_yes">{{__('label.yes')}}</label>
                                             </div>
                                             <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="video_reels_status" id="video_reels_status_no" class="custom-control-input" {{ $result['video_reels_status'] == '0' ? "checked" : "" }} value="0">
+                                                <input type="radio" name="video_reels_status" id="video_reels_status_no" class="custom-control-input" {{ ($result['video_reels_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
                                                 <label class="custom-control-label" for="video_reels_status_no">{{__('label.no')}}</label>
                                             </div>
                                         </div>
