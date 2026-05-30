@@ -38,43 +38,37 @@
                             <div class="mb-3">
                                 <h5 class="primary-color">{{ $data['channel_name'] ?? '' }}</h5>
                             </div>
-                            <div class="row counter-row">
-                                <div class="col-xl-4 col-sm-6 col-12">
-                                    <div class="card custom-card card-color-primary bg-white">
-                                        <div class="card-body">
-                                            <div class="card-icon-primary card-color-primary">
-                                                <i class="fa-solid fa-users fa-2x"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <h3>{{$data['total_subscriber'] ?? 0}}</h3>
-                                                <span>{{__('label.subscriber')}}</span>
-                                            </div>
+                            <div class="row stat-card-row">
+                                <div class="col-xl-4 col-md-6 col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-icon primary">
+                                            <i class="fa-solid fa-users"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <div class="stat-label">{{__('label.subscriber')}}</div>
+                                            <div class="stat-value">{{$data['total_subscriber'] ?? 0}}</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-4 col-sm-6 col-12">
-                                    <div class="card custom-card card-color-primary bg-white">
-                                        <div class="card-body">
-                                            <div class="card-icon-primary card-color-primary">
-                                                <i class="fa-solid fa-wallet fa-2x"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <h3>{{$data['wallet_balance'] ?? 0}}</h3>
-                                                <span>{{__('label.wallet_balance')}}</span>
-                                            </div>
+                                <div class="col-xl-4 col-md-6 col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-icon success">
+                                            <i class="fa-solid fa-wallet"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <div class="stat-label">{{__('label.wallet_balance')}}</div>
+                                            <div class="stat-value">{{$data['wallet_balance'] ?? 0}}</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-4 col-sm-6 col-12">
-                                    <div class="card custom-card card-color-primary bg-white">
-                                        <div class="card-body">
-                                            <div class="card-icon-primary card-color-primary">
-                                                <i class="fa-solid fa-chart-line fa-2x"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <h3>{{$data['wallet_earning'] ?? 0}}</h3>
-                                                <span>{{__('label.wallet_earning')}}</span>
-                                            </div>
+                                <div class="col-xl-4 col-md-6 col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-icon warning">
+                                            <i class="fa-solid fa-chart-line"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <div class="stat-label">{{__('label.wallet_earning')}}</div>
+                                            <div class="stat-value">{{$data['wallet_earning'] ?? 0}}</div>
                                         </div>
                                     </div>
                                 </div>

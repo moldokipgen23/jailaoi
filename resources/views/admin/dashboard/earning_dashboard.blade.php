@@ -12,165 +12,141 @@
             <!-- mobile title -->
             <h1 class="page-title-sm">{{__('label.earning_dashboard')}}</h1>
 
-            <!-- Card -->
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-box-archive fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($PackageCount ?? 0) }}</h3>
-                                <span>{{__('label.subscription_package')}}</span>
-                            </div>
+            <!-- Summary Cards -->
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-box-archive"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.subscription_package')}}</div>
+                            <div class="stat-value">{{ No_Format($PackageCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-circle-dollar-to-slot fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CoinPackageCount ?? 0) }}</h3>
-                                <span>{{__('label.coin_package')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-circle-dollar-to-slot"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.coin_package')}}</div>
+                            <div class="stat-value">{{ No_Format($CoinPackageCount ?? 0) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-sack-dollar fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($TotalMonthRentRevenueCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.rent_revenue')}} ({{ date('M') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.rent_revenue')}} ({{ date('M') }})</div>
+                            <div class="stat-value">{{ No_Format($TotalMonthRentRevenueCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-sack-dollar fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($TotalRentRevenueCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.rent_revenue')}} ({{ date('Y') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.rent_revenue')}} ({{ date('Y') }})</div>
+                            <div class="stat-value">{{ No_Format($TotalRentRevenueCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-money-bill-trend-up fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CurrentMonthCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.package_earning')}} ({{ date('M') }})</span>
-                            </div>
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-money-bill-trend-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.package_earning')}} ({{ date('M') }})</div>
+                            <div class="stat-value">{{ No_Format($CurrentMonthCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-coins fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CurrentMonthCoinCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.coin_pkg_earning')}} ({{ date('M') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.coin_pkg_earning')}} ({{ date('M') }})</div>
+                            <div class="stat-value">{{ No_Format($CurrentMonthCoinCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-solid fa-money-check-dollar fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($TotalMonthRentEarningCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.rent_earning')}} ({{ date('M') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-money-check-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.rent_earning')}} ({{ date('M') }})</div>
+                            <div class="stat-value">{{ No_Format($TotalMonthRentEarningCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-solid fa-money-check-dollar fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($TotalRentEarningCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.rent_earning')}} ({{ date('Y') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-money-check-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.rent_earning')}} ({{ date('Y') }})</div>
+                            <div class="stat-value">{{ No_Format($TotalRentEarningCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row counter-row">
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-money-bill-trend-up fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($TransactionCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.package_earning')}} ({{ date('Y') }})</span>
-                            </div>
+            <div class="row stat-card-row">
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-money-bill-trend-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.package_earning')}} ({{ date('Y') }})</div>
+                            <div class="stat-value">{{ No_Format($TransactionCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-coins fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CoinTransactionCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.coin_pkg_earning')}} ({{ date('Y') }})</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.coin_pkg_earning')}} ({{ date('Y') }})</div>
+                            <div class="stat-value">{{ No_Format($CoinTransactionCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-arrow-trend-up fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($PendingWithdrawalCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.pending_withdrawal')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.pending_withdrawal')}}</div>
+                            <div class="stat-value">{{ No_Format($PendingWithdrawalCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-arrow-trend-down fa-2x"></i> 
-                            </div>
-                            <div class="text-right">
-                                <h3>{{ No_Format($CompletedWithdrawalCount ?? 0) }} {{ Currency_Code() }}</h3>
-                                <span>{{__('label.completed_withdrawal')}}</span>
-                            </div>
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-arrow-trend-down"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.completed_withdrawal')}}</div>
+                            <div class="stat-value">{{ No_Format($CompletedWithdrawalCount ?? 0) }} {{ Currency_Code() }}</div>
                         </div>
                     </div>
                 </div>

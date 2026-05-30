@@ -25,99 +25,81 @@
                 </div>
             </div>
 
-            <div class="row counter-row">
-                <div class="col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div>
-                                <h4 class="text-dark">{{__('label.title_:')}}{{ $data['title'] }}</h4>
-                                <h5>{{__('label.channel_:')}}{{ $data['user']['channel_name']?? '' }}</h5>
-                                <h5>{{__('label.user_:')}}{{ $data['user']['full_name'] ?? '' }}</h5>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card custom-border-card mb-3">
+                <div class="card-body">
+                    <h4 class="mb-2">{{__('label.title_:')}} {{ $data['title'] }}</h4>
+                    <h5 class="text-muted mb-1">{{__('label.channel_:')}} {{ $data['user']['channel_name'] ?? '' }}</h5>
+                    <h5 class="text-muted">{{__('label.user_:')}} {{ $data['user']['full_name'] ?? '' }}</h5>
                 </div>
             </div>
 
-            <!-- Card -->
-            <div class="row counter-row">
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-wallet fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$data['budget'] ?? 0}}</h3>
-                                <span>{{__('label.total_budget')}}</span>
-                            </div>
+            <!-- Stats -->
+            <div class="row stat-card-row">
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_budget')}}</div>
+                            <div class="stat-value">{{$data['budget'] ?? 0}}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-eye fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$total_ads_cpv ?? 0}}</h3>
-                                <span>{{__('label.total_view')}}</span>
-                            </div>
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-eye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_view')}}</div>
+                            <div class="stat-value">{{$total_ads_cpv ?? 0}}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-hand-point-up fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$total_ads_cpc ?? 0}}</h3>
-                                <span>{{__('label.total_click')}}</span>
-                            </div>
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-hand-point-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_click')}}</div>
+                            <div class="stat-value">{{$total_ads_cpc ?? 0}}</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row counter-row">
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-money-bill-trend-up fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$total_use_budget ?? 0}}</h3>
-                                <span>{{__('label.total_used_budget')}}</span>
-                            </div>
+            <div class="row stat-card-row">
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-money-bill-trend-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_used_budget')}}</div>
+                            <div class="stat-value">{{$total_use_budget ?? 0}}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-coins fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$total_ads_cpv_coin ?? 0}}</h3>
-                                <span>{{__('label.total_view_coin')}}</span>
-                            </div>
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_view_coin')}}</div>
+                            <div class="stat-value">{{$total_ads_cpv_coin ?? 0}}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-4 col-sm-6 col-12">
-                    <div class="card custom-card card-color-primary">
-                        <div class="card-body">
-                            <div class="card-icon-primary card-color-primary">
-                                <i class="fa-solid fa-coins fa-2x"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3>{{$total_ads_cpc_coin ?? 0}}</h3>
-                                <span>{{__('label.total_click_coin')}}</span>
-                            </div>
+                <div class="col-xl-4 col-md-6 col-12">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">{{__('label.total_click_coin')}}</div>
+                            <div class="stat-value">{{$total_ads_cpc_coin ?? 0}}</div>
                         </div>
                     </div>
                 </div>
