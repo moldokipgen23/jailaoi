@@ -1011,19 +1011,29 @@ class Common extends Model
                 return 0;
             }
 
-            // Use ffprobe to get duration in seconds (float)
-            $cmd = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " . escapeshellarg($videoPath);
-            $output = shell_exec($cmd);
-
-            // If ffprobe failed or empty output → return 0
-            if (empty($output)) {
-                return 0;
+            // Try ffprobe first
+            $ffprobePath = trim(shell_exec('which ffprobe 2>/dev/null') ?: '');
+            if ($ffprobePath) {
+                $cmd = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " . escapeshellarg($videoPath);
+                $output = shell_exec($cmd);
+                if (!empty($output)) {
+                    $durationMs = (int) round(floatval($output) * 1000);
+                    if ($durationMs > 0) return $durationMs;
+                }
             }
 
-            // Convert to milliseconds
-            $durationMs = (int) round(floatval($output) * 1000);
+            // Fallback: use getID3
+            try {
+                $getID3 = new \getID3();
+                $fileInfo = $getID3->analyze($videoPath);
+                if (isset($fileInfo['playtime_seconds']) && $fileInfo['playtime_seconds'] > 0) {
+                    return (int) round($fileInfo['playtime_seconds'] * 1000);
+                }
+            } catch (\Exception $e) {
+                // getID3 failed, fall through
+            }
 
-            return $durationMs > 0 ? $durationMs : 0;
+            return 0;
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
