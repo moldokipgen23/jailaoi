@@ -979,6 +979,28 @@ class Common extends Model
         return $name;
     }
 
+    public function generateWaveform($filename, $folder)
+    {
+        try {
+            $audioPath = storage_path($folder . $filename);
+            if (!file_exists($audioPath)) {
+                return '';
+            }
+            $waveformName = pathinfo($filename, PATHINFO_FILENAME) . '_waveform.png';
+            $outputPath = dirname($audioPath) . '/' . $waveformName;
+            $cmd = "ffmpeg -i " . escapeshellarg($audioPath)
+                . " -filter_complex \"aformat=channel_layouts=mono,compand,showwavespic=s=800x200:colors=#6a11cb|#4e45b8\""
+                . " -frames:v 1 " . escapeshellarg($outputPath) . " 2>/dev/null";
+            shell_exec($cmd);
+            if (file_exists($outputPath)) {
+                return $waveformName;
+            }
+            return '';
+        } catch (Exception $e) {
+            return '';
+        }
+    }
+
     public function ExtractDuration($video, $folder)
     {
         try {

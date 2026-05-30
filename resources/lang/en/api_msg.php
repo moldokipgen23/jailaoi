@@ -49,5 +49,9 @@ return [
     'gift_purchase_success' => 'Congratulations! Gift has been bought successfully.',
     'wallet_insufficient' => 'Oops, please add funds to your wallet.',
     'gift_send_successfully' => 'Gift Send Successfully',
+    'success_add_album' => 'Album Created Successfully.',
+    'success_edit_album' => 'Album Updated Successfully.',
+    'success_delete_album' => 'Album Deleted Successfully.',
+    'get_record_successfully' => 'Record Retrieved Successfully.',
 ];
 ?>

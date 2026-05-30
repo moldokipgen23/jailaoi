@@ -820,6 +820,17 @@ class HomeController extends Controller
                 $content['is_buy'] = $this->common->is_any_package_buy($user_id);
                 $content['stop_time'] = $this->common->getContentStopTime($user_id, $content['content_type'], $content['id'], 0);
                 $content['is_user_download'] = $this->common->is_user_download_content($user_id);
+                $content['allow_download'] = $content['is_download'] ?? 0;
+                $content['waveform_url'] = $content['waveform_data'] ? $this->common->getImage($this->folder_content, $content['waveform_data'], $content['content_storage_type']) : '';
+
+                if ($content['content_type'] == 2 && $content['album_id']) {
+                    $album = \App\Models\Album::find($content['album_id']);
+                    $content['album_name'] = $album ? $album->name : '';
+                    $content['album_cover'] = $album ? $this->common->getImage($this->folder_content, $album->cover_image, $album->cover_image_storage_type) : '';
+                } else {
+                    $content['album_name'] = '';
+                    $content['album_cover'] = '';
+                }
 
                 $content['playlist_image'] = [];
                 if ($content_type == 5) {

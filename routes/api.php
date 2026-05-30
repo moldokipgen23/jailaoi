@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\ArtistController;
+use App\Http\Controllers\Api\AlbumController;
 
 Route::group(['middleware' => 'apipurchasecode'], function () {
 
@@ -73,6 +74,14 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_rent_content_by_channel', [HomeController::class, 'get_rent_content_by_channel']);
     Route::post('delete_content', [HomeController::class, 'delete_content']);
     Route::post('search_content', [HomeController::class, 'search_content']);
+    // --------------------- AlbumController ---------------------
+    Route::post('get_album_list', [AlbumController::class, 'get_album_list']);
+    Route::post('get_album_detail', [AlbumController::class, 'get_album_detail']);
+    Route::post('get_album_songs', [AlbumController::class, 'get_album_songs']);
+    Route::post('create_album', [AlbumController::class, 'create_album']);
+    Route::post('edit_album', [AlbumController::class, 'edit_album']);
+    Route::post('delete_album', [AlbumController::class, 'delete_album']);
+
     // --------------------- ArtistController ---------------------
     Route::post('get_artist_list', [ArtistController::class, 'get_artist_list']);
     Route::post('get_artist_profile', [ArtistController::class, 'get_artist_profile']);

@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\RentTransactionController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\MusicController;
+use App\Http\Controllers\Admin\AlbumController as AdminAlbumController;
 use App\Http\Controllers\Admin\ReelsController;
 use App\Http\Controllers\Admin\PodcastsController;
 use App\Http\Controllers\Admin\PlaylistController;
@@ -116,6 +117,11 @@ Route::group(['middleware' => 'installation'], function () {
         // Music
         Route::resource('music', MusicController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         Route::get('musicstatus', [MusicController::class, 'changeStatus'])->name('music.status');
+        // Album
+        Route::get('album', [AdminAlbumController::class, 'index'])->name('album.index');
+        Route::get('album/{id}/edit', [AdminAlbumController::class, 'edit'])->name('album.edit');
+        Route::post('album/update', [AdminAlbumController::class, 'update'])->name('album.update');
+        Route::delete('album/{id}', [AdminAlbumController::class, 'show'])->name('album.delete');
         // Reels
         Route::resource('reels', ReelsController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         Route::get('reelsstatus', [ReelsController::class, 'changeStatus'])->name('reels.status');

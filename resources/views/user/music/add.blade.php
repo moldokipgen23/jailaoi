@@ -44,13 +44,29 @@
                                 </div>
                             </div>
                             <div class="form-row">
-                                <div class="col-md-8">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label>{{__('label.description')}}</label>
                                         <textarea name="description" class="form-control" rows="6" placeholder="{{__('label.description_here')}}"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Lyrics</label>
+                                        <textarea name="lyrics" class="form-control" rows="6" placeholder="Add lyrics here..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Album</label>
+                                        <select name="album_id" class="form-control">
+                                            <option value="">None</option>
+                                            @php $albums = \App\Models\Album::where('status', 1)->get(); @endphp
+                                            @foreach ($albums as $album)
+                                                <option value="{{ $album->id }}">{{ $album->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                     <div class="form-group">
                                         <label>{{__('label.category')}}<span class="text-danger">*</span></label>
                                         <select name="category_id" id="category_id" class="form-control" style="width:100%!important;">

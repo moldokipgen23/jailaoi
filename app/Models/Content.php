@@ -18,9 +18,11 @@ class Content extends Model
         'channel_id' => 'string',
         'category_id' => 'integer',
         'language_id' => 'integer',
+        'album_id' => 'integer',
         'hashtag_id' => 'string',
         'title' => 'string',
         'description' => 'string',
+        'lyrics' => 'string',
         'portrait_img_storage_type' => 'integer',
         'portrait_img' => 'string',
         'landscape_img_storage_type' => 'integer',
@@ -28,6 +30,7 @@ class Content extends Model
         'content_storage_type' => 'integer',
         'content_upload_type' => 'string',
         'content' => 'string',
+        'waveform_data' => 'string',
         'content_duration' => 'integer',
         'is_rent' => 'integer',
         'rent_price' => 'integer',
@@ -53,5 +56,9 @@ class Content extends Model
     public function language()
     {
         return $this->belongsTo(Language::class, 'language_id');
+    }
+    public function album()
+    {
+        return $this->belongsTo(Album::class, 'album_id');
     }
 }

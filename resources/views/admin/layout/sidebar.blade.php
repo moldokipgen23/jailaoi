@@ -100,6 +100,12 @@
                 <span>{{__('label.music')}}</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('admin.album*') ? 'active' : '' }}">
+            <a href="{{ route('admin.album.index') }}">
+                <i class="fa-solid fa-compact-disc fa-2xl menu-icon"></i>
+                <span>Albums</span>
+            </a>
+        </li>
         <li class="side_line {{ request()->routeIs('admin.reels*') ? 'active' : '' }}" @if(($sidebar_settings['reels_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.reels.index') }}">
                 <i class="fa-solid fa-film fa-2xl menu-icon"></i>
