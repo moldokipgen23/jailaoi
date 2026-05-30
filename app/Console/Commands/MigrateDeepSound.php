@@ -9,7 +9,10 @@ use Illuminate\Support\Str;
 class MigrateDeepSound extends Command
 {
     protected $signature = 'migrate:deepsound
-        {--old-db=jailaoi_old : Old DeepSound database name}';
+        {--old-db=jailaoi_old : Old DeepSound database name}
+        {--old-host=127.0.0.1 : Old DB host}
+        {--old-user=root : Old DB username}
+        {--old-pass= : Old DB password}';
 
     protected $description = 'Migrate data from DeepSound DB to current JailaOi DB';
 
@@ -21,6 +24,23 @@ class MigrateDeepSound extends Command
     public function handle(): int
     {
         $this->oldDb = $this->option('old-db');
+        $oldHost = $this->option('old-host');
+        $oldUser = $this->option('old-user');
+        $oldPass = $this->option('old-pass');
+
+        config(['database.connections.mysql_old' => [
+            'driver' => 'mysql',
+            'host' => $oldHost,
+            'port' => '3306',
+            'database' => $this->oldDb,
+            'username' => $oldUser,
+            'password' => $oldPass,
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+        ]]);
+
         $this->info("Old DB: $this->oldDb → Current DB");
 
         $this->migrateCategories();
@@ -52,7 +72,7 @@ class MigrateDeepSound extends Command
     protected function migrateCategories(): void
     {
         $this->info('Migrating categories...');
-        $rows = DB::select("SELECT * FROM `$this->oldDb`.categories");
+        $rows = DB::connection('mysql_old')->select("SELECT * FROM categories");
 
         foreach ($rows as $row) {
             DB::table('tbl_category')->insertGetId([
@@ -72,7 +92,7 @@ class MigrateDeepSound extends Command
     protected function migrateUsers(): void
     {
         $this->info('Migrating users...');
-        $total = DB::select("SELECT COUNT(*) as c FROM `$this->oldDb`.users")[0]->c;
+        $total = DB::connection('mysql_old')->select("SELECT COUNT(*) as c FROM users")[0]->c;
         $bar = $this->output->createProgressBar($total);
         $bar->start();
 
@@ -80,7 +100,7 @@ class MigrateDeepSound extends Command
         $chunk = 500;
 
         while ($offset < $total) {
-            $users = DB::select("SELECT * FROM `$this->oldDb`.users LIMIT $chunk OFFSET $offset");
+            $users = DB::connection('mysql_old')->select("SELECT * FROM users LIMIT $chunk OFFSET $offset");
 
             foreach ($users as $user) {
                 $channelId = Str::random(8);
@@ -168,16 +188,15 @@ class MigrateDeepSound extends Command
     protected function migrateSongsToContent(): void
     {
         $this->info('Migrating songs to content...');
-        $songs = DB::select("SELECT * FROM `$this->oldDb`.songs");
+        $songs = DB::connection('mysql_old')->select("SELECT * FROM songs");
         $bar = $this->output->createProgressBar(count($songs));
         $bar->start();
 
-        $insert = [];
         foreach ($songs as $song) {
             $channelId = $this->userMap[$song->user_id]['channel_id'] ?? 'deleted';
             $categoryId = $this->categoryMap[$song->category_id] ?? 1;
 
-            $insert[] = [
+            $newId = DB::table('tbl_content')->insertGetId([
                 'content_type' => 2,
                 'channel_id' => $channelId,
                 'category_id' => $categoryId,
@@ -198,36 +217,28 @@ class MigrateDeepSound extends Command
                 'status' => 1,
                 'created_at' => $song->time ? date('Y-m-d H:i:s', $song->time) : now(),
                 'updated_at' => now(),
-            ];
+            ]);
 
+            $this->contentMap[$song->id] = $newId;
             $bar->advance();
-        }
-
-        foreach (array_chunk($insert, 100) as $chunk) {
-            DB::table('tbl_content')->insert($chunk);
         }
 
         $bar->finish();
         $this->newLine();
-
-        $newContents = DB::table('tbl_content')->where('content_type', 2)->orderBy('id')->get();
-        foreach ($newContents as $i => $content) {
-            $this->contentMap[$songs[$i]->id] = $content->id;
-        }
 
         $this->info('Migrated ' . count($songs) . ' songs');
     }
 
     protected function getSongLikeCount(int $songId): int
     {
-        $result = DB::select("SELECT COUNT(*) as count FROM `$this->oldDb`.likes WHERE track_id = ? AND comment_id = 0", [$songId]);
+        $result = DB::connection('mysql_old')->select("SELECT COUNT(*) as count FROM likes WHERE track_id = ? AND comment_id = 0", [$songId]);
         return $result[0]->count ?? 0;
     }
 
     protected function migratePlaylists(): void
     {
         $this->info('Migrating playlists...');
-        $playlists = DB::select("SELECT * FROM `$this->oldDb`.playlists");
+        $playlists = DB::connection('mysql_old')->select("SELECT * FROM playlists");
         $bar = $this->output->createProgressBar(count($playlists));
         $bar->start();
 
@@ -258,7 +269,7 @@ class MigrateDeepSound extends Command
                 'updated_at' => now(),
             ]);
 
-            $playlistSongs = DB::select("SELECT * FROM `$this->oldDb`.playlist_songs WHERE playlist_id = ?", [$playlist->id]);
+            $playlistSongs = DB::connection('mysql_old')->select("SELECT * FROM playlist_songs WHERE playlist_id = ?", [$playlist->id]);
 
             foreach ($playlistSongs as $ps) {
                 $newContentId = $this->contentMap[$ps->track_id] ?? null;
@@ -293,7 +304,7 @@ class MigrateDeepSound extends Command
         $chunk = 500;
 
         while (true) {
-            $likes = DB::select("SELECT * FROM `$this->oldDb`.likes LIMIT $chunk OFFSET $offset");
+            $likes = DB::connection('mysql_old')->select("SELECT * FROM likes LIMIT $chunk OFFSET $offset");
             if (empty($likes)) break;
 
             $insert = [];
@@ -329,7 +340,7 @@ class MigrateDeepSound extends Command
     protected function migrateComments(): void
     {
         $this->info('Migrating comments...');
-        $rows = DB::select("SELECT * FROM `$this->oldDb`.comments");
+        $rows = DB::connection('mysql_old')->select("SELECT * FROM comments");
 
         $insert = [];
         foreach ($rows as $row) {
@@ -360,7 +371,7 @@ class MigrateDeepSound extends Command
     protected function migrateFollowers(): void
     {
         $this->info('Migrating followers...');
-        $rows = DB::select("SELECT * FROM `$this->oldDb`.followers");
+        $rows = DB::connection('mysql_old')->select("SELECT * FROM followers");
 
         $insert = [];
         foreach ($rows as $row) {
@@ -387,7 +398,7 @@ class MigrateDeepSound extends Command
     protected function migrateViews(): void
     {
         $this->info('Migrating view counts...');
-        $rows = DB::select("SELECT track_id, COUNT(*) as cnt FROM `$this->oldDb`.views GROUP BY track_id");
+        $rows = DB::connection('mysql_old')->select("SELECT track_id, COUNT(*) as cnt FROM views GROUP BY track_id");
 
         foreach ($rows as $row) {
             $newContentId = $this->contentMap[$row->track_id] ?? null;
@@ -402,7 +413,7 @@ class MigrateDeepSound extends Command
     protected function migrateHistory(): void
     {
         $this->info('Migrating listen history...');
-        $rows = DB::select("SELECT * FROM `$this->oldDb`.activities WHERE type = 'uploaded_track' OR type = 'liked_track'");
+        $rows = DB::connection('mysql_old')->select("SELECT * FROM activities WHERE type = 'uploaded_track' OR type = 'liked_track'");
 
         $insert = [];
         foreach ($rows as $row) {
