@@ -1,4 +1,5 @@
 <div class="sidebar">
+    @php $sidebar_settings = Setting_Data(); @endphp
     <div class="side-head">
         <a href="{{ route('admin.dashboard') }}" class="primary-color side-logo">
             <h3>{{ App_Name() }}</h3>
@@ -87,7 +88,7 @@
         </li>
 
         <p class="partition"><span>{{__('label.content')}}</span></p>
-        <li class="side_line {{ request()->routeIs('admin.video*') ? 'active' : '' }}" @if((Setting_Data()['video_status'] ?? '1') == '0') style="display:none" @endif>
+        <li class="side_line {{ request()->routeIs('admin.video*') ? 'active' : '' }}" @if(($sidebar_settings['video_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.video.index') }}">
                 <i class="fa-solid fa-video fa-2xl menu-icon"></i>
                 <span>{{__('label.videos')}}</span>
@@ -99,7 +100,7 @@
                 <span>{{__('label.music')}}</span>
             </a>
         </li>
-        <li class="side_line {{ request()->routeIs('admin.reels*') ? 'active' : '' }}" @if((Setting_Data()['reels_status'] ?? '1') == '0') style="display:none" @endif>
+        <li class="side_line {{ request()->routeIs('admin.reels*') ? 'active' : '' }}" @if(($sidebar_settings['reels_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.reels.index') }}">
                 <i class="fa-solid fa-film fa-2xl menu-icon"></i>
                 <span>{{__('label.reels')}}</span>
