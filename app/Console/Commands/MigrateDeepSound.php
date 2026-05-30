@@ -44,7 +44,6 @@ class MigrateDeepSound extends Command
         $this->info("Old DB: $this->oldDb → Current DB");
 
         $this->migrateCategories();
-        $this->migrateSettings();
         $this->migrateUsers();
         $this->migrateSongsToContent();
         $this->migratePlaylists();
@@ -64,7 +63,6 @@ class MigrateDeepSound extends Command
                 ['Songs', DB::table('tbl_content')->where('content_type', 2)->count()],
                 ['Playlists', DB::table('tbl_content')->where('content_type', 5)->count()],
                 ['Categories', DB::table('tbl_category')->count()],
-                ['Settings', DB::table('tbl_general_setting')->count()],
             ]
         );
 
@@ -89,49 +87,6 @@ class MigrateDeepSound extends Command
         }
 
         $this->info('Migrated ' . count($rows) . ' categories');
-    }
-
-    protected function migrateSettings(): void
-    {
-        $this->info('Migrating settings...');
-
-        $rows = DB::connection('mysql_old')->select("SELECT * FROM config");
-
-        $mapping = [
-            'name' => 'app_name',
-            'description' => 'app_description',
-            'email' => 'email',
-            'currency' => 'currency',
-            'currency_symbol' => 'currency_code',
-        ];
-
-        $oldValues = [];
-        foreach ($rows as $row) {
-            $oldValues[$row->name] = $row->value;
-        }
-
-        $updated = 0;
-        foreach ($mapping as $oldKey => $newKey) {
-            if (isset($oldValues[$oldKey]) && $oldValues[$oldKey] !== '') {
-                $exists = DB::table('tbl_general_setting')->where('key', $newKey)->first();
-                if ($exists) {
-                    DB::table('tbl_general_setting')->where('key', $newKey)->update([
-                        'value' => $oldValues[$oldKey],
-                        'updated_at' => now(),
-                    ]);
-                } else {
-                    DB::table('tbl_general_setting')->insert([
-                        'key' => $newKey,
-                        'value' => $oldValues[$oldKey],
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-                $updated++;
-            }
-        }
-
-        $this->info("Migrated $updated settings");
     }
 
     protected function migrateUsers(): void
