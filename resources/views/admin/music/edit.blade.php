@@ -152,10 +152,10 @@
                                                     <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
                                                 </div>
                                                 <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>
+                                                @if($data['content_file'])
+                                                <label class="text-gray">Current: {{ basename($data['content_file']) }}</label>
                                                 @php $audioUrl = $data['content'] ?: (config('app.image_url') . 'content/' . $data['content_file']); @endphp
-                                                <audio id="audioPlayer" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>
-                                                <div id="waveform" style="width:100%;height:100px;margin-top:4px;background:#f0f0f0;border-radius:4px;"></div>
+                                                <audio controls style="width:100%;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>
                                                 @endif
                                             </div>
                                         </div>
@@ -170,7 +170,7 @@
                                     <div class="form-group">
                                         <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
                                         <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio id="audioPlayerS3" controls style="width:100%;height:36px;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>@endif
+                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label><audio controls style="width:100%;margin-top:4px;"><source src="{{ $audioUrl }}" type="audio/mpeg"></audio>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-6 url_box">
@@ -268,8 +268,6 @@
     <!-- Data Time Picker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
-    <!-- WaveSurfer.js -->
-    <script src="https://unpkg.com/wavesurfer.js@6.6.4/dist/wavesurfer.js"></script>
     <!-- Chunk JS -->
     <script src="{{ asset('/assets/js/plupload.full.min.js')}}"></script>
     <script src="{{ asset('/assets/js/common.js')}}"></script>
@@ -303,28 +301,6 @@
             }
         })
 
-        // Initialize WaveSurfer.js for waveform visualization
-        @if($data['content_file'])
-        try {
-            var wavesurfer = WaveSurfer.create({
-                container: '#waveform',
-                waveColor: '#6a11cb',
-                progressColor: '#4e45b8',
-                height: 100,
-                barWidth: 2,
-                barGap: 1,
-                barRadius: 2,
-                cursorColor: '#333',
-                normalize: true,
-                mediaControls: false,
-                backend: 'MediaElement',
-            });
-            var audioEl = document.getElementById('audioPlayer');
-            if (audioEl && audioEl.querySelector('source').src) {
-                wavesurfer.load(audioEl);
-            }
-        } catch(e) { console.log('WaveSurfer init skipped:', e); }
-        @endif
 
         $(document).ready(function() {
             var storage_type = parseInt("<?php echo Storage_Type() ?: 1; ?>");
