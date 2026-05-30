@@ -281,6 +281,7 @@ a { text-decoration: none !important; }
     box-shadow: var(--shadow);
     margin-bottom: 20px;
 }
+.card.custom-border-card .d-flex { gap: 8px; }
 .card.custom-border-card .card-header {
     background: transparent;
     border-bottom: 1px solid var(--border-color);
@@ -607,7 +608,8 @@ a { text-decoration: none !important; }
     box-shadow: var(--shadow);
 }
 .avatar-upload .avatar-preview {
-    width: 120px;
+    width: 100%;
+    max-width: 120px;
     height: 120px;
     border-radius: var(--radius);
     overflow: hidden;
@@ -642,7 +644,8 @@ a { text-decoration: none !important; }
     box-shadow: var(--shadow);
 }
 .avatar-upload-landscape .avatar-preview-landscape {
-    width: 200px;
+    width: 100%;
+    max-width: 200px;
     height: 120px;
     border-radius: var(--radius);
     overflow: hidden;

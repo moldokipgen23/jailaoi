@@ -250,11 +250,11 @@
                             </div>
                         </div>
                     </div>
-                    </div>
                     <div class="border-top pt-3 text-right">
                         <button type="button" class="btn btn-default mw-120" onclick="save_music()">{{__('label.update')}}</button>
                         <a href="{{ route('admin.music.index') }}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
     					<input type="hidden" name="_method" value="PATCH">
+                    </div>
                     </div>
                 </div>
             </form>
