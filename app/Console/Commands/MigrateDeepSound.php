@@ -454,7 +454,7 @@ class MigrateDeepSound extends Command
             return '';
         }
 
-        return $newFolder . '/' . $filename;
+        return $filename;
     }
 
     protected function parseDuration(?string $duration): int
