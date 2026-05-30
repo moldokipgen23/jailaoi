@@ -17,6 +17,7 @@ class Common extends Model
     public function getImage($folder = "", $name = "", $storage_type = 1)
     {
         try {
+            $name = $this->stripFolderPrefix($folder, $name);
             if ($storage_type == 1) {
 
                 $appName = Config::get('app.image_url');
@@ -101,7 +102,7 @@ class Common extends Model
     public function getVideo($folder = "", $name = "", $storage_type = 1)
     {
         try {
-
+            $name = $this->stripFolderPrefix($folder, $name);
             if ($storage_type == 1) {
 
                 $appName = Config::get('app.image_url');
@@ -144,6 +145,10 @@ class Common extends Model
     {
         try {
             foreach ($array as $key => $value) {
+
+                if (isset($value[$column])) {
+                    $value[$column] = $this->stripFolderPrefix($folder, $value[$column]);
+                }
 
                 if ($value[$storage_field] == 1) { // Local Storage
 
@@ -966,6 +971,14 @@ class Common extends Model
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    private function stripFolderPrefix($folder, $name)
+    {
+        if ($folder && $name && str_starts_with($name, $folder . '/')) {
+            return substr($name, strlen($folder) + 1);
+        }
+        return $name;
+    }
+
     public function ExtractDuration($video, $folder)
     {
         try {
