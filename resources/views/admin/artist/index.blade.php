@@ -166,7 +166,7 @@
                 },
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex' },
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'image', name: 'image', orderable: false, searchable: false,
                     render: function(data, type, full, meta) {
                         return `<a href='${data}' target='_blank'>
@@ -176,8 +176,8 @@
                 },
                 { data: 'name', name: 'name' },
                 { data: 'bio', name: 'bio' },
-                { data: 'linked_user', name: 'linked_user' },
-                { data: 'type_badge', name: 'type_badge' },
+                { data: 'linked_user', name: 'linked_user', orderable: false, searchable: false },
+                { data: 'type_badge', name: 'type_badge', orderable: false, searchable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false },
             ],
         });
