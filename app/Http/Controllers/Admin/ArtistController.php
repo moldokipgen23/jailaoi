@@ -24,17 +24,18 @@ class ArtistController extends Controller
             $params['data'] = [];
             if ($request->ajax()) {
 
+                $data = Artist::with('user');
+
                 $input_search = $request['input_search'];
                 if ($input_search != null && isset($input_search)) {
-                    $data = Artist::with('user')->where('name', 'LIKE', "%{$input_search}%")->latest()->get();
-                } else {
-                    $data = Artist::with('user')->latest()->get();
+                    $data = $data->where('name', 'LIKE', "%{$input_search}%");
                 }
-
-                $this->common->imageNameToUrl($data, 'image', $this->folder);
 
                 return DataTables()::of($data)
                     ->addIndexColumn()
+                    ->addColumn('image', function ($row) {
+                        return $this->common->getImage($this->folder, $row->image, 1);
+                    })
                     ->addColumn('linked_user', function ($row) {
                         if ($row->user) {
                             $name = $row->user->full_name ?? '';
@@ -51,7 +52,8 @@ class ArtistController extends Controller
                     })
                     ->addColumn('action', function ($row) {
                         $btn = '<div class="d-flex justify-content-around" title="Edit">';
-                        $btn .= '<a class="edit-delete-btn edit_artist" title="Edit" data-toggle="modal" href="#EditModel" data-id="' . $row->id . '" data-name="' . $row->name . '" data-image="' . $row->image . '" data-bio="' . $row->bio . '">';
+                        $imageUrl = $this->common->getImage($this->folder, $row->image, 1);
+                        $btn .= '<a class="edit-delete-btn edit_artist" title="Edit" data-toggle="modal" href="#EditModel" data-id="' . $row->id . '" data-name="' . $row->name . '" data-image="' . $imageUrl . '" data-bio="' . $row->bio . '">';
                         $btn .= '<i class="fa-solid fa-pen-to-square fa-xl"></i>';
                         $btn .= '</a>';
                         $btn .= '</div>';
@@ -63,6 +65,7 @@ class ArtistController extends Controller
             return view('admin.artist.index', $params);
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+
         }
     }
 

@@ -167,7 +167,13 @@
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex' },
-                { data: 'image', name: 'image', orderable: false, searchable: false },
+                { data: 'image', name: 'image', orderable: false, searchable: false,
+                    render: function(data, type, full, meta) {
+                        return `<a href='${data}' target='_blank'>
+                                    <img src='${data}' class='img-thumbnail' style='height:55px; width:55px'>
+                                </a>`;
+                    },
+                },
                 { data: 'name', name: 'name' },
                 { data: 'bio', name: 'bio' },
                 { data: 'linked_user', name: 'linked_user' },
