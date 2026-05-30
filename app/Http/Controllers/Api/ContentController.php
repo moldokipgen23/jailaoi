@@ -29,7 +29,7 @@ class ContentController extends Controller
     {
         try {
             $this->common = new Common();
-            $this->page_limit = env('PAGE_LIMIT');
+            $this->page_limit = env('PAGE_LIMIT', 20);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

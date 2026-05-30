@@ -24,7 +24,7 @@ class ArtistController extends Controller
     public function __construct()
     {
         $this->common = new Common;
-        $this->page_limit = env('PAGE_LIMIT');
+        $this->page_limit = env('PAGE_LIMIT', 20);
     }
 
     public function get_artist_list(Request $request)
