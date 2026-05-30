@@ -35,7 +35,7 @@
                 <input type="hidden" name="old_hashtag_id" value="{{ $data['hashtag_id'] }}">
                 <input type="hidden" name="old_portrait_img" value="{{ $data['portrait_img'] }}">
                 <input type="hidden" name="old_landscape_img" value="{{ $data['landscape_img'] }}">
-                <input type="hidden" name="old_content" value="{{ $data['content'] }}">
+                <input type="hidden" name="old_content" value="{{ $data['content_file'] }}">
                 <input type="hidden" name="old_content_upload_type" value="{{ $data['content_upload_type'] }}">
                 <input type="hidden" name="old_portrait_img_storage_type" value="{{ $data['portrait_img_storage_type'] }}">
                 <input type="hidden" name="old_landscape_img_storage_type" value="{{ $data['landscape_img_storage_type'] }}">
@@ -68,7 +68,7 @@
                                 <div class="col-md-8">
                                     <div class="form-group">
                                         <label>{{__('label.description')}}</label>
-                                        <textarea name="description" class="form-control" rows="6" placeholder="{{__('label.description_here')}}">{{ $data['description'] }}</textarea>
+                                        <textarea name="description" class="form-control" rows="6" placeholder="{{__('label.description_here')}}">{{ strip_tags($data['description']) }}</textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -135,7 +135,7 @@
                                                     <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
                                                 </div>
                                                 <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                <label class="text-gray">@if($data->content_upload_type == 'server_video'){{ basename($data['content']) }}@endif</label>
+                                                @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>@endif
                                             </div>
                                         </div>
                                     </div>
@@ -149,7 +149,7 @@
                                     <div class="form-group">
                                         <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
                                         <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        <label class="text-gray">@if($data->content_upload_type == 'server_video'){{ basename($data['content']) }}@endif</label>
+                                        @if($data['content_file'])<label class="text-gray">Current: {{ basename($data['content_file']) }}</label>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-6 url_box">

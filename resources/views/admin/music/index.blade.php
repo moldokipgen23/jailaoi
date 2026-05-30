@@ -84,8 +84,8 @@
                             <img class="card-img-top" src="{{ $value['portrait_img'] }}">
 
                             @if($value['content_upload_type'] == "server_video")
-                                <button class="btn play-btn-top video" data-toggle="modal" data-target="#videoModal" data-video="{{ $value['content'] }}" data-image="{{ $value['landscape_img'] }}">
-                                    <i class="fa-regular fa-circle-play text-white fa-4x mr-2 mt-2"></i>
+                                <button class="btn play-btn-top" onclick="playAudio('{{ $value['content'] }}', '{{ addslashes($value['title']) }}')" title="Play">
+                                    <i class="fa-solid fa-headphones text-white fa-3x mr-2 mt-2"></i>
                                 </button>
                             @endif
 
@@ -135,17 +135,23 @@
                 <div class="pb-5"> {{ $data->links() }} </div>
             </div>
 
-            <!-- Music Model -->
-            <div class="modal fade" id="videoModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
+            <!-- Music Audio Player Modal -->
+            <div class="modal fade" id="audioModal" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
-                        <div class="modal-body p-0 bg-transparent">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <div class="modal-body p-0 bg-transparent text-center">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position:absolute;right:10px;top:5px;z-index:10;">
                                 <span aria-hidden="true" class="text-dark">&times;</span>
                             </button>
-                            <video controls width="800" height="500" preload='none' poster="" id="theVideo" controlsList="nodownload noplaybackrate" disablepictureinpicture autoplay>
-                                <source src="">
-                            </video>
+                            <div class="p-3 bg-dark" style="border-radius:8px;">
+                                <div id="audioArtwork" class="mb-3">
+                                    <img id="audioThumb" src="" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;">
+                                </div>
+                                <audio controls style="width:100%" id="theAudio">
+                                    <source src="" type="audio/mpeg">
+                                </audio>
+                                <div class="mt-2 text-white small" id="audioTitle"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,23 +172,15 @@
         $("#input_category").select2();
         $("#input_language").select2();
 
-        $(function() {
-            $(".video").click(function() {
-                var theModal = $(this).data("target"),
-                    videoSRC = $(this).attr("data-video"),
-                    videoPoster = $(this).attr("data-image"),
-                    videoSRCauto = videoSRC + "";
-
-                $(theModal + ' source').attr('src', videoSRCauto);
-                $(theModal + ' video').attr('poster', videoPoster);
-                $(theModal + ' video').load();
-                $(theModal + ' button.close').click(function() {
-                    $(theModal + ' source').attr('src', videoSRC);
-                });
-            });
+        function playAudio(url, title) {
+            $('#audioModal source').attr('src', url);
+            $('#theAudio')[0].load();
+            $('#audioModal').modal('show');
+            if (title) $('#audioTitle').text(title);
+        }
+        $('#audioModal').on('hidden.bs.modal', function() {
+            $('#theAudio')[0].pause();
         });
-        $("#videoModal .close").click(function() {
-            theVideo.pause()
         });
 
         function change_status(id, status) {

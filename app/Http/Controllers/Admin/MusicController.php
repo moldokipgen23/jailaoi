@@ -189,6 +189,7 @@ class MusicController extends Controller
 
                 $params['data']['portrait_img'] = $this->common->getImage($this->folder, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
                 $params['data']['landscape_img'] = $this->common->getImage($this->folder, $params['data']['landscape_img'], $params['data']['landscape_img_storage_type']);
+                $params['data']['content_file'] = $params['data']['content'];
                 if ($params['data']['content_upload_type'] == 'server_video') {
                     $params['data']['content'] = $this->common->getVideo($this->folder, $params['data']['content'], $params['data']['content_storage_type']);
                 }
