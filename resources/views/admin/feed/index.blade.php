@@ -91,10 +91,10 @@
                                     <button class="btn hide-btn" id="{{$value['id']}}" onclick="change_status({{$value['id']}}, {{$value['status']}})">{{__('label.hide')}}</button>
                                 @endif
 
-                                <div class="d-flex text-align-center">
-                                    <span class="d-flex text-align-center mr-3">
-                                        <i class="fa-solid fa-thumbs-up fa-xl mr-3 primary-color" style="margin-top:12px"></i>
-                                        <h5>{{ No_Format($value['total_like']) }}</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="d-flex align-items-center text-muted" style="gap:4px;font-size:13px">
+                                        <i class="fa-solid fa-thumbs-up"></i>
+                                        {{ No_Format($value['total_like']) }}
                                     </span>
                                 </div>
                             </div>
