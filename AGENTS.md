@@ -102,9 +102,9 @@ Host: localhost
 - `db/dt_tube.sql` — Full database dump
 
 ## Migration Script
-- `php artisan migrate:deepsound` — migrates from `jailaoi_old` → `jailaoi_tube`
-- Config: `config/database.php` connection `mysql_deepsound`; `.env` vars `DB_OLD_*`
-- Migrates: users, songs, playlists, likes, comments, followers, views, history
+- `php artisan migrate:deepsound --old-db=jailaoi_old` — migrates from old DB to current DB
+- On live: `php artisan migrate:deepsound --old-db=jailaoic_jailaoi`
+- Migrates: users, songs, playlists, likes, comments, followers, views, history, artists
 
 ## To-Do List
 - [x] DeepSound → JailaOi data migration (users, songs, playlists, artists)
