@@ -11,6 +11,8 @@
         </button>
     </div>
 
+    @php $settings = Setting_Data(); @endphp
+
     <ul class="side-menu mt-4">
         <li class="side_line {{ request()->routeIs('user.dashboard*') ? 'active' : '' }}{{ request()->routeIs('user.profile*') ? 'active' : '' }}{{ request()->routeIs('user.password*') ? 'active' : '' }}">
             <a href="{{ route('user.dashboard') }}">
@@ -20,28 +22,10 @@
         </li>
 
         <p class="partition"><span>{{__('label.my_content')}}</span></p>
-        <li class="side_line {{ request()->routeIs('user.video*') ? 'active' : '' }}">
-            <a href="{{ route('user.video.index') }}">
-                <i class="fa-solid fa-video fa-2xl menu-icon"></i>
-                <span>{{__('label.my_videos')}}</span>
-            </a>
-        </li>
         <li class="side_line {{ request()->routeIs('user.music*') ? 'active' : '' }}">
             <a href="{{ route('user.music.index') }}">
                 <i class="fa-solid fa-music fa-2xl menu-icon"></i>
                 <span>{{__('label.my_music')}}</span>
-            </a>
-        </li>
-        <li class="side_line {{ request()->routeIs('user.reels*') ? 'active' : '' }}">
-            <a href="{{ route('user.reels.index') }}">
-                <i class="fa-solid fa-film fa-2xl menu-icon"></i>
-                <span>{{__('label.my_reels')}}</span>
-            </a>
-        </li>
-        <li class="side_line {{ request()->routeIs('user.podcast*') ? 'active' : '' }}">
-            <a href="{{ route('user.podcasts.index') }}">
-                <i class="fa-solid fa-podcast fa-2xl menu-icon"></i>
-                <span>{{__('label.my_podcasts')}}</span>
             </a>
         </li>
         <li class="side_line {{ request()->routeIs('user.playlist*') ? 'active' : '' }}">
@@ -54,12 +38,6 @@
             <a href="{{ route('user.radio.index') }}">
                 <i class="fa-solid fa-radio fa-2xl menu-icon"></i>
                 <span>{{__('label.my_radio')}}</span>
-            </a>
-        </li>
-        <li class="{{ (request()->routeIs('user.feed.*')) ? 'active' : '' }}">
-            <a href="{{ route('user.feed.index') }}">
-                <i class="fa-solid fa-camera-retro fa-2xl menu-icon"></i>
-                <span>{{__('label.my_feeds')}}</span>
             </a>
         </li>
 
