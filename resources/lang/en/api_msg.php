@@ -53,5 +53,6 @@ return [
     'success_edit_album' => 'Album Updated Successfully.',
     'success_delete_album' => 'Album Deleted Successfully.',
     'get_record_successfully' => 'Record Retrieved Successfully.',
+    'only_artists_can_upload' => 'Only artists can upload content.',
 ];
 ?>

@@ -10,6 +10,7 @@ use App\Models\Episode;
 use App\Models\Language;
 use App\Models\Playlist_Content;
 use App\Models\Section;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Validator;
@@ -794,6 +795,10 @@ class ContentController extends Controller
     public function upload_reels(Request $request)
     {
         try {
+            $user = User::find($request->user_id);
+            if (!$user || $user->role !== 'artist') {
+                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
+            }
 
             // Check if this is a chunk upload
             if ($request->has('chunk_index') && $request->has('total_chunks')) {
@@ -914,6 +919,10 @@ class ContentController extends Controller
     public function upload_video(Request $request)
     {
         try {
+            $user = User::find($request->user_id);
+            if (!$user || $user->role !== 'artist') {
+                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
+            }
 
             // Check if this is a chunk upload
             if ($request->has('chunk_index') && $request->has('total_chunks')) {
@@ -1072,6 +1081,10 @@ class ContentController extends Controller
     public function upload_music(Request $request)
     {
         try {
+            $user = User::find($request->user_id);
+            if (!$user || $user->role !== 'artist') {
+                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
+            }
 
             // Check if this is a chunk upload
             if ($request->has('chunk_index') && $request->has('total_chunks')) {
@@ -1298,6 +1311,10 @@ class ContentController extends Controller
     public function upload_radio(Request $request)
     {
         try {
+            $user = User::find($request->user_id);
+            if (!$user || $user->role !== 'artist') {
+                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
+            }
 
             // Check if this is a chunk upload
             if ($request->has('chunk_index') && $request->has('total_chunks')) {
@@ -1848,6 +1865,10 @@ class ContentController extends Controller
     public function upload_episode(Request $request)
     {
         try {
+            $user = User::find($request->user_id);
+            if (!$user || $user->role !== 'artist') {
+                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
+            }
 
             // Check if this is a chunk upload
             if ($request->has('chunk_index') && $request->has('total_chunks')) {
