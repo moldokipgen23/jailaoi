@@ -22,6 +22,7 @@ use Exception;
 class MusicController extends Controller
 {
     private $folder = "content";
+    private $folder_ffmpeg = "/app/public/content/";
     public $common;
     public function __construct()
     {
@@ -134,6 +135,12 @@ class MusicController extends Controller
 
                 if ($requestData['content_storage_type'] == 1) {
                     $requestData['content'] = $requestData['music'];
+                    if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
+                        $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
+                        if ($dur > 0) $requestData['content_duration'] = $dur;
+                    }
+                    $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
+                    if ($wf) $requestData['waveform_data'] = $wf;
                 } else {
                     $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $requestData['content_storage_type']);
                 }
@@ -248,6 +255,12 @@ class MusicController extends Controller
                         $requestData['content_storage_type'] = $storage_type;
                         if ($storage_type == 1) {
                             $requestData['content'] = $requestData['music'];
+                            if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
+                                $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
+                                if ($dur > 0) $requestData['content_duration'] = $dur;
+                            }
+                            $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
+                            if ($wf) $requestData['waveform_data'] = $wf;
                         } else {
                             $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
                         }
@@ -260,6 +273,12 @@ class MusicController extends Controller
 
                         if ($storage_type == 1) {
                             $requestData['content'] = $requestData['music'];
+                            if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
+                                $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
+                                if ($dur > 0) $requestData['content_duration'] = $dur;
+                            }
+                            $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
+                            if ($wf) $requestData['waveform_data'] = $wf;
                         } else {
                             $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
                         }
