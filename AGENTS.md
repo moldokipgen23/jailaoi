@@ -19,7 +19,14 @@ Rebranded from DTTube.
   git commit -m "description of changes"
   git push
   ```
-- **No .env** in repo (in .gitignore)
+- **No .env** in repo (in .gitignore). If `.env` was accidentally tracked before, run:
+  ```bash
+  git rm --cached .env
+  ```
+- **If live server git pull fails** with "unmerged files" due to `.env`:
+  ```bash
+  git rm --cached .env && git add .env && git restore --staged . && git pull origin main
+  ```
 
 ## Local Dev Setup
 - PHP 8.4, MySQL 8.0
@@ -96,7 +103,6 @@ Host: localhost
 
 ## To-Do List
 - [ ] DeepSound → JailaOi data migration (users, songs, playlists)
-- [ ] N/A: Web dashboard = `/user/` repurposed for artists only (done)
 - [ ] Set up socket.io on live: `pm2 start socket.js --name jailaoi-socket`
 - [ ] Test Flutter app connected to live API
 - [ ] Set up SSL for m.jailaoi.com
