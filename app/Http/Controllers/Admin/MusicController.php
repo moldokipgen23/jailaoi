@@ -369,13 +369,14 @@ class MusicController extends Controller
     {
         @set_time_limit(5 * 60);
 
-        $targetDir = storage_path('/app/public/content');
-        $cleanupTargetDir = true; // Remove old files
-        $maxFileAge = 5 * 3600; // Temp file age in seconds
+        $datePath = date('Y') . '/' . date('m');
+        $targetDir = storage_path('/app/public/content/' . $datePath);
+        $cleanupTargetDir = true;
+        $maxFileAge = 5 * 3600;
 
         // Create target dir
         if (!file_exists($targetDir)) {
-            @mkdir($targetDir);
+            @mkdir($targetDir, 0777, true);
         }
 
         // Get a file name
@@ -396,8 +397,6 @@ class MusicController extends Controller
         if ($cleanupTargetDir && is_dir($targetDir) && $dir = opendir($targetDir)) {
             while (($file = readdir($dir)) !== false) {
                 $tmpfilePath = $targetDir . DIRECTORY_SEPARATOR . $file;
-
-                // Remove temp file if it is older than the max age and not the current file
                 if (preg_match('/\.part$/', $file) && (filemtime($tmpfilePath) < time() - $maxFileAge)) {
                     @unlink($tmpfilePath);
                 }
@@ -416,8 +415,6 @@ class MusicController extends Controller
             if ($_FILES["file"]["error"] || !is_uploaded_file($_FILES["file"]["tmp_name"])) {
                 die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "id"}');
             }
-
-            // Read binary input stream and append it to temp file
             if (!$in = @fopen($_FILES["file"]["tmp_name"], "rb")) {
                 die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
             }
@@ -436,22 +433,17 @@ class MusicController extends Controller
 
         // Check if file has been uploaded
         if (!$chunks || $chunk == $chunks - 1) {
-            // Strip the temp .part suffix off
             rename("{$filePath}.part", $filePath);
 
-            // Generate a new filename based on the current date and time
-            $extension = pathinfo($fileName, PATHINFO_EXTENSION); // Get the file extension from the original filename
-            $newFileName = 'music' . date('_Y_m_d_') . uniqid() . '.' . $extension; // Use the extracted extension
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+            $newFileName = 'music' . date('_Y_m_d_') . uniqid() . '.' . $extension;
             $newFilePath = $targetDir . DIRECTORY_SEPARATOR . $newFileName;
 
-            // Rename the uploaded file to the new filename
             rename($filePath, $newFilePath);
 
-            // Send the new file name back to the client
-            die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
+            die(json_encode(array('jsonrpc' => '2.0', 'result' => $datePath . '/' . $newFileName, 'id' => 'id')));
         }
 
-        // Return Success JSON-RPC response
         die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');
     }
 }

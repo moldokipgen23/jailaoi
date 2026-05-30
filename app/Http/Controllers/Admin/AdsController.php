@@ -177,7 +177,11 @@ class AdsController extends Controller
     {
         @set_time_limit(5 * 60);
 
-        $targetDir = storage_path('/app/public/ads');
+        $datePath = date('Y') . '/' . date('m');
+        $targetDir = storage_path('/app/public/ads/' . $datePath);
+        if (!file_exists($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
         $cleanupTargetDir = true; // Remove old files
         $maxFileAge = 5 * 3600; // Temp file age in seconds
 
@@ -256,7 +260,7 @@ class AdsController extends Controller
             rename($filePath, $newFilePath);
 
             // Send the new file name back to the client
-            die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
+            die(json_encode(array('jsonrpc' => '2.0', 'result' => $datePath . "/" . $newFileName, 'id' => 'id')));
         }
 
         // Return Success JSON-RPC response

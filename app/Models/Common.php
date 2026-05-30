@@ -88,13 +88,18 @@ class Common extends Model
         try {
             $img_ext = $org_name->getClientOriginalExtension();
             $filename = $prefix . date('Y_m_d_') . uniqid() . '.' . $img_ext;
+            $datePath = date('Y') . '/' . date('m');
+            $fullDir = base_path('storage/app/public/' . $folder . '/' . $datePath);
 
             if ($storage_type == 1) {
-                $org_name->move(base_path('storage/app/public/' . $folder), $filename);
+                if (!file_exists($fullDir)) {
+                    mkdir($fullDir, 0777, true);
+                }
+                $org_name->move($fullDir, $filename);
             } else if ($storage_type == 2) {
-                $org_name->storeAs($folder, $filename, 's3');
+                $org_name->storeAs($folder . '/' . $datePath, $filename, 's3');
             }
-            return $filename;
+            return $datePath . '/' . $filename;
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
