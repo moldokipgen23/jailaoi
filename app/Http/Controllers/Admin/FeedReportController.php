@@ -3,27 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Common;
-use App\Models\User;
-use App\Models\Feed;
-use App\Models\Feed_Content;
 use App\Models\Feed_Report;
+use App\Models\Feed;
+use App\Models\General_Setting;
 use Illuminate\Http\Request;
 use Exception;
 
 class FeedReportController extends Controller
 {
-    private $folder = "feed";
-    public $common;
-    public function __construct()
-    {
-        $this->common = new Common;
-    }
-
     public function index(Request $request)
     {
+        if ((General_Setting::where('key', 'feed_status')->value('value') ?? '1') === '0') {
+            return redirect()->route('admin.dashboard');
+        }
         try {
-
             $params['data'] = [];
             $params['user'] = User::orderby('id', 'desc')->latest()->get();
 

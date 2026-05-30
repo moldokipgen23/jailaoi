@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Common;
+use App\Models\General_Setting;
 use App\Models\Language;
 use App\Models\Hashtag;
 use App\Models\User;
@@ -31,6 +32,9 @@ class VideoController extends Controller
 
     public function index(Request $request)
     {
+        if ((General_Setting::where('key', 'video_status')->value('value') ?? '1') === '0') {
+            return redirect()->route('admin.dashboard');
+        }
         try {
             $params['data'] = [];
             $params['channel'] = User::latest()->get();

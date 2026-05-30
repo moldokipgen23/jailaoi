@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Common;
 use App\Models\Feed;
+use App\Models\General_Setting;
 use App\Models\Feed_Comment;
 use App\Models\Feed_Content;
 use App\Models\Feed_Like;
@@ -26,6 +27,9 @@ class FeedController extends Controller
 
     public function index(Request $request)
     {
+        if ((General_Setting::where('key', 'feed_status')->value('value') ?? '1') === '0') {
+            return redirect()->route('admin.dashboard');
+        }
         try {
             $params['data'] = [];
             $params['channel'] = User::latest()->get();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Common;
 use App\Models\User;
+use App\Models\General_Setting;
 use App\Models\Category;
 use App\Models\Coin_Package;
 use App\Models\Coin_Transaction;
@@ -40,19 +41,29 @@ class DashboardController extends Controller
             $this->common->package_expiry();
             $this->common->rent_expiry();
 
+            // Content toggle settings
+            $setting = [];
+            $settingRows = General_Setting::whereIn('key', ['video_status', 'reels_status', 'feed_status'])->pluck('value', 'key');
+            $videoEnabled = ($settingRows['video_status'] ?? '1') === '1';
+            $reelsEnabled = ($settingRows['reels_status'] ?? '1') === '1';
+            $feedEnabled = ($settingRows['feed_status'] ?? '1') === '1';
+
             // Counter Card
             $params['UserCount'] = User::count();
             $params['CategoryCount'] = Category::count();
             $params['LanguageCount'] = Language::count();
             $params['HashtagCount'] = Hashtag::count();
-            $params['VideoCount'] = Content::where('content_type', 1)->count();
+            $params['VideoCount'] = $videoEnabled ? Content::where('content_type', 1)->count() : 0;
             $params['MusicCount'] = Content::where('content_type', 2)->count();
-            $params['ReelsCount'] = Content::where('content_type', 3)->count();
+            $params['ReelsCount'] = $reelsEnabled ? Content::where('content_type', 3)->count() : 0;
             $params['PodcastsCount'] = Content::where('content_type', 4)->count();
-            $params['FeedCount'] = Feed::count();
+            $params['FeedCount'] = $feedEnabled ? Feed::count() : 0;
             $params['PlaylistCount'] = Content::where('content_type', 5)->count();
             $params['RadioCount'] = Content::where('content_type', 6)->count();
             $params['GiftCount'] = Gift::count();
+            $params['video_enabled'] = $videoEnabled;
+            $params['reels_enabled'] = $reelsEnabled;
+            $params['feed_enabled'] = $feedEnabled;
 
             // User Statistice
             $user_data = [];
@@ -78,9 +89,9 @@ class DashboardController extends Controller
             }
 
             // Most Like Content
-            $params['top_video_like'] = Content::where('content_type', 1)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
+            $params['top_video_like'] = $videoEnabled ? Content::where('content_type', 1)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get() : [];
             $params['top_music_like'] = Content::where('content_type', 2)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_reels_like'] = Content::where('content_type', 3)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
+            $params['top_reels_like'] = $reelsEnabled ? Content::where('content_type', 3)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get() : [];
             $params['top_podcasts_like'] = Content::where('content_type', 4)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $params['top_radio_like'] = Content::where('content_type', 6)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $this->common->imageNameToUrl($params['top_video_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
@@ -90,9 +101,9 @@ class DashboardController extends Controller
             $this->common->imageNameToUrl($params['top_radio_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
 
             // Most View Content
-            $params['top_video_view'] = Content::where('content_type', 1)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
+            $params['top_video_view'] = $videoEnabled ? Content::where('content_type', 1)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get() : [];
             $params['top_music_view'] = Content::where('content_type', 2)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_reels_view'] = Content::where('content_type', 3)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
+            $params['top_reels_view'] = $reelsEnabled ? Content::where('content_type', 3)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get() : [];
             $params['top_podcasts_view'] = Content::where('content_type', 4)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $params['top_radio_view'] = Content::where('content_type', 6)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $this->common->imageNameToUrl($params['top_video_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');

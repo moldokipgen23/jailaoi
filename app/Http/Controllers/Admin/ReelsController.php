@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\Common;
+use App\Models\General_Setting;
 use App\Models\Hashtag;
 use App\Models\User;
 use App\Models\Content;
@@ -29,6 +30,9 @@ class ReelsController extends Controller
 
     public function index(Request $request)
     {
+        if ((General_Setting::where('key', 'reels_status')->value('value') ?? '1') === '0') {
+            return redirect()->route('admin.dashboard');
+        }
         try {
 
             $params['data'] = [];

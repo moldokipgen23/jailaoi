@@ -60,6 +60,7 @@
                 </div>
             </div>
             <div class="row stat-card-row">
+                @if($video_enabled ?? true)
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon primary">
@@ -71,6 +72,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon success">
@@ -82,6 +84,7 @@
                         </div>
                     </div>
                 </div>
+                @if($reels_enabled ?? true)
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon danger">
@@ -93,6 +96,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon info">
@@ -106,6 +110,7 @@
                 </div>
             </div>
             <div class="row stat-card-row">
+                @if($feed_enabled ?? true)
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon warning">
@@ -117,6 +122,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon primary">
@@ -206,15 +212,19 @@
                     </div>
 
                     <ul class="nav nav-pills custom-tabs" id="pills-tab" role="tablist">
+                        @if($video_enabled ?? true)
                         <li class="nav-item">
                             <a class="nav-link active" id="pills-video-view-tab" data-toggle="pill" href="#pills-video-view" role="tab" aria-controls="pills-video-view" aria-selected="true">{{__('label.videos')}}</a>
                         </li>
+                        @endif
                         <li class="nav-item">
-                            <a class="nav-link" id="pills-music-view-tab" data-toggle="pill" href="#pills-music-view" role="tab" aria-controls="pills-music-view" aria-selected="false">{{__('label.music')}}</a>
+                            <a class="nav-link @if(!($video_enabled ?? true)) active @endif" id="pills-music-view-tab" data-toggle="pill" href="#pills-music-view" role="tab" aria-controls="pills-music-view" aria-selected="{{($video_enabled ?? true) ? 'false' : 'true'}}">{{__('label.music')}}</a>
                         </li>
+                        @if($reels_enabled ?? true)
                         <li class="nav-item">
                             <a class="nav-link" id="pills-reels-view-tab" data-toggle="pill" href="#pills-reels-view" role="tab" aria-controls="pills-reels-view" aria-selected="false">{{__('label.reels')}}</a>
                         </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" id="pills-podcasts-view-tab" data-toggle="pill" href="#pills-podcasts-view" role="tab" aria-controls="pills-podcasts-view" aria-selected="false">{{__('label.podcasts')}}</a>
                         </li>
@@ -224,6 +234,7 @@
                     </ul>
 
                     <div class="tab-content" id="pills-tabContent">
+                        @if($video_enabled ?? true)
                         <div class="tab-pane fade show active" id="pills-video-view" role="tabpanel" aria-labelledby="pills-video-view-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_video_view); $i++)
@@ -245,7 +256,8 @@
                                 @endfor
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="pills-music-view" role="tabpanel" aria-labelledby="pills-music-view-tab">
+                        @endif
+                        <div class="tab-pane fade @if(!($video_enabled ?? true)) show active @endif" id="pills-music-view" role="tabpanel" aria-labelledby="pills-music-view-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_music_view); $i++)
                                     <div class="border-card bg-white">
@@ -266,6 +278,7 @@
                                 @endfor
                             </div>
                         </div>
+                        @if($reels_enabled ?? true)
                         <div class="tab-pane fade" id="pills-reels-view" role="tabpanel" aria-labelledby="pills-reels-view-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_reels_view); $i++)
@@ -287,6 +300,7 @@
                                 @endfor
                             </div>
                         </div>
+                        @endif
                         <div class="tab-pane fade" id="pills-podcasts-view" role="tabpanel" aria-labelledby="pills-podcasts-view-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_podcasts_view); $i++)
@@ -367,15 +381,19 @@
                     </div>
 
                     <ul class="nav nav-pills custom-tabs" id="pills-tab" role="tablist">
+                        @if($video_enabled ?? true)
                         <li class="nav-item">
                             <a class="nav-link active" id="pills-video-tab" data-toggle="pill" href="#pills-video" role="tab" aria-controls="pills-video" aria-selected="true">{{__('label.videos')}}</a>
                         </li>
+                        @endif
                         <li class="nav-item">
-                            <a class="nav-link" id="pills-music-tab" data-toggle="pill" href="#pills-music" role="tab" aria-controls="pills-music" aria-selected="false">{{__('label.music')}}</a>
+                            <a class="nav-link @if(!($video_enabled ?? true)) active @endif" id="pills-music-tab" data-toggle="pill" href="#pills-music" role="tab" aria-controls="pills-music" aria-selected="{{($video_enabled ?? true) ? 'false' : 'true'}}">{{__('label.music')}}</a>
                         </li>
+                        @if($reels_enabled ?? true)
                         <li class="nav-item">
                             <a class="nav-link" id="pills-reels-tab" data-toggle="pill" href="#pills-reels" role="tab" aria-controls="pills-reels" aria-selected="false">{{__('label.reels')}}</a>
                         </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" id="pills-podcasts-tab" data-toggle="pill" href="#pills-podcasts" role="tab" aria-controls="pills-podcasts" aria-selected="false">{{__('label.podcasts')}}</a>
                         </li>
@@ -385,6 +403,7 @@
                     </ul>
 
                     <div class="tab-content" id="pills-tabContent">
+                        @if($video_enabled ?? true)
                         <div class="tab-pane fade show active" id="pills-video" role="tabpanel" aria-labelledby="pills-video-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_video_like); $i++)
@@ -406,7 +425,8 @@
                                 @endfor
                             </div>
                         </div>
-                        <div class="tab-pane fade" id="pills-music" role="tabpanel" aria-labelledby="pills-music-tab">
+                        @endif
+                        <div class="tab-pane fade @if(!($video_enabled ?? true)) show active @endif" id="pills-music" role="tabpanel" aria-labelledby="pills-music-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_music_like); $i++)
                                     <div class="border-card bg-white">
@@ -427,6 +447,7 @@
                                 @endfor
                             </div>
                         </div>
+                        @if($reels_enabled ?? true)
                         <div class="tab-pane fade" id="pills-reels" role="tabpanel" aria-labelledby="pills-reels-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_reels_like); $i++)
@@ -448,6 +469,7 @@
                                 @endfor
                             </div>
                         </div>
+                        @endif
                         <div class="tab-pane fade" id="pills-podcasts" role="tabpanel" aria-labelledby="pills-podcasts-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_podcasts_like); $i++)
