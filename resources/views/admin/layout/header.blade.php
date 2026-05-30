@@ -14,7 +14,7 @@
         <span class="header-badge">{{__('label.demo_mode')}}</span>
         @endif
 
-        <a href="{{ route('user.login') }}" target="_blank" class="btn btn-outline" title="Go to User Panel">
+        <a href="{{ route('user.login') }}" target="_blank" class="btn btn-outline" title="Go to Artist Dashboard">
             <i class="fa-solid fa-display"></i>
         </a>
 
