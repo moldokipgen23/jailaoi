@@ -824,8 +824,11 @@ class ContentController extends Controller
                 $uploadedChunks = glob($tempDir . '/chunk_*');
                 if (count($uploadedChunks) == $totalChunks) {
 
+                    $datePath = date('Y') . '/' . date('m');
                     $filename = 'reels_' . date('Y_m_d_') . uniqid() . '.mp4';
-                    $finalPath = storage_path("app/public/content/{$filename}");
+                    $contentDir = storage_path("app/public/content/{$datePath}");
+                    if (!file_exists($contentDir)) { mkdir($contentDir, 0777, true); }
+                    $finalPath = $contentDir . '/' . $filename;
                     $output = fopen($finalPath, 'wb');
 
                     for ($i = 0; $i < $totalChunks; $i++) {
@@ -840,8 +843,8 @@ class ContentController extends Controller
                     rmdir($tempDir);
 
                     return $this->common->API_Response(200, __('api_msg.upload_completed'), [
-                        'file_path' => "{$filename}",
-                        'full_url' => Storage::disk('public')->exists('content/' . $filename),
+                        'file_path' => $datePath . '/' . $filename,
+                        'full_url' => Storage::disk('public')->exists('content/' . $datePath . '/' . $filename),
                     ]);
                 }
                 return $this->common->API_Response(206, __('api_msg.upload_progress', ['current' => $chunkIndex, 'total' => $totalChunks]), ['directory' => $uploadId]);
@@ -941,8 +944,11 @@ class ContentController extends Controller
                 $uploadedChunks = glob($tempDir . '/chunk_*');
                 if (count($uploadedChunks) == $totalChunks) {
 
+                    $datePath = date('Y') . '/' . date('m');
                     $filename = 'vid_' . date('Y_m_d_') . uniqid() . '.mp4';
-                    $finalPath = storage_path("app/public/content/{$filename}");
+                    $contentDir = storage_path("app/public/content/{$datePath}");
+                    if (!file_exists($contentDir)) { mkdir($contentDir, 0777, true); }
+                    $finalPath = $contentDir . '/' . $filename;
                     $output = fopen($finalPath, 'wb');
 
                     for ($i = 0; $i < $totalChunks; $i++) {
@@ -1322,8 +1328,11 @@ class ContentController extends Controller
                 $uploadedChunks = glob($tempDir . '/chunk_*');
                 if (count($uploadedChunks) == $totalChunks) {
 
+                    $datePath = date('Y') . '/' . date('m');
                     $filename = 'radio_' . date('Y_m_d_') . uniqid() . '.mp3';
-                    $finalPath = storage_path("app/public/content/{$filename}");
+                    $contentDir = storage_path("app/public/content/{$datePath}");
+                    if (!file_exists($contentDir)) { mkdir($contentDir, 0777, true); }
+                    $finalPath = $contentDir . '/' . $filename;
                     $output = fopen($finalPath, 'wb');
 
                     for ($i = 0; $i < $totalChunks; $i++) {
@@ -1338,8 +1347,8 @@ class ContentController extends Controller
                     rmdir($tempDir);
 
                     return $this->common->API_Response(200, __('api_msg.upload_completed'), [
-                        'file_path' => "{$filename}",
-                        'full_url' => Storage::disk('public')->exists('content/' . $filename),
+                        'file_path' => $datePath . '/' . $filename,
+                        'full_url' => Storage::disk('public')->exists('content/' . $datePath . '/' . $filename),
                     ]);
                 }
                 return $this->common->API_Response(206, __('api_msg.upload_progress', ['current' => $chunkIndex, 'total' => $totalChunks]), ['directory' => $uploadId]);
@@ -1869,8 +1878,11 @@ class ContentController extends Controller
                 $uploadedChunks = glob($tempDir . '/chunk_*');
                 if (count($uploadedChunks) == $totalChunks) {
 
+                    $datePath = date('Y') . '/' . date('m');
                     $filename = 'ep_vid_' . date('Y_m_d_') . uniqid() . '.mp3';
-                    $finalPath = storage_path("app/public/content/{$filename}");
+                    $contentDir = storage_path("app/public/content/{$datePath}");
+                    if (!file_exists($contentDir)) { mkdir($contentDir, 0777, true); }
+                    $finalPath = $contentDir . '/' . $filename;
                     $output = fopen($finalPath, 'wb');
 
                     for ($i = 0; $i < $totalChunks; $i++) {
@@ -1885,8 +1897,8 @@ class ContentController extends Controller
                     rmdir($tempDir);
 
                     return $this->common->API_Response(200, __('api_msg.upload_completed'), [
-                        'file_path' => "{$filename}",
-                        'full_url' => Storage::disk('public')->exists('content/' . $filename),
+                        'file_path' => $datePath . '/' . $filename,
+                        'full_url' => Storage::disk('public')->exists('content/' . $datePath . '/' . $filename),
                     ]);
                 }
                 return $this->common->API_Response(206, __('api_msg.upload_progress', ['current' => $chunkIndex, 'total' => $totalChunks]), ['directory' => $uploadId]);
