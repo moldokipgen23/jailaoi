@@ -38,7 +38,7 @@ class ContentController extends Controller
     {
         try {
             $setting = Setting_Data();
-            if (($setting['video_reels_status'] ?? '1') == '0') {
+            if (($setting['video_status'] ?? '1') == '0') {
                 return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
             }
             $validation = Validator::make($request->all(), [
@@ -331,14 +331,16 @@ class ContentController extends Controller
 
             if (count($data) > 0) {
 
-                $video_reels_disabled = (Setting_Data()['video_reels_status'] ?? '1') == '0';
+                $setting_data = Setting_Data();
+                $video_disabled = ($setting_data['video_status'] ?? '1') == '0';
+                $reels_disabled = ($setting_data['reels_status'] ?? '1') == '0';
 
                 for ($i = 0; $i < count($data); $i++) {
 
                     $data[$i]['data'] = [];
                     if ($data[$i]['content_type'] == 1) {
 
-                        if ($video_reels_disabled) {
+                        if ($video_disabled) {
                             unset($data[$i]);
                             continue;
                         }
@@ -363,7 +365,7 @@ class ContentController extends Controller
                         $data[$i]['data'] = $query;
                     } else if ($data[$i]['content_type'] == 3) {
 
-                        if ($video_reels_disabled) {
+                        if ($reels_disabled) {
                             unset($data[$i]);
                             continue;
                         }
@@ -446,8 +448,10 @@ class ContentController extends Controller
             $section = Section::where('id', $section_id)->where('status', 1)->first();
             if ($section) {
 
-                $video_reels_disabled = (Setting_Data()['video_reels_status'] ?? '1') == '0';
-                if ($video_reels_disabled && in_array($section['content_type'], [1, 3])) {
+                $section_setting = Setting_Data();
+                $video_disabled = ($section_setting['video_status'] ?? '1') == '0';
+                $reels_disabled = ($section_setting['reels_status'] ?? '1') == '0';
+                if (($section['content_type'] == 1 && $video_disabled) || ($section['content_type'] == 3 && $reels_disabled)) {
                     return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
                 }
                 if ($section['content_type'] == 1) {
@@ -714,7 +718,7 @@ class ContentController extends Controller
     {
         try {
             $setting = Setting_Data();
-            if (($setting['video_reels_status'] ?? '1') == '0') {
+            if (($setting['reels_status'] ?? '1') == '0') {
                 return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
             }
 

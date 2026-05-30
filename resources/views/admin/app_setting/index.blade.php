@@ -113,23 +113,37 @@
                         </div>
                     </div>
                     <div class="card custom-border-card mt-3">
-                        <h5 class="card-header">{{__('label.video_reels_status')}}</h5>
+                        <h5 class="card-header">{{__('label.video_status')}} &amp; {{__('label.reels_status')}}</h5>
                         <form id="content_settings" enctype="multipart/form-data">
                             <div class="card-body">
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label>{{__('label.video_reels_status')}}</label>
+                                        <label>{{__('label.video_status')}}</label>
                                         <div class="mt-2">
                                             <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="video_reels_status" id="video_reels_status_yes" class="custom-control-input" {{ ($result['video_reels_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
-                                                <label class="custom-control-label" for="video_reels_status_yes">{{__('label.yes')}}</label>
+                                                <input type="radio" name="video_status" id="video_status_yes" class="custom-control-input" {{ ($result['video_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="video_status_yes">{{__('label.yes')}}</label>
                                             </div>
                                             <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="video_reels_status" id="video_reels_status_no" class="custom-control-input" {{ ($result['video_reels_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
-                                                <label class="custom-control-label" for="video_reels_status_no">{{__('label.no')}}</label>
+                                                <input type="radio" name="video_status" id="video_status_no" class="custom-control-input" {{ ($result['video_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="video_status_no">{{__('label.no')}}</label>
                                             </div>
                                         </div>
-                                        <small class="form-text text-muted">{{__('label.video_reels_status_note')}}</small>
+                                        <small class="form-text text-muted">{{__('label.video_status_note')}}</small>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label>{{__('label.reels_status')}}</label>
+                                        <div class="mt-2">
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="reels_status" id="reels_status_yes" class="custom-control-input" {{ ($result['reels_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="reels_status_yes">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="reels_status" id="reels_status_no" class="custom-control-input" {{ ($result['reels_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="reels_status_no">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                        <small class="form-text text-muted">{{__('label.reels_status_note')}}</small>
                                     </div>
                                 </div>
                             </div>

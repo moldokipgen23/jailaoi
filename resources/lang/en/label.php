@@ -758,8 +758,10 @@ return [
     'radio_list' => 'Radio List',
     'upload_radio' => 'Upload Radio',
     'content_settings' => 'Content Settings',
-    'video_reels_status' => 'Video & Reels Status',
-    'video_reels_status_note' => 'When disabled, all videos and reels will be hidden from the app',
+    'video_status' => 'Video Status',
+    'video_status_note' => 'When disabled, all videos will be hidden from the app',
+    'reels_status' => 'Reels Status',
+    'reels_status_note' => 'When disabled, all reels will be hidden from the app',
 
     // ************** Installation **************
     'admin_panel' => 'Admin Panel',
