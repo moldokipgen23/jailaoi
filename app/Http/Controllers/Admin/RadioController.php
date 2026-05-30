@@ -28,7 +28,7 @@ class RadioController extends Controller
     {
         try {
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             $input_search = $request['input_search'];
             $input_channel = $request['input_channel'];
@@ -61,7 +61,7 @@ class RadioController extends Controller
         try {
 
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             return view('admin.radio.add', $params);
         } catch (Exception $e) {
@@ -158,7 +158,7 @@ class RadioController extends Controller
             $params['data'] = Content::where('id', $id)->first();
             if ($params['data'] != null) {
 
-                $params['channel'] = User::latest()->get();
+                $params['channel'] = User::where('role', 'artist')->latest()->get();
 
                 $params['data']['portrait_img'] = $this->common->getImage($this->folder, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
                 $params['data']['landscape_img'] = $this->common->getImage($this->folder, $params['data']['landscape_img'], $params['data']['landscape_img_storage_type']);

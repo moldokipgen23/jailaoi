@@ -32,7 +32,7 @@ class FeedController extends Controller
         }
         try {
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             $input_search = $request['input_search'];
             $input_channel = $request['input_channel'];
@@ -76,7 +76,7 @@ class FeedController extends Controller
     {
         try {
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             return view('admin.feed.add', $params);
         } catch (Exception $e) {
@@ -178,7 +178,7 @@ class FeedController extends Controller
             $params['data'] = Feed::where('id', $id)->first();
             if ($params['data'] != null) {
 
-                $params['channel'] = User::latest()->get();
+                $params['channel'] = User::where('role', 'artist')->latest()->get();
 
                 $params['feed_content'] = Feed_Content::where('feed_id', $id)->get();
                 for ($i = 0; $i < count($params['feed_content']); $i++) {

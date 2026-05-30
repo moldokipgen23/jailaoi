@@ -34,7 +34,7 @@ class PodcastsController extends Controller
     {
         try {
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
             $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
             $params['language'] = Language::orderby('sort_order', 'asc')->latest()->get();
 

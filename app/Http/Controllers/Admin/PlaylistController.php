@@ -26,7 +26,7 @@ class PlaylistController extends Controller
     {
         try {
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             if ($request->ajax()) {
 

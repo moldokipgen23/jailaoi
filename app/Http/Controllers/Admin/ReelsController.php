@@ -36,7 +36,7 @@ class ReelsController extends Controller
         try {
 
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             $input_search = $request['input_search'];
             $input_channel = $request['input_channel'];
@@ -67,7 +67,7 @@ class ReelsController extends Controller
         try {
 
             $params['data'] = [];
-            $params['channel'] = User::latest()->get();
+            $params['channel'] = User::where('role', 'artist')->latest()->get();
 
             return view('admin.reels.add', $params);
         } catch (Exception $e) {
@@ -146,7 +146,7 @@ class ReelsController extends Controller
             $params['data'] = Content::where('id', $id)->first();
             if ($params['data'] != null) {
 
-                $params['channel'] = User::latest()->get();
+                $params['channel'] = User::where('role', 'artist')->latest()->get();
 
                 $params['data']['portrait_img'] = $this->common->getImage($this->folder, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
                 if ($params['data']['content_upload_type'] == 'server_video') {
