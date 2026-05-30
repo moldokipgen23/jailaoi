@@ -321,13 +321,9 @@ class RadioController extends Controller
 
         $datePath = date("Y") . "/" . date("m");
         $targetDir = storage_path("/app/public/content/" . $datePath);
-            @mkdir($targetDir, 0777, true);
-        }
-        $cleanupTargetDir = true; // Remove old files
-        $maxFileAge = 5 * 3600; // Temp file age in seconds
-
-        // Create target dir
-        }
+        @mkdir($targetDir, 0777, true);
+        $cleanupTargetDir = true;
+        $maxFileAge = 5 * 3600;
 
         // Get a file name
         if (isset($_REQUEST["name"])) {
