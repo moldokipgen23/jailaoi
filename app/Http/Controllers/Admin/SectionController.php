@@ -82,6 +82,7 @@ class SectionController extends Controller
             }
             $requestData['sort_order'] = 0;
             $requestData['status'] = 1;
+            $requestData['is_fixed'] = $request['is_fixed'] ?? 0;
 
             $data = Section::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($data->id)) {
@@ -97,13 +98,13 @@ class SectionController extends Controller
     {
         try {
             if ($request['is_home_screen'] == 1) {
-                $data = Section::where('is_home_screen', 1)->orderBy('sort_order', 'asc')->latest()->get();
+                $data = Section::where('is_home_screen', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
             } else if ($request['is_home_screen'] == 2) {
 
                 if ($request['content_type'] == 1 || $request['content_type'] == 4) {
-                    $data = Section::where('is_home_screen', 2)->whereIn('content_type', [1, 4])->orderBy('sort_order', 'asc')->latest()->get();
+                    $data = Section::where('is_home_screen', 2)->whereIn('content_type', [1, 4])->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
                 } else {
-                    $data = Section::where('is_home_screen', 2)->where('content_type', $request['content_type'])->orderBy('sort_order', 'asc')->latest()->get();
+                    $data = Section::where('is_home_screen', 2)->where('content_type', $request['content_type'])->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
                 }
             }
             return response()->json(['status' => 200, 'result' => $data]);
@@ -207,18 +208,35 @@ class SectionController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function SectionPin($id)
+    {
+        try {
+
+            $data = Section::where('id', $id)->first();
+            if (isset($data)) {
+
+                $data->is_fixed = $data->is_fixed === 1 ? 0 : 1;
+                $data->save();
+                return response()->json(['status' => 200, 'success' => __('label.status_changed'), 'is_fixed' => $data->is_fixed]);
+            } else {
+                return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
     // Sort Order
     public function sort_order(Request $request)
     {
         try {
             if ($request['is_home_screen'] == 1) {
-                $data = Section::select('id', 'title')->where('is_home_screen', 1)->orderBy('sort_order', 'asc')->latest()->get();
+                $data = Section::select('id', 'title', 'is_fixed')->where('is_home_screen', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
             } else if ($request['is_home_screen'] == 2) {
 
                 if ($request['content_type'] == 1 || $request['content_type'] == 4) {
-                    $data = Section::select('id', 'title')->where('is_home_screen', 2)->whereIn('content_type', [1, 4])->orderBy('sort_order', 'asc')->latest()->get();
+                    $data = Section::select('id', 'title', 'is_fixed')->where('is_home_screen', 2)->whereIn('content_type', [1, 4])->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
                 } else {
-                    $data = Section::select('id', 'title')->where('is_home_screen', 2)->where('content_type', $request['content_type'])->orderBy('sort_order', 'asc')->latest()->get();
+                    $data = Section::select('id', 'title', 'is_fixed')->where('is_home_screen', 2)->where('content_type', $request['content_type'])->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc')->latest()->get();
                 }
             }
             return response()->json(['status' => 200, 'result' => $data]);

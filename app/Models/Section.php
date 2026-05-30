@@ -28,5 +28,6 @@ class Section extends Model
         'view_all' => 'integer',
         'sort_order' => 'integer',
         'status' => 'integer',
+        'is_fixed' => 'integer',
     ];
 }

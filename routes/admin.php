@@ -109,6 +109,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('section/data', [SectionController::class, 'GetSectionData'])->name('section.content.data');
         Route::post('section/edit', [SectionController::class, 'SectionDataEdit'])->name('section.content.edit');
         Route::get('section/status/{id}', [SectionController::class, 'SectionStatus'])->name('section.status');
+        Route::get('section/pin/{id}', [SectionController::class, 'SectionPin'])->name('section.pin');
         Route::post('section/sortorder', [SectionController::class, 'sort_order'])->name('section.content.sortorder');
         Route::post('section/sortorder/save', [SectionController::class, 'sort_order_save'])->name('section.content.sortorder.save');
         // Video

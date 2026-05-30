@@ -636,7 +636,10 @@
 
                         var data = '<div class="card custom-border-card mt-3">'+
                                 '<div class="card-header d-flex justify-content-between">'+
-                                    '<h5>{{__("label.edit_section")}}</h5>';
+                                    '<div>'+
+                                        '<h5 class="d-inline">{{__("label.edit_section")}}</h5>'+
+                                        '<button class="btn btn-sm ml-2" id="pin_'+resp.result[i].id+'" onclick="toggle_pin('+resp.result[i].id+')" style="'+(resp.result[i].is_fixed == 1 ? 'background:#ffc107;color:#000;' : 'background:transparent;border:1px solid #ccc;color:#999;')+'">📌</button>'+
+                                    '</div>';
                                     if(resp.result[i].status == 1){
                                         data += '<button class="btn show-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.show")}}</button>';
                                     } else {
@@ -863,7 +866,10 @@
 
                         var data = '<div class="card custom-border-card mt-3">'+
                                 '<div class="card-header d-flex justify-content-between">'+
-                                    '<h5>{{__("label.edit_section")}}</h5>';
+                                    '<div>'+
+                                        '<h5 class="d-inline">{{__("label.edit_section")}}</h5>'+
+                                        '<button class="btn btn-sm ml-2" id="pin_'+resp.result[i].id+'" onclick="toggle_pin('+resp.result[i].id+')" style="'+(resp.result[i].is_fixed == 1 ? 'background:#ffc107;color:#000;' : 'background:transparent;border:1px solid #ccc;color:#999;')+'">📌</button>'+
+                                    '</div>';
                                     if(resp.result[i].status == 1){
                                         data += '<button class="btn show-btn" id="'+resp.result[i].id+'" onclick="change_status('+resp.result[i].id+')">{{__("label.show")}}</button>';
                                     } else {
@@ -916,398 +922,12 @@
             });
         };
 
-        // Update Section
-        function edit_section(id){
-
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                type: 'POST',
-                url: '{{ route("admin.section.content.edit") }}',
-                data: {
-                    id: id,
-                },
-                success: function(resp) {
-
-                    if(resp.result != null){
-                        $("#edit_id").val(resp.result.id);
-                        $("#edit_is_home_screen").val(resp.result.is_home_screen);
-                        $("#edit_title").val(resp.result.title);
-                        $("#edit_short_title").val(resp.result.short_title);
-                        $("#edit_content_type").val(resp.result.content_type).attr("selected","selected");
-                        $("#edit_screen_layout").val(resp.result.screen_layout).attr("selected","selected");
-                        $('#edit_category_id').val(resp.result.category_id).trigger('change');
-                        $('#edit_language_id').val(resp.result.language_id).trigger('change');
-                        $("#edit_no_of_content").val(resp.result.no_of_content);
-                        if(resp.result.order_by_upload == 1){
-                            $("#edit_order_by_upload_asc").attr('checked','checked');
-                        } else {
-                            $("#edit_order_by_upload_desc").attr('checked','checked');
-                        }
-                        if(resp.result.order_by_view == 1){
-                            $("#edit_order_by_view_asc").attr('checked','checked');
-                        } else {
-                            $("#edit_order_by_view_desc").attr('checked','checked');
-                        }
-                        if(resp.result.order_by_like == 1){
-                            $("#edit_order_by_like_asc").attr('checked','checked');
-                        } else {
-                            $("#edit_order_by_like_desc").attr('checked','checked');
-                        }
-                        if(resp.result.view_all == 1){
-                            $("#edit_view_all_yes").attr('checked','checked');
-                        } else {
-                            $("#edit_view_all_no").attr('checked','checked');
-                        }
-
-                        if(resp.result.is_home_screen == 1){
-                            $(".edit_content_type_drop").show();
-                            $(".edit_content_type_drop option[value='1']").show();
-                            $(".edit_content_type_drop option[value='2']").show();
-                            $(".edit_content_type_drop option[value='3']").show();
-                            $(".edit_content_type_drop option[value='4']").show();
-                            $(".edit_content_type_drop option[value='5']").show();
-                            $(".edit_content_type_drop option[value='6']").show();
-                        } else if(resp.result.is_home_screen == 2){
-
-                            if(resp.result.content_type == 1 || resp.result.content_type == 4){
-
-                                $(".edit_content_type_drop").show();
-                                $(".edit_content_type_drop option[value='1']").show();
-                                $(".edit_content_type_drop option[value='2']").hide();
-                                $(".edit_content_type_drop option[value='3']").hide();
-                                $(".edit_content_type_drop option[value='4']").show();
-                                $(".edit_content_type_drop option[value='5']").hide();
-                                $(".edit_content_type_drop option[value='6']").hide();
-                            } else if(resp.result.content_type == 2){
-                                $(".edit_content_type_drop").hide();
-                            } else if(resp.result.content_type == 3){
-                                $(".edit_content_type_drop").hide();
-                            } else {
-                                $(".edit_content_type_drop").hide();
-                            }
-                        } else {
-                            $(".edit_content_type_drop").hide();
-                        }
-
-                        if(resp.result.content_type == 1 || resp.result.content_type == 2){
-
-                            $(".edit_category_drop").show();
-                            $(".edit_language_drop").show();
-                            $(".edit_no_of_content_drop").show();
-                            $(".edit_order_by_upload_drop").show();
-                            $(".edit_order_by_view_drop").show();
-                            $(".edit_order_by_like_drop").show();
-                            $(".edit_view_all_drop").show();
-
-                            $("#edit_screen_layout option[value='playlist']").hide();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='round']").hide();
-                            if(resp.result.content_type == 1){
-                                $("#edit_screen_layout option[value='list_view']").show();
-                                $("#edit_screen_layout option[value='portrait']").show();
-                                $("#edit_screen_layout option[value='square']").show();
-                                $("#edit_screen_layout option[value='banner_view']").hide();
-                                $("#edit_screen_layout option[value='landscape']").hide();
-                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                            } else {
-                                $("#edit_screen_layout option[value='list_view']").hide();
-                                $("#edit_screen_layout option[value='portrait']").hide();
-                                $("#edit_screen_layout option[value='square']").hide();
-                                $("#edit_screen_layout option[value='banner_view']").show();
-                                $("#edit_screen_layout option[value='landscape']").show();
-                                $("#edit_screen_layout option[value='podcast_list_view']").show();
-                            }
-                        } else if(resp.result.content_type == 3){
-
-                            $(".edit_category_drop").hide();
-                            $(".edit_language_drop").hide();
-                            $(".edit_no_of_content_drop").show();
-                            $(".edit_order_by_upload_drop").show();
-                            $(".edit_order_by_view_drop").hide();
-                            $(".edit_order_by_like_drop").hide();
-                            $(".edit_view_all_drop").show();
-
-                            $("#edit_screen_layout option[value='list_view']").hide();
-                            $("#edit_screen_layout option[value='portrait']").hide();
-                            $("#edit_screen_layout option[value='square']").show();
-                            $("#edit_screen_layout option[value='playlist']").hide();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='round']").show();
-                            $("#edit_screen_layout option[value='banner_view']").hide();
-                            $("#edit_screen_layout option[value='landscape']").hide();
-                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                        } else if(resp.result.content_type == 4){
-
-                            $(".edit_category_drop").hide();
-                            $(".edit_language_drop").hide();
-                            $(".edit_no_of_content_drop").show();
-                            $(".edit_order_by_upload_drop").show();
-                            $(".edit_order_by_view_drop").hide();
-                            $(".edit_order_by_like_drop").hide();
-                            $(".edit_view_all_drop").show();
-
-                            $("#edit_screen_layout option[value='list_view']").hide();
-                            $("#edit_screen_layout option[value='portrait']").hide();
-                            $("#edit_screen_layout option[value='square']").hide();
-                            $("#edit_screen_layout option[value='playlist']").show();
-                            $("#edit_screen_layout option[value='category']").hide();
-                            $("#edit_screen_layout option[value='language']").hide();
-                            $("#edit_screen_layout option[value='round']").hide();
-                            $("#edit_screen_layout option[value='banner_view']").hide();
-                            $("#edit_screen_layout option[value='landscape']").hide();
-                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                        } else if(resp.result.content_type == 5 || resp.result.content_type == 6){
-
-                            $(".edit_category_drop").hide();
-                            $(".edit_language_drop").hide();
-                            $(".edit_no_of_content_drop").hide();
-                            $(".edit_order_by_upload_drop").hide();
-                            $(".edit_order_by_view_drop").hide();
-                            $(".edit_order_by_like_drop").hide();
-                            $(".edit_view_all_drop").hide();
-
-                            $("#edit_screen_layout option[value='list_view']").hide();
-                            $("#edit_screen_layout option[value='portrait']").hide();
-                            $("#edit_screen_layout option[value='square']").hide();
-                            $("#edit_screen_layout option[value='playlist']").hide();
-                            if(resp.result.content_type == 5){
-                                $("#edit_screen_layout option[value='category']").show();
-                                $("#edit_screen_layout option[value='language']").hide();
-                            } else {
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").show();
-                            }
-                            $("#edit_screen_layout option[value='round']").hide();
-                            $("#edit_screen_layout option[value='banner_view']").hide();
-                            $("#edit_screen_layout option[value='landscape']").hide();
-                            $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                        } else {
-
-                            $(".edit_category_drop").hide();
-                            $(".edit_language_drop").hide();
-                            $(".edit_no_of_content_drop").hide();
-                            $(".edit_order_by_upload_drop").hide();
-                            $(".edit_order_by_view_drop").hide();
-                            $(".edit_order_by_like_drop").hide();
-                            $(".edit_view_all_drop").hide();
-                            $(".edit_screen_layout_drop").hide();
-                        }
-
-                        $("#edit_content_type").change(function() {
-
-                            var content_type = $(this).children("option:selected").val();
-                            if(content_type == 1 || content_type == 2){
-
-                                $(".edit_category_drop").show();
-                                $(".edit_language_drop").show();
-                                $(".edit_no_of_content_drop").show();
-                                $(".edit_order_by_upload_drop").show();
-                                $(".edit_order_by_view_drop").show();
-                                $(".edit_order_by_like_drop").show();
-                                $(".edit_view_all_drop").show();
-
-                                $(".edit_screen_layout_drop").show();
-                                $("#edit_screen_layout").children().removeAttr("selected");
-                                $("#edit_screen_layout option[value='playlist']").hide();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='round']").hide();
-                                if(content_type == 1){
-                                    $("#edit_screen_layout option[value='list_view']").show();
-                                    $("#edit_screen_layout option[value='portrait']").show();
-                                    $("#edit_screen_layout option[value='square']").show();
-                                    $("#edit_screen_layout option[value='banner_view']").hide();
-                                    $("#edit_screen_layout option[value='landscape']").hide();
-                                    $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                                } else {
-                                    $("#edit_screen_layout option[value='list_view']").hide();
-                                    $("#edit_screen_layout option[value='portrait']").hide();
-                                    $("#edit_screen_layout option[value='square']").hide();
-                                    $("#edit_screen_layout option[value='banner_view']").show();
-                                    $("#edit_screen_layout option[value='landscape']").show();
-                                    $("#edit_screen_layout option[value='podcast_list_view']").show();
-                                }
-                            } else if(content_type == 3){
-
-                                $(".edit_category_drop").hide();
-                                $(".edit_language_drop").hide();
-                                $(".edit_no_of_content_drop").show();
-                                $(".edit_order_by_upload_drop").show();
-                                $(".edit_order_by_view_drop").hide();
-                                $(".edit_order_by_like_drop").hide();
-                                $(".edit_view_all_drop").show();
-
-                                $(".edit_screen_layout_drop").show();
-                                $("#edit_screen_layout").children().removeAttr("selected");
-                                $("#edit_screen_layout option[value='list_view']").hide();
-                                $("#edit_screen_layout option[value='portrait']").hide();
-                                $("#edit_screen_layout option[value='square']").show();
-                                $("#edit_screen_layout option[value='playlist']").hide();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='round']").show();
-                                $("#edit_screen_layout option[value='banner_view']").hide();
-                                $("#edit_screen_layout option[value='landscape']").hide();
-                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                            } else if(content_type == 4){
-
-                                $(".edit_category_drop").hide();
-                                $(".edit_language_drop").hide();
-                                $(".edit_no_of_content_drop").show();
-                                $(".edit_order_by_upload_drop").show();
-                                $(".edit_order_by_view_drop").hide();
-                                $(".edit_order_by_like_drop").hide();
-                                $(".edit_view_all_drop").show();
-
-                                $(".edit_screen_layout_drop").show();
-                                $("#edit_screen_layout").children().removeAttr("selected");
-                                $("#edit_screen_layout option[value='list_view']").hide();
-                                $("#edit_screen_layout option[value='portrait']").hide();
-                                $("#edit_screen_layout option[value='square']").hide();
-                                $("#edit_screen_layout option[value='playlist']").show();
-                                $("#edit_screen_layout option[value='category']").hide();
-                                $("#edit_screen_layout option[value='language']").hide();
-                                $("#edit_screen_layout option[value='round']").hide();
-                                $("#edit_screen_layout option[value='banner_view']").hide();
-                                $("#edit_screen_layout option[value='landscape']").hide();
-                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                            } else if(content_type == 5 || content_type == 6){
-
-                                $(".edit_category_drop").hide();
-                                $(".edit_language_drop").hide();
-                                $(".edit_no_of_content_drop").hide();
-                                $(".edit_order_by_upload_drop").hide();
-                                $(".edit_order_by_view_drop").hide();
-                                $(".edit_order_by_like_drop").hide();
-                                $(".edit_view_all_drop").hide();
-
-                                $(".edit_screen_layout_drop").show();
-                                $("#edit_screen_layout").children().removeAttr("selected");
-                                $("#edit_screen_layout option[value='list_view']").hide();
-                                $("#edit_screen_layout option[value='portrait']").hide();
-                                $("#edit_screen_layout option[value='square']").hide();
-                                $("#edit_screen_layout option[value='playlist']").hide();
-                                $("#edit_screen_layout option[value='round']").hide();
-                                $("#edit_screen_layout option[value='banner_view']").hide();
-                                $("#edit_screen_layout option[value='landscape']").hide();
-                                $("#edit_screen_layout option[value='podcast_list_view']").hide();
-                                if(content_type == 5){
-                                    $("#edit_screen_layout option[value='category']").show();
-                                    $("#edit_screen_layout option[value='language']").hide();
-                                } else {
-                                    $("#edit_screen_layout option[value='category']").hide();
-                                    $("#edit_screen_layout option[value='language']").show();   
-                                }
-                            } else {
-
-                                $(".edit_category_drop").hide();
-                                $(".edit_language_drop").hide();
-                                $(".edit_no_of_content_drop").hide();
-                                $(".edit_order_by_upload_drop").hide();
-                                $(".edit_order_by_view_drop").hide();
-                                $(".edit_order_by_like_drop").hide();
-                                $(".edit_view_all_drop").hide();
-                                $(".edit_screen_layout_drop").hide();
-                            }
-                        });
-                    }
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    toastr.error(errorThrown, textStatus);
-                }
-            });
-        }
-        function update_section(){
-
-            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if (Demo_Mode == 1) {
-
-                $("#dvloader").show();
-                var id = $('#edit_id').val();
-                var formData = new FormData($("#edit_section")[0]);
-
-                var url = '{{ route("admin.section.update", ":id") }}';
-                    url = url.replace(':id', id);
-
-                $.ajax({
-                    headers: {
-					    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-				    },
-				    enctype: 'multipart/form-data',
-                    type: 'POST',
-                    url: url,
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-
-                        $("#dvloader").hide();
-                        if(resp.status == 200){
-                            $('#updateModal').modal('toggle');
-                        }
-                        get_responce_message(resp, 'edit_section', '{{ route("admin.section.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            } else {
-                showError();
-            }
-        }
-
-        // Delete Section
-        function delete_section(id){
-
-            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if (Demo_Mode == 1) {
-
-                var result = confirm("{{__('label.delete_section')}}");
-                if(result){
-
-                    $("#dvloader").show();
-    
-                    var url = '{{ route("admin.section.show", ":id") }}';
-                        url = url.replace(':id', id);
-    
-                    $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        type: 'GET',
-                        url: url,
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function(resp) {
-                            $("#dvloader").hide();
-                            get_responce_message(resp, '', '{{ route("admin.section.index") }}');
-                        },
-                        error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            $("#dvloader").hide();
-                            toastr.error(errorThrown, textStatus);
-                        }
-                    });
-                }
-            } else {
-                showError();
-            }
-        }
-        // Hide-Show Status
-        function change_status(id) {
-
+        // Pin/Unpin Section
+        function toggle_pin(id) {
             var Demo_Mode = '<?php echo Demo_Mode(); ?>';
             if(Demo_Mode == 1){
-
                 $("#dvloader").show();
-                var url = `{{ route('admin.section.status', '') }}/${id}`;
-
+                var url = `{{ route('admin.section.pin', '') }}/${id}`;
                 $.ajax({
                     type: "GET",
                     url: url,
@@ -1316,12 +936,11 @@
                     },
                     success: function(resp) {
                         $("#dvloader").hide();
-
                         if (resp.status == 200) {
-                            if (resp.status_code == 1) {
-                                $('#' + id).text('{{__("label.show")}}').removeClass('hide-btn').addClass('show-btn');
+                            if (resp.is_fixed == 1) {
+                                $('#pin_' + id).css({'background':'#ffc107','color':'#000','border':'none'});
                             } else {
-                                $('#' + id).text('{{__("label.hide")}}').removeClass('show-btn').addClass('hide-btn');
+                                $('#pin_' + id).css({'background':'transparent','border':'1px solid #ccc','color':'#999'});
                             }
                             toastr.success(resp.success);
                         } else {
@@ -1336,7 +955,7 @@
             } else {
                 showError();
             }
-        };
+        }
 
         // Sort Order Section
         $("#contentListId").sortable({
