@@ -145,6 +145,20 @@
                                         </div>
                                         <small class="form-text text-muted">{{__('label.reels_status_note')}}</small>
                                     </div>
+                                    <div class="form-group col-md-6">
+                                        <label>{{__('label.feed_status')}}</label>
+                                        <div class="mt-2">
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="feed_status" id="feed_status_yes" class="custom-control-input" {{ ($result['feed_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="feed_status_yes">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="feed_status" id="feed_status_no" class="custom-control-input" {{ ($result['feed_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="feed_status_no">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                        <small class="form-text text-muted">{{__('label.feed_status_note')}}</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="border-top pt-3 text-right" style="padding-right:20px; padding-bottom:15px;">

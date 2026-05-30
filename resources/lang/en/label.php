@@ -762,6 +762,8 @@ return [
     'video_status_note' => 'When disabled, all videos will be hidden from the app',
     'reels_status' => 'Reels Status',
     'reels_status_note' => 'When disabled, all reels will be hidden from the app',
+    'feed_status' => 'Feed Status',
+    'feed_status_note' => 'When disabled, feeds will be hidden from the app',
 
     // ************** Installation **************
     'admin_panel' => 'Admin Panel',

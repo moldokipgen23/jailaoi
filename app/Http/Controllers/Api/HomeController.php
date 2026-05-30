@@ -1302,6 +1302,9 @@ class HomeController extends Controller
     {
         try {
             $this->common->package_expiry();
+            if ((Setting_Data()['feed_status'] ?? '1') == '0') {
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+            }
 
             $user_id = $request['user_id'];
             $page_no = $request['page_no'] ?? 1;
@@ -1391,6 +1394,9 @@ class HomeController extends Controller
     public function get_channel_feed(Request $request)
     {
         try {
+            if ((Setting_Data()['feed_status'] ?? '1') == '0') {
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+            }
             $validation = Validator::make($request->all(), [
                 'user_id' => 'required|numeric',
                 'channel_id' => 'required',
@@ -1457,6 +1463,9 @@ class HomeController extends Controller
     public function get_feed_detail(Request $request)
     {
         try {
+            if ((Setting_Data()['feed_status'] ?? '1') == '0') {
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+            }
             $validation = Validator::make($request->all(), [
                 'feed_id' => 'required',
                 'user_id' => 'required|numeric',

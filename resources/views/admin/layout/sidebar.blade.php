@@ -124,7 +124,7 @@
                 <span>{{__('label.radio')}}</span>
             </a>
         </li>
-        <li class="{{ (request()->routeIs('admin.feed.*')) ? 'active' : '' }}">
+        <li class="{{ (request()->routeIs('admin.feed.*')) ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.feed.index') }}">
                 <i class="fa-solid fa-camera-retro fa-2xl menu-icon"></i>
                 <span>{{__('label.feeds')}}</span>
@@ -158,7 +158,7 @@
                 <span>{{__('label.content_comments')}}</span>
             </a>
         </li>
-        <li class="side_line {{ request()->routeIs('admin.feedcomment*') ? 'active' : '' }}">
+        <li class="side_line {{ request()->routeIs('admin.feedcomment*') ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.feedcomment.index') }}">
                 <i class="fa-solid fa-comments fa-2xl menu-icon"></i>
                 <span>{{__('label.feed_comments')}}</span>
@@ -178,7 +178,7 @@
                 <span>{{__('label.content')}}</span>
             </a>
         </li>
-        <li class="side_line  {{ request()->routeIs('admin.feedreport*') ? 'active' : '' }}">
+        <li class="side_line  {{ request()->routeIs('admin.feedreport*') ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
             <a href="{{ route('admin.feedreport.index') }}">
                 <i class="fa-solid fa-camera-retro fa-2xl menu-icon"></i>
                 <span>{{__('label.feeds')}}</span>
