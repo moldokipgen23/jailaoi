@@ -14,3 +14,4 @@ docker-compose.override.yml
 /.vscode
 /storage/app/public/
 /storage/app/public/*
+.env
