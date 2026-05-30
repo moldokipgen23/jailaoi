@@ -111,7 +111,7 @@ class MigrateDeepSound extends Command
 
                 $newId = DB::table('tbl_user')->insertGetId([
                     'channel_id' => $channelId,
-                    'channel_name' => $user->username ? '@' . $user->username : '@user_' . $user->id,
+                    'channel_name' => $user->name ?: $user->username,
                     'full_name' => $user->name ?: $user->username,
                     'email' => $user->email ?: '',
                     'password' => $password,
@@ -193,7 +193,8 @@ class MigrateDeepSound extends Command
         $bar->start();
 
         foreach ($songs as $song) {
-            $channelId = $this->userMap[$song->user_id]['channel_id'] ?? 'deleted';
+            $ownerId = ($song->artist_id ?? 0) > 0 ? $song->artist_id : $song->user_id;
+            $channelId = $this->userMap[$ownerId]['channel_id'] ?? 'deleted';
             $categoryId = $this->categoryMap[$song->category_id] ?? 1;
 
             $newId = DB::table('tbl_content')->insertGetId([
