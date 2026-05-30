@@ -77,7 +77,7 @@ class MigrateDeepSound extends Command
         foreach ($rows as $row) {
             DB::table('tbl_category')->insertGetId([
                 'name' => $row->cateogry_name,
-                'image' => '',
+                'image' => $this->transformPath($row->background_thumb, 'category'),
                 'sort_order' => 0,
                 'status' => 1,
                 'created_at' => now(),
