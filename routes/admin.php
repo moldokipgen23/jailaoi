@@ -179,6 +179,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('appsetting/referearn', [AppSettingController::class, 'referearn'])->name('appsetting.referearn');
         Route::post('appsetting/emailtest', [AppSettingController::class, 'emailtest'])->name('appsetting.emailtest');
         Route::post('appsetting/appdownload', [AppSettingController::class, 'appdownload'])->name('appsetting.appdownload');
+        Route::post('appsetting/contentsettings', [AppSettingController::class, 'contentsettings'])->name('appsetting.contentsettings');
         // Panel Setting
         Route::get('panelsetting', [PanelSettingController::class, 'index'])->name('panelsetting.index');
         Route::post('panelsetting/save', [PanelSettingController::class, 'save'])->name('panelsetting.save');

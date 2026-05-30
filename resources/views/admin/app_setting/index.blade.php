@@ -38,6 +38,9 @@
                     <a class="nav-link" id="live-streaming-tab" data-toggle="tab" href="#live-streaming" role="tab"aria-controls="live-streaming" aria-selected="false">{{__('label.live_streaming')}}</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" id="content-settings-tab" data-toggle="tab" href="#content-settings" role="tab" aria-controls="content-settings" aria-selected="false">{{__('label.content_settings')}}</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" id="commission-tab" data-toggle="tab" href="#commission" role="tab" aria-controls="commission" aria-selected="true">{{__('label.commission')}}</a>
                 </li>
                 <li class="nav-item">
@@ -501,6 +504,35 @@
                                 </div>
                             </form>
                         </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="content-settings" role="tabpanel" aria-labelledby="content-settings-tab">
+                    <div class="card custom-border-card">
+                        <h5 class="card-header">{{__('label.content_settings')}}</h5>
+                        <form id="content_settings" enctype="multipart/form-data">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="video_reels_status">{{__('label.video_reels_status')}}</label>
+                                        <div class="mt-2">
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="video_reels_status" id="video_reels_status_yes" class="custom-control-input" {{ $result['video_reels_status'] == '1' ? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="video_reels_status_yes">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="video_reels_status" id="video_reels_status_no" class="custom-control-input" {{ $result['video_reels_status'] == '0' ? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="video_reels_status_no">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                        <small class="form-text text-muted">{{__('label.video_reels_status_note')}}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right" style="padding-right:20px; padding-bottom:15px;">
+                                <button type="button" class="btn btn-default mw-120" onclick="save_content_settings()">{{__('label.save')}}</button>
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="commission" role="tabpanel" aria-labelledby="commission-tab">
@@ -1036,6 +1068,28 @@
             } else {
                 showError();
             }
+        }
+        // Content Settings
+        function save_content_settings() {
+            var formData = new FormData($("#content_settings")[0]);
+            $("#dvloader").show();
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("admin.appsetting.contentsettings") }}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $("html, body").animate({scrollTop: 0}, "swing");
+                    get_responce_message(resp, 'content_settings', '{{ route("admin.appsetting.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
         }
         // App Download
         function save_appdownload() {

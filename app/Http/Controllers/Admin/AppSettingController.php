@@ -472,4 +472,22 @@ class AppSettingController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+
+    public function contentsettings(Request $request)
+    {
+        try {
+            $data = $request->all();
+
+            foreach ($data as $key => $value) {
+                $setting = General_Setting::where('key', $key)->first();
+                if (isset($setting['id'])) {
+                    $setting['value'] = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
 }

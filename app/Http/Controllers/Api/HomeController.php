@@ -2137,6 +2137,8 @@ class HomeController extends Controller
             $name = $request['name'];
             $user_id = $request['user_id'] ?? 0;
             $type = $request['type'] ?? 0;
+            $setting = Setting_Data();
+            $video_reels_disabled = ($setting['video_reels_status'] ?? '1') == '0';
 
             $data['status'] = 200;
             $data['message'] = __('api_msg.data_retrieved');
@@ -2150,6 +2152,7 @@ class HomeController extends Controller
 
             if ($type == 1) {
 
+                if (!$video_reels_disabled) {
                 $video = Content::where('content_type', 1)->where('title', 'LIKE', "%{$name}%")->where('status', 1)->where('is_rent', 0)->orderBy('total_view', 'desc')->latest()->take(10)->get();
                 for ($j = 0; $j < count($video); $j++) {
 
@@ -2164,6 +2167,7 @@ class HomeController extends Controller
                     $video[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
 
                     $data['video'][] = $video[$j];
+                }
                 }
 
                 $channel = User::where('channel_name', 'LIKE', "%{$name}%")->where('status', 1)->orderBy('id', 'desc')->latest()->take(10)->get();
@@ -2218,6 +2222,7 @@ class HomeController extends Controller
                 }
             } else {
 
+                if (!$video_reels_disabled) {
                 $video = Content::where('content_type', 1)->where('title', 'LIKE', "%{$name}%")->where('is_rent', 0)->where('status', 1)->orderBy('total_view', 'desc')->latest()->take(10)->get();
                 for ($j = 0; $j < count($video); $j++) {
 
@@ -2232,6 +2237,7 @@ class HomeController extends Controller
                     $video[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
 
                     $data['video'][] = $video[$j];
+                }
                 }
 
                 $channel = User::where('channel_name', 'LIKE', "%{$name}%")->where('status', 1)->orderBy('id', 'desc')->latest()->take(10)->get();
@@ -2279,6 +2285,7 @@ class HomeController extends Controller
                     $data['radio'][] = $radio[$j];
                 }
 
+                if (!$video_reels_disabled) {
                 $reels = Content::where('content_type', 3)->where('title', 'LIKE', "%{$name}%")->where('status', 1)->where('is_rent', 0)->orderBy('total_view', 'desc')->latest()->take(10)->get();
                 for ($j = 0; $j < count($reels); $j++) {
 
@@ -2294,6 +2301,7 @@ class HomeController extends Controller
                     $reels[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
 
                     $data['reels'][] = $reels[$j];
+                }
                 }
             }
             return $data;

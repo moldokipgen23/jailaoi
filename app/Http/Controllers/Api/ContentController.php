@@ -37,6 +37,10 @@ class ContentController extends Controller
     public function get_video_list(Request $request)
     {
         try {
+            $setting = Setting_Data();
+            if (($setting['video_reels_status'] ?? '1') == '0') {
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+            }
             $validation = Validator::make($request->all(), [
                 'is_home_page' => 'required|numeric',
             ]);
@@ -327,11 +331,17 @@ class ContentController extends Controller
 
             if (count($data) > 0) {
 
+                $video_reels_disabled = (Setting_Data()['video_reels_status'] ?? '1') == '0';
+
                 for ($i = 0; $i < count($data); $i++) {
 
                     $data[$i]['data'] = [];
                     if ($data[$i]['content_type'] == 1) {
 
+                        if ($video_reels_disabled) {
+                            unset($data[$i]);
+                            continue;
+                        }
                         $data[$i]['data'] = $this->common->music_section_query($user_id, 2, $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['order_by_view'], $data[$i]['order_by_like'], $data[$i]['order_by_upload'], $data[$i]['no_of_content']);
                     } else if ($data[$i]['content_type'] == 2) {
 
@@ -353,6 +363,10 @@ class ContentController extends Controller
                         $data[$i]['data'] = $query;
                     } else if ($data[$i]['content_type'] == 3) {
 
+                        if ($video_reels_disabled) {
+                            unset($data[$i]);
+                            continue;
+                        }
                         $query = $this->common->music_section_query($user_id, 6, $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['order_by_view'], $data[$i]['order_by_like'], $data[$i]['order_by_upload'], $data[$i]['no_of_content']);
                         $data[$i]['data'] = $query;
                     } else if ($data[$i]['content_type'] == 4) {
@@ -404,6 +418,7 @@ class ContentController extends Controller
                         $data[$i]['data'] = $query;
                     }
                 }
+                $data = $data->values();
                 return $this->common->API_Response(200, __('api_msg.data_retrieved'), $data, $pagination);
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
@@ -431,6 +446,10 @@ class ContentController extends Controller
             $section = Section::where('id', $section_id)->where('status', 1)->first();
             if ($section) {
 
+                $video_reels_disabled = (Setting_Data()['video_reels_status'] ?? '1') == '0';
+                if ($video_reels_disabled && in_array($section['content_type'], [1, 3])) {
+                    return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+                }
                 if ($section['content_type'] == 1) {
                     $data = $this->common->music_section_details_query(2, $section['category_id'], $section['language_id'], $section['order_by_view'], $section['order_by_like'], $section['order_by_upload']);
                 } else if ($section['content_type'] == 2) {
@@ -694,6 +713,10 @@ class ContentController extends Controller
     public function get_reels_list(Request $request)
     {
         try {
+            $setting = Setting_Data();
+            if (($setting['video_reels_status'] ?? '1') == '0') {
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
+            }
 
             $user_id = $request['user_id'] ?? 0;
             $page_no = $request['page_no'] ?? 1;
