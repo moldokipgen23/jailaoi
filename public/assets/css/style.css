@@ -116,7 +116,8 @@ a { text-decoration: none !important; }
     margin-bottom: 2px;
     transition: all 0.2s;
 }
-.side-menu > li > a, .side_line > a {
+.side-menu > li > a, .side_line > a,
+.side-menu .dropdown > a {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -127,13 +128,15 @@ a { text-decoration: none !important; }
     border-radius: var(--radius-sm);
     transition: all 0.2s;
 }
-.side-menu > li > a:hover, .side_line > a:hover {
+.side-menu > li > a:hover, .side_line > a:hover,
+.side-menu .dropdown > a:hover {
     background: var(--sidebar-hover);
     color: #fff;
 }
 .side-menu > li.active > a, .side_line.active > a,
 .side-menu > li.active > .dropdown-toggle,
-.side-menu > li.side_line.active > a {
+.side-menu > li.side_line.active > a,
+.side-menu .dropdown.active > a {
     background: var(--sidebar-active) !important;
     color: #fff !important;
 }
