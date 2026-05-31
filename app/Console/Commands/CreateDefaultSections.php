@@ -37,7 +37,7 @@ class CreateDefaultSections extends Command
                 'title' => 'Popular Artists',
                 'short_title' => 'Popular Artists',
                 'is_home_screen' => 1,
-                'content_type' => 1,
+                'content_type' => 7,
                 'screen_layout' => 'round',
                 'no_of_content' => 10,
                 'order_by_upload' => 2,

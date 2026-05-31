@@ -158,3 +158,24 @@ Host: localhost
 - [ ] SSL for m.jailaoi.com
 - [ ] High-priority features: Albums, Lyrics, Download Toggle, Bulk Upload, Waveform
 - [ ] Monetization: Pro subscriptions, Earnings/Withdrawals, Referral program
+
+## ✅ DESIGN RESTORED — dttube original look applied to jailaoi-app (May 31)
+### Reverted from Spotify clone back to original dttube design:
+- **Colors**: Pink `#E01E75` primary (was Spotify green)
+- **Theme**: Full light + dark mode (was forced dark)
+- **Bottom tabs restored**: Home, Search, Music, Library, Profile (5 tabs)
+- **Home page**: Music sections from `get_music_section` API using dttube widget styling
+- **Library page**: Theme-adapted colors, localized strings
+- **Profile, Search, SeeAll, Music**: Already used `colorPrimary`/theme colors — auto-updated when `color.dart` changed
+
+### ❌ REMOVED FEATURES (confirmed — not coming back):
+- **Reels / Shorts** — removed from codebase
+- **Feeds / Social posts** — removed from codebase
+- **Livestream** — removed from codebase
+- These features are completely stripped from jailaoi-app, only the music+video core remains
+- The `dttube/` folder still has them as reference, but jailaoi-app does not
+
+### Flutter app structure:
+- Working directory: `~/Projects/JAILAOI/jailaoi-app/`
+- Design reference: `~/Projects/JAILAOI/dttube/` (for visual reference only)
+- Radio reference: `~/Projects/JAILAOI/dtradio/` (not used)

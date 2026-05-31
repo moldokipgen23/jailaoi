@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
-// Content Type : 1- Music, 2- Podcasts, 3- Radio, 4- Playlist, 5- Category, 6- Language
+// Content Type : 1- Music, 2- Podcasts, 3- Radio, 4- Playlist, 5- Category, 6- Language, 7- Artist
 class SectionController extends Controller
 {
     public $common;

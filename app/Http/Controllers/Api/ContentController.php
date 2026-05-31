@@ -11,6 +11,7 @@ use App\Models\Language;
 use App\Models\Playlist_Content;
 use App\Models\Section;
 use App\Models\User;
+use App\Models\Artist;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Validator;
@@ -21,6 +22,7 @@ class ContentController extends Controller
 {
     private $folder_content = "content";
     private $folder_category = "category";
+    private $folder_artist = "artist";
     private $folder_language = "language";
     private $folder_ffmpeg_content = "/app/public/content/";
     public $common;
@@ -416,6 +418,17 @@ class ContentController extends Controller
 
                             $query[$j]['title'] = $query[$j]['name'];
                             $query[$j]['portrait_img'] = $this->common->getImage($this->folder_language, $query[$j]['image'], $query[$j]['storage_type']);
+                            $query[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
+                        }
+                        $data[$i]['data'] = $query;
+                    } else if ($data[$i]['content_type'] == 7) {
+
+                        $query = Artist::with('user')->where('status', 1)->latest()->take($data[$i]['no_of_content'] > 0 ? $data[$i]['no_of_content'] : 10)->get();
+                        for ($j = 0; $j < count($query); $j++) {
+                            $query[$j]['name'] = $query[$j]['name'];
+                            $query[$j]['title'] = $query[$j]['name'];
+                            $query[$j]['artist_name'] = $query[$j]['name'];
+                            $query[$j]['portrait_img'] = $this->common->getImage($this->folder_artist, $query[$j]['image'], 0);
                             $query[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
                         }
                         $data[$i]['data'] = $query;

@@ -76,6 +76,7 @@
                                                 <option value="4">{{__('label.playlist')}}</option>
                                                 <option value="5">{{__('label.category')}}</option>
                                                 <option value="6">{{__('label.language')}}</option>
+                                                <option value="7">{{__('label.artist')}}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -243,6 +244,7 @@
                                                 <option value="4">{{__('label.playlist')}}</option>
                                                 <option value="5">{{__('label.category')}}</option>
                                                 <option value="6">{{__('label.language')}}</option>
+                                                <option value="7">{{__('label.artist')}}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -531,6 +533,28 @@
                 $("#screen_layout option[value='banner_view']").hide();
                 $("#screen_layout option[value='landscape']").hide();
                 $("#screen_layout option[value='podcast_list_view']").hide();
+            } else if(content_type == 7){
+
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".no_of_content_drop").hide();
+                $(".order_by_upload_drop").hide();
+                $(".order_by_view_drop").hide();
+                $(".order_by_like_drop").hide();
+                $(".view_all_drop").hide();
+
+                $(".screen_layout_drop").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='list_view']").hide();
+                $("#screen_layout option[value='portrait']").hide();
+                $("#screen_layout option[value='square']").hide();
+                $("#screen_layout option[value='playlist']").hide();
+                $("#screen_layout option[value='category']").hide();
+                $("#screen_layout option[value='language']").hide();
+                $("#screen_layout option[value='round']").show();
+                $("#screen_layout option[value='banner_view']").hide();
+                $("#screen_layout option[value='landscape']").hide();
+                $("#screen_layout option[value='podcast_list_view']").hide();
             } else {
 
                 $(".category_drop").hide();
@@ -610,6 +634,8 @@
                             var content_type = "{{ __('label.category') }}";
                         } else if (resp.result[i].content_type == 6) {
                             var content_type = "{{ __('label.language') }}";
+                        } else if (resp.result[i].content_type == 7) {
+                            var content_type = "{{ __('label.artist') }}";
                         }
 
                         if (resp.result[i].screen_layout == "list_view") {
@@ -711,6 +737,7 @@
                 $(".content_type_drop option[value='4']").show();
                 $(".content_type_drop option[value='5']").show();
                 $(".content_type_drop option[value='6']").show();
+                $(".content_type_drop option[value='7']").show();
 
                 $(".category_drop").hide();
                 $(".language_drop").hide();
@@ -840,6 +867,8 @@
                             var content_type = "{{ __('label.category') }}";
                         } else if (resp.result[i].content_type == 6) {
                             var content_type = "{{ __('label.language') }}";
+                        } else if (resp.result[i].content_type == 7) {
+                            var content_type = "{{ __('label.artist') }}";
                         }
 
                         if (resp.result[i].screen_layout == "list_view") {
@@ -1034,5 +1063,189 @@
                 showError();
             }
         }
+
+        // Edit Section - populate modal
+        function edit_section(id) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
+                $("#dvloader").show();
+                $.ajax({
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    type: 'POST',
+                    url: '{{ route("admin.section.content.edit") }}',
+                    data: { id: id },
+                    success: function(resp) {
+                        $("#dvloader").hide();
+                        if (resp.status == 200 && resp.result) {
+                            var s = resp.result;
+                            $('#edit_id').val(s.id);
+                            $('#edit_is_home_screen').val(s.is_home_screen);
+                            $('#edit_title').val(s.title);
+                            $('#edit_short_title').val(s.short_title);
+
+                            // Set content_type dropdown
+                            $('#edit_content_type').val(s.content_type).trigger('change');
+
+                            // Trigger change to show correct screen_layout options
+                            $('#edit_content_type').trigger('change');
+
+                            // Set screen_layout after options are filtered
+                            setTimeout(function() {
+                                $('#edit_screen_layout').val(s.screen_layout);
+                            }, 100);
+
+                            // Set conditional fields
+                            $('#edit_category_id').val(s.category_id).trigger('change');
+                            $('#edit_language_id').val(s.language_id).trigger('change');
+                            $('#edit_no_of_content').val(s.no_of_content);
+
+                            // Radio buttons
+                            if (s.order_by_upload == 1) {
+                                $('#edit_order_by_upload_asc').prop('checked', true);
+                            } else {
+                                $('#edit_order_by_upload_desc').prop('checked', true);
+                            }
+                            if (s.order_by_view == 1) {
+                                $('#edit_order_by_view_asc').prop('checked', true);
+                            } else {
+                                $('#edit_order_by_view_desc').prop('checked', true);
+                            }
+                            if (s.order_by_like == 1) {
+                                $('#edit_order_by_like_asc').prop('checked', true);
+                            } else {
+                                $('#edit_order_by_like_desc').prop('checked', true);
+                            }
+                            if (s.view_all == 1) {
+                                $('#edit_view_all_yes').prop('checked', true);
+                            } else {
+                                $('#edit_view_all_no').prop('checked', true);
+                            }
+
+                            $('#updateModal').modal('show');
+                        } else {
+                            toastr.error('{{ __("label.data_not_found") }}');
+                        }
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#dvloader").hide();
+                        toastr.error(errorThrown, textStatus);
+                    }
+                });
+            } else {
+                showError();
+            }
+        }
+
+        // Update Section - submit edit modal
+        function update_section() {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
+                $("#dvloader").show();
+                var formData = new FormData($("#edit_section")[0]);
+                var id = $('#edit_id').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route("admin.section.update", '') }}/' + id,
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(resp) {
+                        $("#dvloader").hide();
+                        get_responce_message(resp, 'edit_section', '{{ route("admin.section.index") }}');
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#dvloader").hide();
+                        toastr.error(errorThrown, textStatus);
+                    }
+                });
+            } else {
+                showError();
+            }
+        }
+
+        // Delete Section
+        function delete_section(id) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
+                if (confirm('{{ __("label.are_you_sure") }}')) {
+                    $("#dvloader").show();
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        type: 'GET',
+                        url: '{{ route("admin.section.show", '') }}/' + id,
+                        success: function(resp) {
+                            $("#dvloader").hide();
+                            get_responce_message(resp, 'delete_section', '{{ route("admin.section.index") }}');
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            $("#dvloader").hide();
+                            toastr.error(errorThrown, textStatus);
+                        }
+                    });
+                }
+            } else {
+                showError();
+            }
+        }
+
+        // Toggle Show/Hide Status
+        function change_status(id) {
+            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if (Demo_Mode == 1) {
+                $("#dvloader").show();
+                $.ajax({
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    type: 'GET',
+                    url: '{{ route("admin.section.status", '') }}/' + id,
+                    success: function(resp) {
+                        $("#dvloader").hide();
+                        if (resp.status == 200) {
+                            toastr.success(resp.success);
+                            // Reload the current tab
+                            Top_Content(Is_home_screen, Content_type);
+                        } else {
+                            toastr.error(resp.errors);
+                        }
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#dvloader").hide();
+                        toastr.error(errorThrown, textStatus);
+                    }
+                });
+            } else {
+                showError();
+            }
+        }
+
+        // Add screen_layout filtering for edit modal content_type changes
+        $("#edit_content_type").change(function() {
+            var ct = $(this).children("option:selected").val();
+            var $layout = $("#edit_screen_layout");
+            $layout.children().hide();
+
+            if (ct == 1 || ct == 2) {
+                if (ct == 1) {
+                    $layout.find("option[value='list_view']").show();
+                    $layout.find("option[value='portrait']").show();
+                    $layout.find("option[value='square']").show();
+                } else {
+                    $layout.find("option[value='banner_view']").show();
+                    $layout.find("option[value='landscape']").show();
+                    $layout.find("option[value='podcast_list_view']").show();
+                }
+            } else if (ct == 3) {
+                $layout.find("option[value='square']").show();
+                $layout.find("option[value='round']").show();
+            } else if (ct == 4) {
+                $layout.find("option[value='playlist']").show();
+            } else if (ct == 5) {
+                $layout.find("option[value='category']").show();
+            } else if (ct == 6) {
+                $layout.find("option[value='language']").show();
+            } else if (ct == 7) {
+                $layout.find("option[value='round']").show();
+            }
+        });
     </script>
 @endsection
