@@ -259,9 +259,60 @@
         if (window.innerWidth <= 768) {
             document.body.classList.remove('sidebar-collapsed');
         }
+
+        // === Global Confirmation Modal ===
+        var confirmModalCallback = null;
+        function confirmAction(options) {
+            if (options.title) $('#confirmModalTitle').text(options.title);
+            if (options.message) $('#confirmModalMessage').text(options.message);
+            if (options.btnText) $('#confirmModalBtn').text(options.btnText);
+            if (options.btnClass) {
+                $('#confirmModalBtn').removeClass('btn-danger btn-warning btn-primary').addClass(options.btnClass);
+            }
+            confirmModalCallback = options.onConfirm || null;
+            $('#confirmModal').modal('show');
+        }
+        function confirmLink(url, title, message, btnText, btnClass) {
+            confirmAction({
+                title: title || '{{__("label.confirm_delete")}}',
+                message: message || '{{__("label.delete_section")}}',
+                btnText: btnText || '{{__("label.delete")}}',
+                btnClass: btnClass || 'btn-danger',
+                onConfirm: function() { window.location.href = url; }
+            });
+        }
+        $('#confirmModalBtn').on('click', function() {
+            $('#confirmModal').modal('hide');
+            if (confirmModalCallback) {
+                confirmModalCallback();
+            }
+        });
     </script>
 
+    <!-- Global Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="confirmModalTitle">{{__('label.confirm_delete')}}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" class="text-dark">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
+                    <p class="mb-0" id="confirmModalMessage">{{__('label.delete_section')}}</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.cancel')}}</button>
+                    <button type="button" class="btn btn-danger mw-120" id="confirmModalBtn">{{__('label.delete')}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @yield('pagescript')
+</body>
 </body>
 
 </html>

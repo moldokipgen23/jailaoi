@@ -67,7 +67,7 @@
                             <div class="card-body">
                                 <p>{{__('label.backup_data_notes')}}</p>
                                 <div class="d-flex justify-content-end">
-                                    <a href="{{ route('admin.systemsetting.downloadsqlfile') }}" onclick="return confirm('{{__('label.you_want_to_download_this_sql_file')}}')" class="btn btn-default mw-120">{{__('label.download')}}</a>
+                                    <a href="{{ route('admin.systemsetting.downloadsqlfile') }}" onclick="event.preventDefault(); confirmLink(this.href, '{{__('label.download')}}', '{{__('label.you_want_to_download_this_sql_file')}}', '{{__('label.download')}}', 'btn-primary')" class="btn btn-default mw-120">{{__('label.download')}}</a>
                                 </div>
                             </div>
                         </div>
@@ -101,36 +101,12 @@
         sidebar_down(sidebarHeight);
 
         function clear_data() {
-            if (confirm('{{__('label.do_you_confirm_clear_the_data')}}')) {
-
-                $("#dvloader").show();
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    enctype: 'multipart/form-data',
-                    type: 'POST',
-                    url: '{{ route("admin.systemsetting.cleardata") }}',
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            }
-        }
-        function clean_database() {
-			var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if(Demo_Mode == 1){
-
-                if (confirm('{{__('label.do_you_confirm_clean_the_database')}} ')) {
-
+            confirmAction({
+                title: '{{__("label.clear_data")}}',
+                message: '{{__("label.do_you_confirm_clear_the_data")}}',
+                btnText: '{{__("label.clear")}}',
+                btnClass: 'btn-warning',
+                onConfirm: function() {
                     $("#dvloader").show();
                     $.ajax({
                         headers: {
@@ -138,7 +114,7 @@
                         },
                         enctype: 'multipart/form-data',
                         type: 'POST',
-                        url: '{{ route("admin.systemsetting.cleandatabase") }}',
+                        url: '{{ route("admin.systemsetting.cleardata") }}',
                         cache: false,
                         contentType: false,
                         processData: false,
@@ -152,34 +128,73 @@
                         }
                     });
                 }
+            });
+        }
+        function clean_database() {
+			var Demo_Mode = '<?php echo Demo_Mode(); ?>';
+            if(Demo_Mode == 1){
+
+                confirmAction({
+                    title: '{{__("label.clean_database")}}',
+                    message: '{{__("label.do_you_confirm_clean_the_database")}}',
+                    btnText: '{{__("label.clean")}}',
+                    btnClass: 'btn-warning',
+                    onConfirm: function() {
+                        $("#dvloader").show();
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            enctype: 'multipart/form-data',
+                            type: 'POST',
+                            url: '{{ route("admin.systemsetting.cleandatabase") }}',
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            success: function(resp) {
+                                $("#dvloader").hide();
+                                get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
+                            },
+                            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                $("#dvloader").hide();
+                                toastr.error(errorThrown, textStatus);
+                            }
+                        });
+                    }
+                });
 			} else {
                 showError();
             }
         }
         function clear_interests() {
-            if (confirm('{{__('label.do_you_confirm_clear_the_data')}}')) {
-
-                $("#dvloader").show();
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    enctype: 'multipart/form-data',
-                    type: 'POST',
-                    url: '{{ route("admin.systemsetting.clearinterests") }}',
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            }
+            confirmAction({
+                title: '{{__("label.clear")}}',
+                message: '{{__("label.do_you_confirm_clear_the_data")}}',
+                btnText: '{{__("label.clear")}}',
+                btnClass: 'btn-warning',
+                onConfirm: function() {
+                    $("#dvloader").show();
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        enctype: 'multipart/form-data',
+                        type: 'POST',
+                        url: '{{ route("admin.systemsetting.clearinterests") }}',
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function(resp) {
+                            $("#dvloader").hide();
+                            get_responce_message(resp, '', '{{ route("admin.systemsetting.index") }}');
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            $("#dvloader").hide();
+                            toastr.error(errorThrown, textStatus);
+                        }
+                    });
+                }
+            });
         }
     </script>
 @endsection

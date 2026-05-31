@@ -125,18 +125,24 @@
 
     $(document).on('click', '.approve_request', function() {
         var requestId = $(this).data('id');
-        if (!confirm('{{__('label.approve')}} this request?')) return;
-        $.ajax({
-            type: 'POST',
-            url: "{{ route('admin.artist-requests.approve') }}",
-            data: {
-                request_id: requestId,
-                _token: "{{ csrf_token() }}"
-            },
-            success: function(res) {
-                if (res.status == 200) {
-                    toastr.success(res.success);
-                    $('#datatable').DataTable().draw();
+        var btn = $(this);
+        confirmAction({
+            title: '{{__("label.approve")}}',
+            message: '{{__("label.approve")}} this request?',
+            btnText: '{{__("label.approve")}}',
+            btnClass: 'btn-success',
+            onConfirm: function() {
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ route('admin.artist-requests.approve') }}",
+                    data: {
+                        request_id: requestId,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            toastr.success(res.success);
+                            $('#datatable').DataTable().draw();
                 } else {
                     toastr.error(res.errors);
                 }

@@ -342,26 +342,29 @@
             var Demo_Mode = '<?php echo Demo_Mode(); ?>';
             if (Demo_Mode == 1) {
 
-                var result = confirm("{{__('label.delete_section')}}");
-                if(result){
-
-                    $("#dvloader").show();
-    
-                    var url = '{{ route("admin.rentsection.show", ":id") }}';
-                        url = url.replace(':id', id);
-    
-                    $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        type: 'GET',
-                        url: url,
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function(resp) {
-                            $("#dvloader").hide();
-                            get_responce_message(resp, '', '{{ route("admin.rentsection.index") }}');
+                confirmAction({
+                    title: '{{__("label.confirm_delete")}}',
+                    message: '{{__("label.delete_section")}}',
+                    btnText: '{{__("label.delete")}}',
+                    btnClass: 'btn-danger',
+                    onConfirm: function() {
+                        $("#dvloader").show();
+        
+                        var url = '{{ route("admin.rentsection.show", ":id") }}';
+                            url = url.replace(':id', id);
+        
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            type: 'GET',
+                            url: url,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            success: function(resp) {
+                                $("#dvloader").hide();
+                                get_responce_message(resp, '', '{{ route("admin.rentsection.index") }}');
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             $("#dvloader").hide();

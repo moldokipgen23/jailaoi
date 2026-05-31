@@ -124,7 +124,7 @@
                                     </li>
                                 @endif
                                 <li class="list-inline-item">
-                                    <a class="btn edit-delete-btn" href="{{route('admin.contentreport.show', [$value->id])}}" onclick="return confirm('{{__('label.delete_content_report')}}')">
+                                    <a class="btn edit-delete-btn" href="{{route('admin.contentreport.show', [$value->id])}}" onclick="event.preventDefault(); confirmLink(this.href, '{{__('label.delete')}}', '{{__('label.delete_content_report')}}')">
                                         <i class="fa-solid fa-trash-can fa-xl" class="dot-icon"></i>
                                     </a>
                                 </li>

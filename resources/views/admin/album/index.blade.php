@@ -85,12 +85,19 @@
     });
 
     function delete_album(id) {
-        if (!confirm('Delete this album? Songs will be unlinked.')) return;
-        $.ajax({
-            type: 'DELETE',
-            url: "{{ route('admin.album.index') }}/" + id,
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            success: function() { location.reload(); },
+        confirmAction({
+            title: '{{__("label.delete")}}',
+            message: 'Delete this album? Songs will be unlinked.',
+            btnText: '{{__("label.delete")}}',
+            btnClass: 'btn-danger',
+            onConfirm: function() {
+                $.ajax({
+                    type: 'DELETE',
+                    url: "{{ route('admin.album.index') }}/" + id,
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function() { location.reload(); },
+                });
+            }
         });
     }
 </script>

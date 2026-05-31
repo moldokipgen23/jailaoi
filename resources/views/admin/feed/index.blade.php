@@ -74,7 +74,7 @@
                                     </a>
                                 </li>
                                 <li class="list-inline-item">
-                                    <a class="btn" href="{{route('admin.feed.show', [$value->id])}}" onclick="return confirm('{{__('label.delete_feed')}}')">
+                                    <a class="btn" href="{{route('admin.feed.show', [$value->id])}}" onclick="event.preventDefault(); confirmLink(this.href, '{{__('label.delete')}}', '{{__('label.delete_feed')}}')">
                                         <i class="fa-solid fa-trash-can fa-xl primary-color" class="dot-icon"></i>
                                     </a>
                                 </li>

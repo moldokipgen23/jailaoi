@@ -96,7 +96,7 @@
                                     </a>
                                 </li>
                                 <li class="list-inline-item">
-                                    <a class="btn" href="{{route('admin.music.show', [$value->id])}}" onclick="return confirm('{{__('label.delete_music')}}')">
+                                    <a class="btn" href="{{route('admin.music.show', [$value->id])}}" onclick="event.preventDefault(); confirmLink(this.href, '{{__('label.delete')}}', '{{__('label.delete_music')}}')">
                                         <i class="fa-solid fa-trash-can fa-xl primary-color" class="dot-icon"></i>
                                     </a>
                                 </li>

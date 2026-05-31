@@ -399,28 +399,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">{{__('label.confirm_delete')}}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" class="text-dark">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
-                    <p class="mb-0">{{__('label.delete_section')}}</p>
-                </div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.cancel')}}</button>
-                    <button type="button" class="btn btn-danger mw-120" id="confirmDeleteBtn">{{__('label.delete')}}</button>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @section('pagescript')
@@ -1187,35 +1165,35 @@
         }
 
         // Delete Section
-        var deleteTargetId = null;
         function delete_section(id) {
-            deleteTargetId = id;
-            $('#deleteModal').modal('show');
-        }
-        $('#confirmDeleteBtn').on('click', function() {
-            var id = deleteTargetId;
-            if (!id) return;
-            $('#deleteModal').modal('hide');
             var Demo_Mode = '<?php echo Demo_Mode(); ?>';
             if (Demo_Mode == 1) {
-                $("#dvloader").show();
-                $.ajax({
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    type: 'GET',
-                    url: '{{ route("admin.section.show", '') }}/' + id,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        get_responce_message(resp, 'delete_section', '{{ route("admin.section.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
+                confirmAction({
+                    title: '{{__("label.confirm_delete")}}',
+                    message: '{{__("label.delete_section")}}',
+                    btnText: '{{__("label.delete")}}',
+                    btnClass: 'btn-danger',
+                    onConfirm: function() {
+                        $("#dvloader").show();
+                        $.ajax({
+                            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                            type: 'GET',
+                            url: '{{ route("admin.section.show", '') }}/' + id,
+                            success: function(resp) {
+                                $("#dvloader").hide();
+                                get_responce_message(resp, 'delete_section', '{{ route("admin.section.index") }}');
+                            },
+                            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                $("#dvloader").hide();
+                                toastr.error(errorThrown, textStatus);
+                            }
+                        });
                     }
                 });
             } else {
                 showError();
             }
-        });
+        }
 
         // Toggle Show/Hide Status
         function change_status(id) {
