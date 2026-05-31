@@ -320,7 +320,11 @@ class ContentController extends Controller
             $more_page = false;
 
             if ($is_home_screen == 1) {
-                $data = Section::where('is_home_screen', $is_home_screen)->where('status', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc');
+                $data = Section::where('is_home_screen', $is_home_screen)->where('status', 1);
+                if ($content_type > 0) {
+                    $data = $data->where('content_type', $content_type);
+                }
+                $data = $data->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc');
             } else if ($is_home_screen == 2) {
                 $data = Section::where('is_home_screen', $is_home_screen)->where('content_type', $content_type)->where('status', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc');
             } else {
