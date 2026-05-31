@@ -810,7 +810,7 @@ class HomeController extends Controller
                 $content['channel_image'] = $this->common->getChannelImage($content['channel_id']);
                 $content['category_name'] = $this->common->getCategoryName($content['category_id']);
                 $content['language_name'] = $this->common->getLanguageName($content['language_id']);
-                $content['is_subscribe'] = isset($content['channel']) ? $this->common->is_subscribe(1, $user_id, $content['channel']['id']) : 0;
+                $content['is_subscribe'] = isset($content['channel']) ? $this->common->is_subscribe($user_id, $content['channel']['id']) : 0;
                 unset($content['channel']);
                 $content['total_comment'] = $this->common->getTotalComment($content['id']);
                 $content['is_user_like_dislike'] = $this->common->getUserLikeDislike($user_id, $content['content_type'], $content['id'], 0);
@@ -1930,7 +1930,7 @@ class HomeController extends Controller
                 // Send Mail (Type = 1- Register, 2- Transaction, 3- Report, 4- User Penal Active)
                 $user_email = User::where('id', $user_id)->first();
                 if ($user_email) {
-                    $this->common->Send_Mail(2, $user_email);
+                    $this->common->Send_Mail(2, $user_email['email']);
                 }
 
                 return $this->common->API_Response(200, __('api_msg.transaction_completed'), []);
@@ -2021,7 +2021,7 @@ class HomeController extends Controller
                 // Send Mail (Type = 1- Register, 2- Transaction, 3- Report, 4- User Penal Active)
                 $user_email = User::where('id', $user_id)->first();
                 if ($user_email) {
-                    $this->common->Send_Mail(2, $user_email);
+                    $this->common->Send_Mail(2, $user_email['email']);
                 }
                 User::where('id', $user_id)->increment('wallet_balance', $coin);
 
@@ -2463,7 +2463,7 @@ class HomeController extends Controller
                     $data[$i]['full_name'] = $data[$i]['user']['full_name'] ?? "";
                     $data[$i]['email'] = $data[$i]['user']['email'] ?? "";
                     $data[$i]['mobile_number'] = $data[$i]['user']['mobile_number'] ?? "";
-                    $data[$i]['image'] = isset($data[$i]['user']) ? $this->common->getImage($this->folder_user, $data[$i]['user']['image']) : asset('assets/imgs/default.png');
+                    $data[$i]['image'] = isset($data[$i]['user']) ? $this->common->getImage($this->folder_user, $data[$i]['user']['image'], $data[$i]['user']['image_storage_type'] ?? 1) : asset('assets/imgs/default.png');
                     unset($data[$i]['user']);
                 }
                 return $this->common->API_Response(200, __('api_msg.data_retrieved'), $data, $pagination);

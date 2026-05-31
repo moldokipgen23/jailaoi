@@ -769,7 +769,7 @@ class ContentController extends Controller
 
                     return $this->common->API_Response(200, __('api_msg.upload_completed'), [
                         'file_path' => "{$filename}",
-                        'full_url' => Storage::disk('public')->exists('content/' . $filename),
+                        'full_url' => url('storage/content/' . $filename),
                     ]);
                 }
                 return $this->common->API_Response(206, __('api_msg.upload_progress', ['current' => $chunkIndex, 'total' => $totalChunks]), ['directory' => $uploadId]);
@@ -1235,6 +1235,57 @@ class ContentController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function get_radio_content(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), [
+                'radio_id' => 'required|numeric',
+            ]);
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+
+            $radio_id = $request['radio_id'];
+            $user_id = $request['user_id'] ?? 0;
+            $page_size = 0;
+            $current_page = 0;
+            $more_page = false;
+
+            $data = Content::where('id', $radio_id)->where('content_type', 6)->where('status', 1);
+
+            $total_rows = $data->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / $total_page);
+            $current_page = $request['page_no'] ?? 1;
+            $offset = $current_page * $total_page - $total_page;
+
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+            $data = $data->take($total_page)->offset($offset)->get();
+
+            if (count($data) > 0) {
+                foreach ($data as $key => $value) {
+                    $value['portrait_img'] = $this->common->getImage($this->folder_content, $value['portrait_img'], $value['portrait_img_storage_type']);
+                    $value['landscape_img'] = $this->common->getImage($this->folder_content, $value['landscape_img'], $value['landscape_img_storage_type']);
+                    if ($value['content_upload_type'] == 'server_audio') {
+                        $value['content'] = $this->common->getVideo($this->folder_content, $value['content'], $value['content_storage_type']);
+                    }
+                    $value['user_id'] = $this->common->getUserId($value['channel_id']);
+                    $value['channel_name'] = $this->common->getChannelName($value['channel_id']);
+                    $value['category_name'] = $this->common->getCategoryName($value['category_id']);
+                    $value['language_name'] = $this->common->getLanguageName($value['language_id']);
+                    $value['is_user_like_dislike'] = $this->common->getUserLikeDislike($user_id, $value['content_type'], $value['id'], 0);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $value['stop_time'] = $this->common->getContentStopTime($user_id, $value['content_type'], $value['id'], 0);
+                }
+                return $this->common->API_Response(200, __('api_msg.data_retrieved'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
     public function edit_playlist(Request $request)
     {
         try {
@@ -1544,15 +1595,15 @@ class ContentController extends Controller
             $insert['title'] = $title;
             $insert['description'] = $description;
             $insert['portrait_img_storage_type'] = $storage_type;
-            if (isset($requestData['portrait_img'])) {
-                $file1 = $request['portrait_img'];
+            if ($request->hasFile('portrait_img')) {
+                $file1 = $request->file('portrait_img');
                 $insert['portrait_img'] = $this->common->saveImage($file1, $this->folder_content, 'port_', $insert['portrait_img_storage_type']);
             } else {
                 $insert['portrait_img'] = "";
             }
             $insert['landscape_img_storage_type'] = $storage_type;
-            if (isset($requestData['landscape_img'])) {
-                $file2 = $request['landscape_img'];
+            if ($request->hasFile('landscape_img')) {
+                $file2 = $request->file('landscape_img');
                 $insert['landscape_img'] = $this->common->saveImage($file2, $this->folder_content, 'land_', $insert['landscape_img_storage_type']);
             } else {
                 $insert['landscape_img'] = "";

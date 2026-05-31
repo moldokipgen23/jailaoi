@@ -109,6 +109,7 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_releted_music', [ContentController::class, 'get_releted_music']);
     Route::post('upload_video', [ContentController::class, 'upload_video']);
     Route::post('upload_music', [ContentController::class, 'upload_music']);
+    Route::post('get_radio_content', [ContentController::class, 'get_radio_content']);
     Route::post('upload_radio', [ContentController::class, 'upload_radio']);
     Route::post('create_playlist', [ContentController::class, 'create_playlist']);
     Route::post('edit_playlist', [ContentController::class, 'edit_playlist']);
