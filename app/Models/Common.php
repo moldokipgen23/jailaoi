@@ -497,6 +497,7 @@ class Common extends Model
                 }
 
                 $query[$i]['user_id'] = $this->getUserId($query[$i]['channel_id']);
+                $query[$i]['artist_id'] = $this->getArtistId($query[$i]['channel_id']);
                 $query[$i]['channel_name'] = $this->getChannelName($query[$i]['channel_id']);
                 $query[$i]['channel_image'] = $this->getChannelImage($query[$i]['channel_id']);
                 $query[$i]['category_name'] = $this->getCategoryName($query[$i]['category_id']);
@@ -567,6 +568,12 @@ class Common extends Model
     public function getUserId($channel_id)
     {
         return User::where('channel_id', $channel_id)->value('id') ?? 0;
+    }
+    public function getArtistId($channel_id)
+    {
+        $user_id = User::where('channel_id', $channel_id)->value('id');
+        if (!$user_id) return 0;
+        return Artist::where('user_id', $user_id)->value('id') ?? 0;
     }
     public function getChannelName($channel_id)
     {

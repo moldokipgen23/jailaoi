@@ -487,6 +487,7 @@ class ContentController extends Controller
                     }
 
                     $data[$i]['user_id'] = $this->common->getUserId($data[$i]['channel_id']);
+                    $data[$i]['artist_id'] = $this->common->getArtistId($data[$i]['channel_id']);
                     $data[$i]['channel_name'] = $this->common->getChannelName($data[$i]['channel_id']);
                     $data[$i]['channel_image'] = $this->common->getChannelImage($data[$i]['channel_id']);
                     $data[$i]['category_name'] = $this->common->getCategoryName($data[$i]['category_id']);
