@@ -7,7 +7,6 @@ use App\Models\Ads;
 use App\Models\Content;
 use Exception;
 use App\Models\Common;
-use App\Models\Feed;
 use App\Models\Refer_Earn;
 use App\Models\User_Badges_Bonus;
 
@@ -63,34 +62,28 @@ class DashboardController extends Controller
             // Counter Card
             $params['VideoCount'] = Content::where('channel_id', $channel_id)->where('content_type', 1)->count();
             $params['MusicCount'] = Content::where('channel_id', $channel_id)->where('content_type', 2)->count();
-            $params['ReelsCount'] = Content::where('channel_id', $channel_id)->where('content_type', 3)->count();
             $params['PodcastsCount'] = Content::where('channel_id', $channel_id)->where('content_type', 4)->count();
             $params['PlaylistCount'] = Content::where('channel_id', $channel_id)->where('content_type', 5)->count();
             $params['RadioCount'] = Content::where('channel_id', $channel_id)->where('content_type', 6)->count();
-            $params['FeedCount'] = Feed::where('channel_id', $channel_id)->count();
             $params['AdsCount'] = Ads::where('user_id', $user['id'])->count();
 
             // Most Like Content
             $params['top_video_like'] = Content::where('channel_id', $channel_id)->where('content_type', 1)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $params['top_music_like'] = Content::where('channel_id', $channel_id)->where('content_type', 2)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_reels_like'] = Content::where('channel_id', $channel_id)->where('content_type', 3)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $params['top_podcasts_like'] = Content::where('channel_id', $channel_id)->where('content_type', 4)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $params['top_radio_like'] = Content::where('channel_id', $channel_id)->where('content_type', 6)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
             $this->common->imageNameToUrl($params['top_video_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_music_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_reels_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_podcasts_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_radio_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
 
             // Most View Content
             $params['top_video_view'] = Content::where('channel_id', $channel_id)->where('content_type', 1)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $params['top_music_view'] = Content::where('channel_id', $channel_id)->where('content_type', 2)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_reels_view'] = Content::where('channel_id', $channel_id)->where('content_type', 3)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $params['top_podcasts_view'] = Content::where('channel_id', $channel_id)->where('content_type', 4)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $params['top_radio_view'] = Content::where('channel_id', $channel_id)->where('content_type', 6)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
             $this->common->imageNameToUrl($params['top_video_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_music_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_reels_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_podcasts_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
             $this->common->imageNameToUrl($params['top_radio_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
 

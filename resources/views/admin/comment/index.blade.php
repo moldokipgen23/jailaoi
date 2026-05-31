@@ -118,8 +118,6 @@
                                     return "{{__('label.video')}}";
                                 } else if(data == 2) {
                                     return "{{__('label.music')}}";
-                                } else if(data == 3){
-                                    return "{{__('label.reels')}}";
                                 } else if(data == 4){
                                     return "{{__('label.podcasts')}}";
                                 } else {

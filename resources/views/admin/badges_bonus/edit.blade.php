@@ -76,7 +76,6 @@
                                             <option value="content_likes" {{ $data['condition_type'] == "content_likes" ? 'selected' : ''}}>{{__('label.x_number_of_likes_on_x_content')}}</option>
                                             <option value="video_upload" {{ $data['condition_type'] == "video_upload" ? 'selected' : ''}}>{{__('label.x_number_of_video_upload')}}</option>
                                             <option value="music_upload" {{ $data['condition_type'] == "music_upload" ? 'selected' : ''}}>{{__('label.x_number_of_music_upload')}}</option>
-                                            <option value="reels_upload" {{ $data['condition_type'] == "reels_upload" ? 'selected' : ''}}>{{__('label.x_number_of_reels_upload')}}</option>
                                             <option value="podcasts_upload" {{ $data['condition_type'] == "podcasts_upload" ? 'selected' : ''}}>{{__('label.x_number_of_podcasts_upload')}}</option>
                                         </select>
                                     </div>

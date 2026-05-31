@@ -12,12 +12,12 @@ This project migrated from **DeepSound** (old music platform at jailaoi.com) to 
 - [x] Redesign sidebar, header, layout, login page, dashboard
 - [x] js.js toggle handlers, CSS fallbacks for all old class patterns
 - [x] Stat cards updated: dashboard, earning_dashboard, ads/edit
-- [x] Video-card grid pages modernized (music, video, reels, feed, radio, podcast episodes)
+- [x] Video-card grid pages modernized (music, video, radio, podcast episodes)
 
 ## ✅ COMPLETED — Content Toggles
-- [x] video_status, reels_status, feed_status — separate toggles in App Settings
-- [x] Admin sidebar hides toggled-off items + API returns empty when disabled
-- [x] Artist portal already blocks video/reels (music only)
+- [x] video_status toggle in App Settings (reels/feed/livestream features removed)
+- [x] Admin sidebar hides video when toggled off
+- [x] Artist portal blocks video (music only)
 
 ## ✅ COMPLETED — Migration
 - [x] migrate:deepsound command: 11,226 users, 75 artists, 1,045 songs, 65 playlists, 1,664 likes, 95 comments, 8,228 followers, 2,684 history, 9 categories
@@ -54,11 +54,10 @@ This project migrated from **DeepSound** (old music platform at jailaoi.com) to 
 - [ ] Referral program: codes, sign-up tracking, rewards
 
 ## ❌ PENDING — Infrastructure
-- [ ] Socket.io: `pm2 start socket.js --name jailaoi-socket`
 - [ ] SSL for m.jailaoi.com
 
 ## ❌ PENDING — Flutter App
-- [ ] Update API calls to respect video_status, reels_status, feed_status
+- [ ] (no longer needed — features removed)
 
 ## ❌ PENDING — Medium Priority
 - [ ] Import from SoundCloud/YouTube/Deezer

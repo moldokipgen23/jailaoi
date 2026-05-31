@@ -7,7 +7,6 @@ use App\Models\Block_Channel;
 use Illuminate\Http\Request;
 use App\Models\Common;
 use App\Models\Interests;
-use App\Models\Live_User;
 use App\Models\Refer_Earn;
 use App\Models\Subscriber;
 use App\Models\Transaction;
@@ -868,5 +867,7 @@ class UserController extends Controller
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
+    }
+}
     }
 }

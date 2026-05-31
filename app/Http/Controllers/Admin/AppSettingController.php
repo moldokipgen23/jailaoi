@@ -317,28 +317,6 @@ class AppSettingController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    public function livestreaming(Request $request)
-    {
-        try {
-
-            $data = $request->all();
-            $data['live_appid'] = $data['live_appid'] ?? '';
-            $data['live_appsign'] = $data['live_appsign'] ?? '';
-            $data['live_serversecret'] = $data['live_serversecret'] ?? '';
-            $data['is_live_streaming_fake'] = $data['is_live_streaming_fake'] ?? 0;
-
-            foreach ($data as $key => $value) {
-                $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
-                    $setting->save();
-                }
-            }
-            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
     public function deepar(Request $request)
     {
         try {

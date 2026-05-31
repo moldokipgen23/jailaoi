@@ -336,7 +336,6 @@ class ContentController extends Controller
 
                 $setting_data = Setting_Data();
                 $video_disabled = ($setting_data['video_status'] ?? '1') == '0';
-                $reels_disabled = ($setting_data['reels_status'] ?? '1') == '0';
 
                 for ($i = 0; $i < count($data); $i++) {
 
@@ -365,14 +364,6 @@ class ContentController extends Controller
                             }
                             $query[$j]['episode_array'] = $episode_array;
                         }
-                        $data[$i]['data'] = $query;
-                    } else if ($data[$i]['content_type'] == 3) {
-
-                        if ($reels_disabled) {
-                            unset($data[$i]);
-                            continue;
-                        }
-                        $query = $this->common->music_section_query($user_id, 6, $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['order_by_view'], $data[$i]['order_by_like'], $data[$i]['order_by_upload'], $data[$i]['no_of_content']);
                         $data[$i]['data'] = $query;
                     } else if ($data[$i]['content_type'] == 4) {
 
@@ -464,16 +455,13 @@ class ContentController extends Controller
 
                 $section_setting = Setting_Data();
                 $video_disabled = ($section_setting['video_status'] ?? '1') == '0';
-                $reels_disabled = ($section_setting['reels_status'] ?? '1') == '0';
-                if (($section['content_type'] == 1 && $video_disabled) || ($section['content_type'] == 3 && $reels_disabled)) {
+                if ($section['content_type'] == 1 && $video_disabled) {
                     return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
                 }
                 if ($section['content_type'] == 1) {
                     $data = $this->common->music_section_details_query(2, $section['category_id'], $section['language_id'], $section['order_by_view'], $section['order_by_like'], $section['order_by_upload']);
                 } else if ($section['content_type'] == 2) {
                     $data = $this->common->music_section_details_query(4, $section['category_id'], $section['language_id'], $section['order_by_view'], $section['order_by_like'], $section['order_by_upload']);
-                } else if ($section['content_type'] == 3) {
-                    $data = $this->common->music_section_details_query(6, $section['category_id'], $section['language_id'], $section['order_by_view'], $section['order_by_like'], $section['order_by_upload']);
                 } else if ($section['content_type'] == 4) {
                     $data = $this->common->music_section_details_query(5, 0, 0, $section['order_by_view'], $section['order_by_like'], $section['order_by_upload']);
                 } else {
@@ -723,207 +711,6 @@ class ContentController extends Controller
                 }
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
-            }
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function get_reels_list(Request $request)
-    {
-        try {
-            $setting = Setting_Data();
-            if (($setting['reels_status'] ?? '1') == '0') {
-                return $this->common->API_Response(200, __('api_msg.data_retrieved'), []);
-            }
-
-            $user_id = $request['user_id'] ?? 0;
-            $page_no = $request['page_no'] ?? 1;
-
-            if ($user_id != 0) {
-
-                $block_channel_list = $this->common->get_block_channel($user_id);
-                $get_subscriber = $this->common->get_subscriber($user_id);
-                $get_interests_hashtag = $this->common->get_interests_hashtag($user_id);
-                $last_24_hours = now()->subHours(24)->toDateTimeString();
-
-                // Step 1: Get IDs
-                $content_ids = Content::where('content_type', 3)->where('status', 1)->whereNotIn('channel_id', $block_channel_list)->latest()->pluck('id')->toArray();
-
-                // Step 2: Recent Content
-                $recent_data = Content::whereIn('id', $content_ids)->whereIn('channel_id', $get_subscriber)->where('created_at', '>', $last_24_hours)->orderByDesc('total_view')->pluck('id')->toArray();
-
-                // Step 3: Interests Content
-                $interests_data = Content::whereIn('id', $content_ids)->whereNotIn('id', $recent_data)->whereIn('hashtag_id', $get_interests_hashtag)->orderByDesc('total_view')->pluck('id')->toArray();
-
-                // Step 4: Other Content
-                $other_data = array_values(array_diff($content_ids, array_merge($recent_data, $interests_data)));
-
-                // Step 5: Merge All IDs
-                $final_ids = array_merge($recent_data, $interests_data, $other_data);
-
-                // Step 6: Paginate IDs only (no shuffle on full set)
-                $total = count($final_ids);
-                $offset = $this->page_limit * ($page_no - 1);
-                $current_page_ids = array_slice($final_ids, $offset, $this->page_limit);
-
-                // Step 7: Fetch actual content records
-                if (!empty($current_page_ids)) {
-                    $data = Content::whereIn('id', $current_page_ids)->orderByRaw("FIELD(id, " . implode(',', $current_page_ids) . ")")->get()->shuffle()->toArray();
-                } else {
-                    $data = [];
-                }
-            } else {
-                $data = Content::where('content_type', 3)->where('status', 1)->latest()->get()->shuffle()->toArray();
-                $total = count($data);
-            }
-
-            $paginator = new LengthAwarePaginator($data, $total, $this->page_limit, $page_no);
-            $more_page = $this->common->more_page($page_no, $paginator->lastPage());
-            $pagination = $this->common->pagination_array($total, $paginator->lastPage(), $page_no, $more_page);
-
-            if (count($data) > 0) {
-
-                for ($i = 0; $i < count($data); $i++) {
-
-                    $data[$i]['portrait_img'] = $this->common->getImage($this->folder_content, $data[$i]['portrait_img'], $data[$i]['portrait_img_storage_type']);
-                    $data[$i]['landscape_img'] = $this->common->getImage($this->folder_content, $data[$i]['landscape_img'], $data[$i]['landscape_img_storage_type']);
-                    $data[$i]['content'] = $this->common->getVideo($this->folder_content, $data[$i]['content'], $data[$i]['content_storage_type']);
-                    $data[$i]['user_id'] = $this->common->getUserId($data[$i]['channel_id']);
-                    $data[$i]['channel_name'] = $this->common->getChannelName($data[$i]['channel_id']);
-                    $data[$i]['channel_image'] = $this->common->getChannelImage($data[$i]['channel_id']);
-                    $data[$i]['total_comment'] = $this->common->getTotalComment($data[$i]['id']);
-                    $data[$i]['is_user_like_dislike'] = $this->common->getUserLikeDislike($user_id, $data[$i]['content_type'], $data[$i]['id'], 0);
-                    $data[$i]['is_subscribe'] = $this->common->is_subscribe($user_id, $data[$i]['user_id']);
-                    $data[$i]['is_buy'] = $this->common->is_any_package_buy($user_id);
-                }
-
-                return $this->common->API_Response(200, __('api_msg.data_retrieved'), $data, $pagination);
-            } else {
-                return $this->common->API_Response(400, __('api_msg.data_not_found'));
-            }
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function upload_reels(Request $request)
-    {
-        try {
-            $user = User::find($request->user_id);
-            if (!$user || $user->role !== 'artist') {
-                return $this->common->API_Response(400, __('api_msg.only_artists_can_upload'));
-            }
-
-            // Check if this is a chunk upload
-            if ($request->has('chunk_index') && $request->has('total_chunks')) {
-
-                $validation = Validator::make($request->all(), [
-                    'chunk_index' => 'required|integer|min:0',
-                    'total_chunks' => 'required|integer|min:1',
-                    'file' => 'required|file',
-                ]);
-                if ($validation->fails()) {
-                    return $this->common->API_Response(400, $validation->errors()->first());
-                }
-
-                $chunkIndex = (int) $request['chunk_index'];
-                $totalChunks = (int) $request['total_chunks'];
-                $uploadId = $request['directory'] ?? now()->format('ymd_His_') . uniqid();
-
-                // Save chunk in temp directory
-                $tempDir = storage_path("app/public/chunks/{$uploadId}");
-                if (!file_exists($tempDir)) {
-                    mkdir($tempDir, 0777, true);
-                }
-
-                // Save chunk
-                $request->file('file')->move($tempDir, "chunk_{$chunkIndex}");
-
-                // Merge when all chunks are received
-                $uploadedChunks = glob($tempDir . '/chunk_*');
-                if (count($uploadedChunks) == $totalChunks) {
-
-                    $datePath = date('Y') . '/' . date('m');
-                    $filename = 'reels_' . date('Y_m_d_') . uniqid() . '.mp4';
-                    $contentDir = storage_path("app/public/content/{$datePath}");
-                    if (!file_exists($contentDir)) { mkdir($contentDir, 0777, true); }
-                    $finalPath = $contentDir . '/' . $filename;
-                    $output = fopen($finalPath, 'wb');
-
-                    for ($i = 0; $i < $totalChunks; $i++) {
-
-                        $chunk = fopen("{$tempDir}/chunk_{$i}", 'rb');
-                        stream_copy_to_stream($chunk, $output);
-                        fclose($chunk);
-                        unlink("{$tempDir}/chunk_{$i}");
-                    }
-
-                    fclose($output);
-                    rmdir($tempDir);
-
-                    return $this->common->API_Response(200, __('api_msg.upload_completed'), [
-                        'file_path' => $datePath . '/' . $filename,
-                        'full_url' => Storage::disk('public')->exists('content/' . $datePath . '/' . $filename),
-                    ]);
-                }
-                return $this->common->API_Response(206, __('api_msg.upload_progress', ['current' => $chunkIndex, 'total' => $totalChunks]), ['directory' => $uploadId]);
-            }
-
-            // Final save
-            $validation = Validator::make($request->all(), [
-                'channel_id' => 'required',
-                'title' => 'required',
-                'portrait_img' => 'required|image|mimes:jpeg,png,jpg|max:10240',
-                'video' => 'required|string',
-                'is_comment' => 'required',
-                'is_download' => 'required',
-                'is_like' => 'required',
-            ]);
-            if ($validation->fails()) {
-                return response()->json(['status' => 400, 'message' => $validation->errors()->first()]);
-            }
-
-            $requestData = $request->all();
-            $storage_type = Storage_Type();
-
-            $insert = new Content();
-            $insert['content_type'] = 3;
-            $insert['channel_id'] = $requestData['channel_id'];
-            $insert['category_id'] = 0;
-            $insert['language_id'] = 0;
-            $hashtag_id = $this->common->checkHashTag($requestData['title']);
-            $hashtagId = 0;
-            if (count($hashtag_id) > 0) {
-                $hashtagId = implode(',', $hashtag_id);
-            }
-            $insert['hashtag_id'] = $hashtagId;
-            $insert['title'] = $requestData['title'];
-            $insert['description'] = '';
-            $insert['portrait_img_storage_type'] = $storage_type;
-            $file1 = $requestData['portrait_img'];
-            $insert['portrait_img'] = $this->common->saveImage($file1, $this->folder_content, 'port_', $insert['portrait_img_storage_type']);
-            $insert['landscape_img_storage_type'] = 0;
-            $insert['landscape_img'] = "";
-            $insert['content_storage_type'] = 1;
-            $insert['content_upload_type'] = "server_video";
-            $insert['content'] = $requestData['video'];
-            $insert['content_duration'] = 0;
-            $insert['is_rent'] = 0;
-            $insert['rent_price'] = 0;
-            $insert['rent_day'] = 0;
-            $insert['is_comment'] = $request['is_comment'];
-            $insert['is_download'] = $request['is_download'];
-            $insert['is_like'] = $request['is_like'];
-            $insert['total_view'] = 0;
-            $insert['total_like'] = 0;
-            $insert['total_dislike'] = 0;
-            $insert['playlist_type'] = 0;
-            $insert['total_watch_time'] = 0;
-            $insert['status'] = 1;
-            if ($insert->save()) {
-
-                return response()->json(['status' => 200, 'success' => __('api_msg.success_add_reels')]);
-            } else {
-                return response()->json(['status' => 400, 'errors' => __('api_msg.data_not_save')]);
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);

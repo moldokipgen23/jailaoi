@@ -29,7 +29,6 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_subscriber_list', [UserController::class, 'get_subscriber_list']);
     Route::post('add_remove_block_channel', [UserController::class, 'add_remove_block_channel']);
     Route::post('logout', [UserController::class, 'logout']);
-    Route::post('list_of_live_users', [UserController::class, 'list_of_live_users']); // Socket
 
     // --------------------- HomeController ---------------------
     Route::post('general_setting', [HomeController::class, 'general_setting']);
@@ -57,17 +56,6 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('remove_content_to_history', [HomeController::class, 'remove_content_to_history']);
     Route::post('get_content_to_history', [HomeController::class, 'get_content_to_history']);
     Route::post('get_episode_by_podcasts', [HomeController::class, 'get_episode_by_podcasts']);
-    Route::post('get_feed', [HomeController::class, 'get_feed']);
-    Route::post('get_channel_feed', [HomeController::class, 'get_channel_feed']);
-    Route::post('get_feed_detail', [HomeController::class, 'get_feed_detail']);
-    Route::post('delete_feed', [HomeController::class, 'delete_feed']);
-    Route::post('add_feed_comment', [HomeController::class, 'add_feed_comment']);
-    Route::post('edit_feed_comment', [HomeController::class, 'edit_feed_comment']);
-    Route::post('get_feed_comment', [HomeController::class, 'get_feed_comment']);
-    Route::post('delete_feed_comment', [HomeController::class, 'delete_feed_comment']);
-    Route::post('add_feed_report', [HomeController::class, 'add_feed_report']);
-    Route::post('get_feed_reply_comment', [HomeController::class, 'get_feed_reply_comment']);
-    Route::post('like_unlike_feed', [HomeController::class, 'like_unlike_feed']);
     Route::post('get_rent_section', [HomeController::class, 'get_rent_section']);
     Route::post('get_rent_section_detail', [HomeController::class, 'get_rent_section_detail']);
     Route::post('get_user_rent_content', [HomeController::class, 'get_user_rent_content']);
@@ -104,8 +92,6 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_user_gift', [HomeController::class, 'get_user_gift']);
     Route::post('buy_gift', [HomeController::class, 'buy_gift']);
     Route::post('get_withdrawal_request_list', [HomeController::class, 'get_withdrawal_request_list']);
-    Route::post('feed_content_upload', [HomeController::class, 'feed_content_upload']);
-    Route::post('upload_feed', [HomeController::class, 'upload_feed']);
     Route::post('get_notification', [HomeController::class, 'get_notification']);
     Route::post('read_notification', [HomeController::class, 'read_notification']);
     Route::post('send_gift', [HomeController::class, 'send_gift']);
@@ -121,8 +107,6 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_music_by_category', [ContentController::class, 'get_music_by_category']);
     Route::post('get_music_by_language', [ContentController::class, 'get_music_by_language']);
     Route::post('get_releted_music', [ContentController::class, 'get_releted_music']);
-    Route::post('get_reels_list', [ContentController::class, 'get_reels_list']);
-    Route::post('upload_reels', [ContentController::class, 'upload_reels']);
     Route::post('upload_video', [ContentController::class, 'upload_video']);
     Route::post('upload_music', [ContentController::class, 'upload_music']);
     Route::post('upload_radio', [ContentController::class, 'upload_radio']);

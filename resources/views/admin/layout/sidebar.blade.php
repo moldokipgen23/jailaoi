@@ -106,12 +106,6 @@
                 <span>Albums</span>
             </a>
         </li>
-        <li class="side_line {{ request()->routeIs('admin.reels*') ? 'active' : '' }}" @if(($sidebar_settings['reels_status'] ?? '1') == '0') style="display:none" @endif>
-            <a href="{{ route('admin.reels.index') }}">
-                <i class="fa-solid fa-film fa-2xl menu-icon"></i>
-                <span>{{__('label.reels')}}</span>
-            </a>
-        </li>
         <li class="side_line {{ request()->routeIs('admin.podcast*') ? 'active' : '' }}">
             <a href="{{ route('admin.podcasts.index') }}">
                 <i class="fa-solid fa-podcast fa-2xl menu-icon"></i>
@@ -128,12 +122,6 @@
             <a href="{{ route('admin.radio.index') }}">
                 <i class="fa-solid fa-radio fa-2xl menu-icon"></i>
                 <span>{{__('label.radio')}}</span>
-            </a>
-        </li>
-        <li class="{{ (request()->routeIs('admin.feed.*')) ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
-            <a href="{{ route('admin.feed.index') }}">
-                <i class="fa-solid fa-camera-retro fa-2xl menu-icon"></i>
-                <span>{{__('label.feeds')}}</span>
             </a>
         </li>
 
@@ -164,12 +152,6 @@
                 <span>{{__('label.content_comments')}}</span>
             </a>
         </li>
-        <li class="side_line {{ request()->routeIs('admin.feedcomment*') ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
-            <a href="{{ route('admin.feedcomment.index') }}">
-                <i class="fa-solid fa-comments fa-2xl menu-icon"></i>
-                <span>{{__('label.feed_comments')}}</span>
-            </a>
-        </li>
 
         <p class="partition"><span>{{__('label.reports')}}</span></p>
         <li class="side_line  {{ request()->routeIs('admin.reason*') ? 'active' : '' }}">
@@ -182,12 +164,6 @@
             <a href="{{ route('admin.contentreport.index') }}">
                 <i class="fa-solid fa-clapperboard fa-2xl menu-icon"></i>
                 <span>{{__('label.content')}}</span>
-            </a>
-        </li>
-        <li class="side_line  {{ request()->routeIs('admin.feedreport*') ? 'active' : '' }}" @if(($sidebar_settings['feed_status'] ?? '1') == '0') style="display:none" @endif>
-            <a href="{{ route('admin.feedreport.index') }}">
-                <i class="fa-solid fa-camera-retro fa-2xl menu-icon"></i>
-                <span>{{__('label.feeds')}}</span>
             </a>
         </li>
 

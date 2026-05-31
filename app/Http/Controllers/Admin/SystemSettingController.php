@@ -17,19 +17,12 @@ use App\Models\Content_Like;
 use App\Models\Content_Report;
 use App\Models\Content_View;
 use App\Models\Episode;
-use App\Models\Feed;
-use App\Models\Feed_Comment;
-use App\Models\Feed_Content;
-use App\Models\Feed_Like;
-use App\Models\Feed_Report;
 use App\Models\Gift;
 use App\Models\Gift_Transaction;
 use App\Models\Hashtag;
 use App\Models\History;
 use App\Models\Interests;
 use App\Models\Language;
-use App\Models\Live_History;
-use App\Models\Live_User;
 use App\Models\Notification;
 use App\Models\Onboarding_Screen;
 use App\Models\Package;
@@ -81,7 +74,6 @@ class SystemSettingController extends Controller
             $s3_badges_file = [];
             $s3_category_file = [];
             $s3_content_file = [];
-            $s3_feed_file = [];
             $s3_gift_file = [];
             $s3_language_file = [];
             $s3_package_file = [];
@@ -93,7 +85,6 @@ class SystemSettingController extends Controller
                 $s3_badges_file = Storage::disk('s3')->allFiles('badges_bonus');
                 $s3_category_file = Storage::disk('s3')->allFiles('category');
                 $s3_content_file = Storage::disk('s3')->allFiles('content');
-                $s3_feed_file = Storage::disk('s3')->allFiles('feed');
                 $s3_gift_file = Storage::disk('s3')->allFiles('gift');
                 $s3_language_file = Storage::disk('s3')->allFiles('language');
                 $s3_package_file = Storage::disk('s3')->allFiles('package');
@@ -158,18 +149,6 @@ class SystemSettingController extends Controller
             $database_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $local_database_file);
             foreach ($database_name as $value) {
                 $this->common->deleteImageToFolder('database', $value, 1);
-            }
-
-            // Feed
-            $local_feed_file = Storage::allFiles('public/feed');
-            $feed_files = array_merge($local_feed_file, $s3_feed_file);
-            $feed_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $feed_files);
-            $used_feed_files = Feed_Content::pluck('image')->merge(Feed_Content::pluck('video'))->filter()->toArray();
-            foreach ($feed_name as $value) {
-                if (!in_array($value, $used_feed_files)) {
-                    $this->common->deleteImageToFolder('feed', $value, 1);
-                    $this->common->deleteImageToFolder('feed', $value, 2);
-                }
             }
 
             // Gift
@@ -354,19 +333,12 @@ class SystemSettingController extends Controller
             Content_Report::query()->truncate();
             Content_View::query()->truncate();
             Episode::query()->truncate();
-            Feed::query()->truncate();
-            Feed_Comment::query()->truncate();
-            Feed_Content::query()->truncate();
-            Feed_Like::query()->truncate();
-            Feed_Report::query()->truncate();
             Gift::query()->truncate();
             Gift_Transaction::query()->truncate();
             Hashtag::query()->truncate();
             History::query()->truncate();
             Interests::query()->truncate();
             Language::query()->truncate();
-            Live_History::query()->truncate();
-            Live_User::query()->truncate();
             Notification::query()->truncate();
             Onboarding_Screen::query()->truncate();
             Package::query()->truncate();

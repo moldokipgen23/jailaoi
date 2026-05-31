@@ -84,19 +84,6 @@
                         </div>
                     </div>
                 </div>
-                @if($reels_enabled ?? true)
-                <div class="col-xl-3 col-md-6 col-12">
-                    <div class="stat-card">
-                        <div class="stat-icon danger">
-                            <i class="fa-solid fa-film"></i>
-                        </div>
-                        <div class="stat-info">
-                            <div class="stat-label">{{__('label.reels')}}</div>
-                            <div class="stat-value">{{ No_Format($ReelsCount ?? 0) }}</div>
-                        </div>
-                    </div>
-                </div>
-                @endif
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon info">
@@ -110,19 +97,6 @@
                 </div>
             </div>
             <div class="row stat-card-row">
-                @if($feed_enabled ?? true)
-                <div class="col-xl-3 col-md-6 col-12">
-                    <div class="stat-card">
-                        <div class="stat-icon warning">
-                            <i class="fa-solid fa-camera-retro"></i>
-                        </div>
-                        <div class="stat-info">
-                            <div class="stat-label">{{__('label.feeds')}}</div>
-                            <div class="stat-value">{{ No_Format($FeedCount ?? 0) }}</div>
-                        </div>
-                    </div>
-                </div>
-                @endif
                 <div class="col-xl-3 col-md-6 col-12">
                     <div class="stat-card">
                         <div class="stat-icon primary">
@@ -220,11 +194,6 @@
                         <li class="nav-item">
                             <a class="nav-link @if(!($video_enabled ?? true)) active @endif" id="pills-music-view-tab" data-toggle="pill" href="#pills-music-view" role="tab" aria-controls="pills-music-view" aria-selected="{{($video_enabled ?? true) ? 'false' : 'true'}}">{{__('label.music')}}</a>
                         </li>
-                        @if($reels_enabled ?? true)
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-reels-view-tab" data-toggle="pill" href="#pills-reels-view" role="tab" aria-controls="pills-reels-view" aria-selected="false">{{__('label.reels')}}</a>
-                        </li>
-                        @endif
                         <li class="nav-item">
                             <a class="nav-link" id="pills-podcasts-view-tab" data-toggle="pill" href="#pills-podcasts-view" role="tab" aria-controls="pills-podcasts-view" aria-selected="false">{{__('label.podcasts')}}</a>
                         </li>
@@ -278,29 +247,6 @@
                                 @endfor
                             </div>
                         </div>
-                        @if($reels_enabled ?? true)
-                        <div class="tab-pane fade" id="pills-reels-view" role="tabpanel" aria-labelledby="pills-reels-view-tab">
-                            <div class="summary-table-card">
-                                @for ($i = 0; $i < count($top_reels_view); $i++)
-                                    <div class="border-card bg-white">
-                                        <div class="row">
-                                            <div class="col-10 pl-0">
-                                                <span class="avatar-control">
-                                                    <div class="mr-3">{{$i + 1 .'.'}}</div>
-                                                    <img src="{{ $top_reels_view[$i]['portrait_img'] }}" class="avatar-img"/>
-                                                    {{String_Cut($top_reels_view[$i]['title'], 170)}}
-                                                </span>
-                                            </div>
-                                            <div class="col-2 d-flex justify-content-start primary-color">
-                                                <i class="fa-solid fa-eye mr-2 fa-xl"></i>
-                                                <h5 class="m-0">{{No_Format($top_reels_view[$i]['total_view'] ?? 00)}}</h5>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endfor
-                            </div>
-                        </div>
-                        @endif
                         <div class="tab-pane fade" id="pills-podcasts-view" role="tabpanel" aria-labelledby="pills-podcasts-view-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_podcasts_view); $i++)
@@ -389,11 +335,6 @@
                         <li class="nav-item">
                             <a class="nav-link @if(!($video_enabled ?? true)) active @endif" id="pills-music-tab" data-toggle="pill" href="#pills-music" role="tab" aria-controls="pills-music" aria-selected="{{($video_enabled ?? true) ? 'false' : 'true'}}">{{__('label.music')}}</a>
                         </li>
-                        @if($reels_enabled ?? true)
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-reels-tab" data-toggle="pill" href="#pills-reels" role="tab" aria-controls="pills-reels" aria-selected="false">{{__('label.reels')}}</a>
-                        </li>
-                        @endif
                         <li class="nav-item">
                             <a class="nav-link" id="pills-podcasts-tab" data-toggle="pill" href="#pills-podcasts" role="tab" aria-controls="pills-podcasts" aria-selected="false">{{__('label.podcasts')}}</a>
                         </li>
@@ -447,29 +388,6 @@
                                 @endfor
                             </div>
                         </div>
-                        @if($reels_enabled ?? true)
-                        <div class="tab-pane fade" id="pills-reels" role="tabpanel" aria-labelledby="pills-reels-tab">
-                            <div class="summary-table-card">
-                                @for ($i = 0; $i < count($top_reels_like); $i++)
-                                    <div class="border-card bg-white">
-                                        <div class="row">
-                                            <div class="col-10 pl-0">
-                                                <span class="avatar-control">
-                                                    <div class="mr-3">{{$i + 1 .'.'}}</div>
-                                                    <img src="{{ $top_reels_like[$i]['portrait_img'] }}" class="avatar-img"/>
-                                                    {{String_Cut($top_reels_like[$i]['title'], 170)}}
-                                                </span>
-                                            </div>
-                                            <div class="col-2 d-flex justify-content-start primary-color">
-                                                <i class="fa-solid fa-thumbs-up mr-2 fa-xl"></i>
-                                                <h5 class="m-0">{{No_Format($top_reels_like[$i]['total_view'] ?? 00)}}</h5>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endfor
-                            </div>
-                        </div>
-                        @endif
                         <div class="tab-pane fade" id="pills-podcasts" role="tabpanel" aria-labelledby="pills-podcasts-tab">
                             <div class="summary-table-card">
                                 @for ($i = 0; $i < count($top_podcasts_like); $i++)

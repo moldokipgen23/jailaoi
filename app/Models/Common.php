@@ -789,54 +789,6 @@ class Common extends Model
         }
         return $code;
     }
-    public function goLiveSendNotification($user_id, $room_id)
-    {
-        try {
-
-            $subscribe_user = Subscriber::where('to_user_id', $user_id)->with('user:id,user_name,full_name,image,device_token,device_type')->get();
-            $user = User::find($user_id);
-            if ($subscribe_user->isEmpty() || !$user) {
-                return true;
-            }
-
-            $setting = Setting_Data();
-            $ONESIGNAL_APP_ID = $setting['onesignal_app_id'];
-            $ONESIGNAL_REST_KEY = $setting['onesignal_rest_key'];
-
-            $message = "{$user->channel_name} is now live! Join the stream and interact.";
-
-            // Collect all tokens
-            $deviceTokens = [];
-            $noti_array = [
-                'room_id' => $room_id,
-                'user_name' => $user->channel_name,
-                'full_name' => $user->full_name,
-                'user_image' => $this->getImage($this->folder_user, $user->image, $user->image_storage_type),
-                'is_host' => false,
-                'is_live_streaming_fake' => $setting['is_live_streaming_fake'],
-            ];
-
-            foreach ($subscribe_user as $sub) {
-                if ($sub->user && !empty($sub->user->device_token)) {
-                    $deviceTokens[] = $sub->user->device_token;
-                }
-            }
-
-            if (count($deviceTokens) > 0) {
-                $fields = [
-                    'app_id' => $ONESIGNAL_APP_ID,
-                    'include_player_ids' => $deviceTokens,
-                    'headings' => ['en' => App_Name()],
-                    'contents' => ['en' => $message],
-                    'data' => $noti_array,
-                ];
-                $this->sendNotification($fields, $ONESIGNAL_REST_KEY);
-            }
-            return true;
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
     function sendNotification($fields, $restKey)
     {
         $fields = json_encode($fields);

@@ -49,9 +49,8 @@
                         <option value="content_views">{{__('label.x_number_of_views_on_x_content')}}</option>
                         <option value="content_likes">{{__('label.x_number_of_likes_on_x_content')}}</option>
                         <option value="video_upload">{{__('label.x_number_of_video_upload')}}</option>
-                        <option value="music_upload">{{__('label.x_number_of_music_upload')}}</option>
-                        <option value="reels_upload">{{__('label.x_number_of_reels_upload')}}</option>
-                        <option value="podcasts_upload">{{__('label.x_number_of_podcasts_upload')}}</option>
+                                    <option value="music_upload">{{__('label.x_number_of_music_upload')}}</option>
+                                    <option value="podcasts_upload">{{__('label.x_number_of_podcasts_upload')}}</option>
                     </select>
                 </div>
             </div>
@@ -151,8 +150,6 @@
                                 return "{{__('label.x_number_of_video_upload')}}";
                             } else if (data == 'music_upload') {
                                 return "{{__('label.x_number_of_music_upload')}}";
-                            } else if (data == 'reels_upload') {
-                                return "{{__('label.x_number_of_reels_upload')}}";
                             } else if (data == 'podcasts_upload') {
                                 return "{{__('label.x_number_of_podcasts_upload')}}";
                             } else {

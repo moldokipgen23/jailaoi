@@ -53,8 +53,7 @@
                             <option value="0" {{ request('input_type') == 0 ? 'selected' : ''}}>{{__('label.all_content')}}</option>
                             <option value="1" {{ request('input_type') == 1 ? 'selected' : ''}}>{{__('label.video')}}</option>
                             <option value="2" {{ request('input_type') == 2 ? 'selected' : ''}}>{{__('label.music')}}</option>
-                            <option value="3" {{ request('input_type') == 3 ? 'selected' : ''}}>{{__('label.reels')}}</option>
-                            <option value="4" {{ request('input_type') == 3 ? 'selected' : ''}}>{{__('label.podcasts')}}</option>
+                            <option value="4" {{ request('input_type') == 4 ? 'selected' : ''}}>{{__('label.podcasts')}}</option>
                         </select>
                     </div>
                     <button class="btn btn-default mx-2" type="submit">{{__('label.search')}}</button>
@@ -70,8 +69,6 @@
                                     <div class="ribbon ribbon-top-left"><span>{{__('label.video')}}</span></div>
                                 @elseif($value['content_type'] == 2)
                                     <div class="ribbon ribbon-top-left"><span>{{__('label.music')}}</span></div>
-                                @elseif($value['content_type'] == 3)
-                                    <div class="ribbon ribbon-top-left"><span>{{__('label.reels')}}</span></div>
                                 @elseif($value['content_type'] == 4)
                                     <div class="ribbon ribbon-top-left"><span>{{__('label.podcasts')}}</span></div>
                                 @endif

@@ -27,7 +27,6 @@ use App\Http\Controllers\Admin\RentTransactionController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\MusicController;
 use App\Http\Controllers\Admin\AlbumController as AdminAlbumController;
-use App\Http\Controllers\Admin\ReelsController;
 use App\Http\Controllers\Admin\PodcastsController;
 use App\Http\Controllers\Admin\PlaylistController;
 use App\Http\Controllers\Admin\PackageController;
@@ -45,9 +44,6 @@ use App\Http\Controllers\Admin\BadgesBonusController;
 use App\Http\Controllers\Admin\CoinPackageController;
 use App\Http\Controllers\Admin\CoinTransactionController;
 use App\Http\Controllers\Admin\FaceBookAdsSettingController;
-use App\Http\Controllers\Admin\FeedCommentController;
-use App\Http\Controllers\Admin\FeedController;
-use App\Http\Controllers\Admin\FeedReportController;
 use App\Http\Controllers\Admin\GiftController;
 use App\Http\Controllers\Admin\GiftTransactionController;
 use App\Http\Controllers\Admin\PanelSettingController;
@@ -67,7 +63,6 @@ Route::group(['middleware' => 'installation'], function () {
     Route::any('video/saveChunk', [VideoController::class, 'saveChunk']);
     Route::any('music/saveChunk', [MusicController::class, 'saveChunk']);
     Route::any('radio/saveChunk', [RadioController::class, 'saveChunk']);
-    Route::any('reels/saveChunk', [ReelsController::class, 'saveChunk']);
     Route::any('ads/saveChunk', [AdsController::class, 'saveChunk']);
 
     Route::group(['middleware' => 'authadmin', 'as' => 'admin.'], function () {
@@ -123,9 +118,6 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('album/{id}/edit', [AdminAlbumController::class, 'edit'])->name('album.edit');
         Route::post('album/update', [AdminAlbumController::class, 'update'])->name('album.update');
         Route::delete('album/{id}', [AdminAlbumController::class, 'show'])->name('album.delete');
-        // Reels
-        Route::resource('reels', ReelsController::class)->only(['index', 'create', 'store', 'edit', 'update']);
-        Route::get('reelsstatus', [ReelsController::class, 'changeStatus'])->name('reels.status');
         // Podcasts
         Route::resource('podcasts', PodcastsController::class)->only(['index', 'store', 'update', 'show']);
         Route::get('podcasts/episode/{id}', [PodcastsController::class, 'ep_index'])->name('podcast.episode.index');
@@ -145,9 +137,6 @@ Route::group(['middleware' => 'installation'], function () {
         // Radio
         Route::resource('radio', RadioController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         Route::get('radiostatus', [RadioController::class, 'changeStatus'])->name('radio.status');
-        // Feed
-        Route::resource('feed', FeedController::class)->only(['index', 'create', 'store', 'edit', 'update']);
-        Route::get('feedstatus', [FeedController::class, 'changeStatus'])->name('feed.status');
         // Rent Section
         Route::resource('rentsection', RentSectionController::class)->only(['index', 'store', 'update', 'show']);
         Route::post('rentsection/edit', [RentSectionController::class, 'section_edit'])->name('rentsection.content.edit');
@@ -179,7 +168,6 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('appsetting/smtp', [AppSettingController::class, 'smtp'])->name('appsetting.smtp');
         Route::post('appsetting/sociallink', [AppSettingController::class, 'sociallink'])->name('appsetting.sociallink');
         Route::post('appsetting/onboardingscreen', [AppSettingController::class, 'onboardingscreen'])->name('appsetting.onboardingscreen');
-        Route::post('appsetting/livestreaming', [AppSettingController::class, 'livestreaming'])->name('appsetting.livestreaming');
         Route::post('appsetting/deepar', [AppSettingController::class, 'deepar'])->name('appsetting.deepar');
         Route::post('appsetting/adscommission', [AppSettingController::class, 'adscommission'])->name('appsetting.adscommission');
         Route::post('appsetting/rentcommission', [AppSettingController::class, 'rentcommission'])->name('appsetting.rentcommission');
@@ -210,17 +198,12 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('adsstatus', [AdsController::class, 'changeStatus'])->name('ads.status');
         // Comment
         Route::resource('comment', CommentController::class)->only(['index', 'show']);
-        // Feed Comment
-        Route::resource('feedcomment', FeedCommentController::class)->only(['index', 'show']);
         // Withdrawal
         Route::resource('withdrawal', WithdrawalController::class)->only(['index', 'show']);
         Route::post('withdrawal/minamount', [WithdrawalController::class, 'save_amount'])->name('withdrawal.save.amount');
         // Content Report
         Route::resource('contentreport', ContentReportController::class)->only(['index', 'show']);
         Route::post('contentreport/status', [ContentReportController::class, 'changeStatus'])->name('contentreport.status');
-        // Feed Report
-        Route::resource('feedreport', FeedReportController::class)->only(['index', 'show']);
-        Route::post('feedreport/status', [feedReportController::class, 'changeStatus'])->name('feedreport.status');
         // Badges & Bonus
         Route::resource('badgesbonus', BadgesBonusController::class)->only(['index', 'create', 'store', 'edit', 'update', 'show']);
         // System Setting
@@ -253,8 +236,6 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('video', VideoController::class)->only(['show']);
             // Music
             Route::resource('music', MusicController::class)->only(['show']);
-            // Reels
-            Route::resource('reels', ReelsController::class)->only(['show']);
             // Podcasts
             Route::resource('podcasts', PodcastsController::class)->only(['destroy']);
             Route::get('podcasts/episode/delete/{podcasts_id}/{id}', [PodcastsController::class, 'ep_delete'])->name('podcast.episode.delete');
@@ -262,8 +243,6 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('playlist', PlaylistController::class)->only(['destroy']);
             // Radio
             Route::resource('radio', RadioController::class)->only(['show']);
-            // Feed
-            Route::resource('feed', FeedController::class)->only(['show']);
             // Reason
             Route::resource('reason', ReasonController::class)->only(['destroy']);
             // Rent Transaction

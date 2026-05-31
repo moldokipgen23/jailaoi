@@ -21,14 +21,15 @@
 - **Storage**: `storage/app/public/{user,artist,content}/` — all media files copied, URLs resolve correctly
 
 ## Project
-**JailaOi** — Multi-media platform (video, music, reels, radio, podcasts, live streaming) with admin panel + Flutter app.
+**JailaOi** — Music platform with admin panel + Flutter app.
 Rebranded from DTTube / DeepSound.
 
 ## Structure
 - `Jailaoi admin/` — **Git repo root** for Laravel backend
-- `Jailaoi admin/flutter_app/` — Flutter cross-platform app (copied from dttube/)
+- `jailaoi-app/` — Flutter cross-platform app (separate from git root)
 - `Jailaoi Old/` — Old DeepSound code (jailaoi.com), data to migrate
-- `dttube/` — DELETED (was old copy, Flutter moved to Jailaoi admin/flutter_app/)
+- `dttube/` — Design reference only (not used in builds)
+- `dtradio/` — Reference only
 
 ## Git / GitHub
 - **Remote**: `git@github.com:moldokipgen23/jailaoi.git`
@@ -129,10 +130,6 @@ Host: localhost
 - URL: `https://m.jailaoi.com/admin/login`
 - Default: admin@admin.com / admin123 (or from DB)
 
-## Existing Tools
-- `socket.js` — Node.js socket.io server (port 3002) for live streaming
-- `db/dt_tube.sql` — Full database dump
-
 ## Migration Script
 - `php artisan migrate:deepsound --old-db=jailaoi_old` — migrates from old DB to current DB
 - On live: `php artisan migrate:deepsound --old-db=jailaoic_jailaoi`
@@ -153,8 +150,6 @@ Host: localhost
 ### ❌ PENDING
 - [ ] Deploy: composer install → config:clear → chmod on live
 - [ ] Delete old `~/public_html/upload/` to free ~14GB (optional)
-- [ ] Socket.io: `pm2 start socket.js --name jailaoi-socket`
-- [ ] Flutter app: update API calls for content toggles
 - [ ] SSL for m.jailaoi.com
 - [ ] High-priority features: Albums, Lyrics, Download Toggle, Bulk Upload, Waveform
 - [ ] Monetization: Pro subscriptions, Earnings/Withdrawals, Referral program
@@ -163,17 +158,17 @@ Host: localhost
 ### Reverted from Spotify clone back to original dttube design:
 - **Colors**: Pink `#E01E75` primary (was Spotify green)
 - **Theme**: Full light + dark mode (was forced dark)
-- **Bottom tabs restored**: Home, Search, Music, Library, Profile (5 tabs)
+- **Bottom tabs restored**: Home, Search, Music, Library, Profile (5 tabs → 4 tabs in current session: Music tab removed)
 - **Home page**: Music sections from `get_music_section` API using dttube widget styling
 - **Library page**: Theme-adapted colors, localized strings
 - **Profile, Search, SeeAll, Music**: Already used `colorPrimary`/theme colors — auto-updated when `color.dart` changed
 
 ### ❌ REMOVED FEATURES (confirmed — not coming back):
-- **Reels / Shorts** — removed from codebase
-- **Feeds / Social posts** — removed from codebase
-- **Livestream** — removed from codebase
-- These features are completely stripped from jailaoi-app, only the music+video core remains
-- The `dttube/` folder still has them as reference, but jailaoi-app does not
+- **Reels / Shorts** — removed from codebase (frontend + backend)
+- **Feeds / Social posts** — removed from codebase (frontend + backend)
+- **Livestream** — removed from codebase (backend controllers, models, socket, route, settings)
+- These features are completely stripped from both the Flutter app and Laravel backend
+- Only music+video+radio+podcasts core remains
 
 ### Flutter app structure:
 - Working directory: `~/Projects/JAILAOI/jailaoi-app/`

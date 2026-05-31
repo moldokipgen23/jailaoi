@@ -35,9 +35,6 @@
                     <a class="nav-link" id="onboarding-tab" data-toggle="tab" href="#onboarding" role="tab" aria-controls="onboarding" aria-selected="false">{{__('label.onboarding_screen')}}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="live-streaming-tab" data-toggle="tab" href="#live-streaming" role="tab"aria-controls="live-streaming" aria-selected="false">{{__('label.live_streaming')}}</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" id="commission-tab" data-toggle="tab" href="#commission" role="tab" aria-controls="commission" aria-selected="true">{{__('label.commission')}}</a>
                 </li>
                 <li class="nav-item">
@@ -113,7 +110,7 @@
                         </div>
                     </div>
                     <div class="card custom-border-card mt-3">
-                        <h5 class="card-header">{{__('label.video_status')}} &amp; {{__('label.reels_status')}}</h5>
+                        <h5 class="card-header">{{__('label.video_status')}}</h5>
                         <form id="content_settings" enctype="multipart/form-data">
                             <div class="card-body">
                                 <div class="form-row">
@@ -130,34 +127,6 @@
                                             </div>
                                         </div>
                                         <small class="form-text text-muted">{{__('label.video_status_note')}}</small>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label>{{__('label.reels_status')}}</label>
-                                        <div class="mt-2">
-                                            <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="reels_status" id="reels_status_yes" class="custom-control-input" {{ ($result['reels_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
-                                                <label class="custom-control-label" for="reels_status_yes">{{__('label.yes')}}</label>
-                                            </div>
-                                            <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="reels_status" id="reels_status_no" class="custom-control-input" {{ ($result['reels_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
-                                                <label class="custom-control-label" for="reels_status_no">{{__('label.no')}}</label>
-                                            </div>
-                                        </div>
-                                        <small class="form-text text-muted">{{__('label.reels_status_note')}}</small>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label>{{__('label.feed_status')}}</label>
-                                        <div class="mt-2">
-                                            <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="feed_status" id="feed_status_yes" class="custom-control-input" {{ ($result['feed_status'] ?? '1') == '1' ? "checked" : "" }} value="1">
-                                                <label class="custom-control-label" for="feed_status_yes">{{__('label.yes')}}</label>
-                                            </div>
-                                            <div class="custom-control custom-radio custom-control-inline">
-                                                <input type="radio" name="feed_status" id="feed_status_no" class="custom-control-input" {{ ($result['feed_status'] ?? '1') == '0' ? "checked" : "" }} value="0">
-                                                <label class="custom-control-label" for="feed_status_no">{{__('label.no')}}</label>
-                                            </div>
-                                        </div>
-                                        <small class="form-text text-muted">{{__('label.feed_status_note')}}</small>
                                     </div>
                                 </div>
                             </div>
@@ -511,47 +480,6 @@
 
                                 <div class="border-top pt-3 text-right">
                                     <button type="button" class="btn btn-default mw-120" onclick="onboarding_screen()">{{__('label.save')}}</button>
-                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="live-streaming" role="tabpanel" aria-labelledby="live-streaming-tab">
-                    <div class="card custom-border-card">
-                        <h5 class="card-header">{{__('label.live_streaming_zego_cloud')}}</h5>
-                        <div class="card-body">
-                            <form id="live_streaming" enctype="multipart/form-data">
-                                <div class="row">
-                                    <div class="form-group col-lg-3">
-                                        <label>{{__('label.app_id')}}<span class="text-danger">*</span></label>
-                                        <input type="text" value="{{ $result['live_appid'] }}" name="live_appid" class="form-control" placeholder="{{__('label.app_id_here')}}">
-                                        <label class="mt-1 text-gray">{{__('label.search_for_better_result')}}<a href="https://console.zegocloud.com/account/login" target="_blank" class="btn-link">{{__('label.click_here')}}</a></label>
-                                    </div>
-                                    <div class="form-group col-lg-4">
-                                        <label>{{__('label.app_sign')}}<span class="text-danger">*</span></label>
-                                        <input type="text" value="{{ $result['live_appsign'] }}" name="live_appsign" class="form-control" placeholder="{{__('label.app_sign_here')}}">
-                                    </div>
-                                    <div class="form-group col-lg-3">
-                                        <label>{{__('label.server_secret')}}<span class="text-danger">*</span></label>
-                                        <input type="text" value="{{ $result['live_serversecret'] }}" name="live_serversecret" class="form-control" placeholder="{{__('label.server_secret_here')}}">
-                                    </div>
-                                    <div class="form-group col-lg-2">
-                                        <label for="is_live_streaming_fake">{{__('label.is_live_streaming_fake')}}</label>
-                                        <div class="radio-group">
-                                            <div class="custom-control custom-radio">
-                                                <input type="radio" name="is_live_streaming_fake" id="is_live_streaming_fake_yes" class="custom-control-input" {{ $result['is_live_streaming_fake'] == '1' ? "checked" : "" }} value="1">
-                                                <label class="custom-control-label" for="is_live_streaming_fake_yes">{{__('label.yes')}}</label>
-                                            </div>
-                                            <div class="custom-control custom-radio">
-                                                <input type="radio" name="is_live_streaming_fake" id="is_live_streaming_fake_no" class="custom-control-input" {{ $result['is_live_streaming_fake'] == '0' ? "checked" : "" }} value="0">
-                                                <label class="custom-control-label" for="is_live_streaming_fake_no">{{__('label.no')}}</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="border-top pt-3 text-right">
-                                    <button type="button" class="btn btn-default mw-120" onclick="live_streaming()">{{__('label.save')}}</button>
                                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                 </div>
                             </form>
@@ -931,34 +859,6 @@
             }
         }
 
-        // Live Streaming
-        function live_streaming() {
-            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if (Demo_Mode == 1) {
-
-                var formData = new FormData($("#live_streaming")[0]);
-                $("#dvloader").show();
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route("admin.appsetting.livestreaming") }}',
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        $("html, body").animate({scrollTop: 0}, "swing");
-                        get_responce_message(resp);
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            } else {
-                showError();
-            }
-        }
         // DeepAR
         function deepar_save() {
 
