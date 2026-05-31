@@ -420,6 +420,7 @@ class ContentController extends Controller
                             $query[$j]['name'] = $query[$j]['name'];
                             $query[$j]['title'] = $query[$j]['name'];
                             $query[$j]['artist_name'] = $query[$j]['name'];
+                            $query[$j]['artist_id'] = $query[$j]['id'];
                             $query[$j]['portrait_img'] = $this->common->getImage($this->folder_artist, $query[$j]['image'], 0);
                             $query[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
                         }
