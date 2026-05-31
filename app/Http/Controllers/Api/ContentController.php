@@ -246,6 +246,10 @@ class ContentController extends Controller
             $content_id = $request['content_id'];
             $user_id = $request['user_id'] ?? 0;
 
+            if (!$this->common->isContentTypeEnabled(1)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
             $content = Content::where('id', $content_id)->where('status', 1)->first();
             if ($content) {
 

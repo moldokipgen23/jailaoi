@@ -928,6 +928,15 @@ class Common extends Model
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function isContentTypeEnabled($content_type)
+    {
+        $setting = Setting_Data();
+        if ($content_type == 1) {
+            return ($setting['video_status'] ?? '1') != '0';
+        }
+        return true;
+    }
+
     private function stripFolderPrefix($folder, $name)
     {
         if ($folder && $name && str_starts_with($name, $folder . '/')) {

@@ -132,8 +132,13 @@ class ArtistController extends Controller
 
             $page_no = $request->page_no ?? 1;
             $data = Content::where('channel_id', $artist->user->channel_id)
-                ->where('status', 1)
-                ->latest();
+                ->where('status', 1);
+
+            if (!$this->common->isContentTypeEnabled(1)) {
+                $data = $data->where('content_type', '!=', 1);
+            }
+
+            $data = $data->latest();
 
             $total = $data->count();
             $offset = $this->page_limit * ($page_no - 1);

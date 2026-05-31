@@ -792,6 +792,10 @@ class HomeController extends Controller
             $content_type = $request['content_type'];
             $content_id = $request['content_id'];
 
+            if (!$this->common->isContentTypeEnabled($content_type)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
             $content = Content::where('id', $content_id)->where('content_type', $content_type)->where('is_rent', 0)->where('status', 1)->with('channel')->first();
             if ($content) {
 
@@ -872,6 +876,10 @@ class HomeController extends Controller
             $page_size = 0;
             $current_page = 0;
             $more_page = false;
+
+            if (!$this->common->isContentTypeEnabled($content_type)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
 
             $data = Content_Like::where('user_id', $user_id)->where('content_type', $content_type)->where('status', 1)->with('content', 'episode')->orderBy('id', 'desc')->latest();
 
@@ -954,6 +962,10 @@ class HomeController extends Controller
             $current_page = 0;
             $more_page = false;
 
+            if (!$this->common->isContentTypeEnabled($content_type)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
             $data = Content::where('content_type', $content_type)->where('channel_id', $channel_id)->where('status', 1)->where('is_rent', 0)->orderby('id', 'desc');
 
             $total_rows = $data->count();
@@ -1035,6 +1047,10 @@ class HomeController extends Controller
             $page_size = 0;
             $current_page = 0;
             $more_page = false;
+
+            if (!$this->common->isContentTypeEnabled($content_type)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
 
             $data = Watch_later::where('user_id', $user_id)->where('content_type', $content_type)->where('status', 1)->with('content', 'episode')->orderBy('id', 'desc')->latest();
 
@@ -1193,6 +1209,10 @@ class HomeController extends Controller
             $current_page = 0;
             $more_page = false;
 
+            if (!$this->common->isContentTypeEnabled($content_type)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
             $data = History::where('user_id', $user_id)->where('content_type', $content_type)->where('status', 1)->with('content', 'episode')->orderBy('id', 'desc')->latest();
 
             $total_rows = $data->count();
@@ -1312,6 +1332,10 @@ class HomeController extends Controller
             $current_page = 0;
             $more_page = false;
 
+            if (!$this->common->isContentTypeEnabled(1)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
             $data = Rent_Section::where('status', 1)->orderBy('sort_order', 'asc')->latest();
 
             $total_rows = $data->count();
@@ -1368,6 +1392,10 @@ class HomeController extends Controller
 
             $section_id = $request['section_id'];
             $user_id = $request['user_id'] ?? 0;
+
+            if (!$this->common->isContentTypeEnabled(1)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
 
             $section = Rent_Section::where('id', $section_id)->first();
             if ($section) {
@@ -1498,6 +1526,10 @@ class HomeController extends Controller
             $page_size = 0;
             $current_page = 0;
             $more_page = false;
+
+            if (!$this->common->isContentTypeEnabled(1)) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
 
             $data = Content::where('content_type', $content_type)->where('channel_id', $channel_id)->where('status', 1)->where('is_rent', 0)->orderby('id', 'desc')->latest();
 
