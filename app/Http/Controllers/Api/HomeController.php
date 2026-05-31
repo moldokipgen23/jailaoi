@@ -806,6 +806,8 @@ class HomeController extends Controller
                 }
 
                 $content['user_id'] = $this->common->getUserId($content['channel_id']);
+                $content['artist_id'] = $this->common->getArtistId($content['channel_id']);
+                $content['artist_name'] = $this->common->getArtistName($content['channel_id']);
                 $content['channel_name'] = $this->common->getChannelName($content['channel_id']);
                 $content['channel_image'] = $this->common->getChannelImage($content['channel_id']);
                 $content['category_name'] = $this->common->getCategoryName($content['category_id']);
@@ -1729,6 +1731,11 @@ class HomeController extends Controller
                     if ($music[$j]['content_upload_type'] == 'server_video') {
                         $music[$j]['content'] = $this->common->getVideo($this->folder_content, $music[$j]['content'], $music[$j]['content_storage_type']);
                     }
+                    $music[$j]['user_id'] = $this->common->getUserId($music[$j]['channel_id']);
+                    $music[$j]['artist_id'] = $this->common->getArtistId($music[$j]['channel_id']);
+                    $music[$j]['artist_name'] = $this->common->getArtistName($music[$j]['channel_id']);
+                    $music[$j]['channel_name'] = $this->common->getChannelName($music[$j]['channel_id']);
+                    $music[$j]['channel_image'] = $this->common->getChannelImage($music[$j]['channel_id']);
                     $music[$j]['is_buy'] = $this->common->is_any_package_buy($user_id);
 
                     $data['music'][] = $music[$j];
