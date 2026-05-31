@@ -94,6 +94,7 @@ class ArtistController extends Controller
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
             $artist['total_followers'] = Subscriber::where('to_user_id', $artist->user_id)->count();
+            $artist['monthly_listeners'] = Subscriber::where('to_user_id', $artist->user_id)->where('created_at', '>=', now()->subDays(30))->count();
 
             $login_user_id = $request->login_user_id ?? 0;
             $artist['is_following'] = 0;
