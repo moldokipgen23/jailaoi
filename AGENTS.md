@@ -163,11 +163,14 @@ Host: localhost
 - **Library page**: Theme-adapted colors, localized strings
 - **Profile, Search, SeeAll, Music**: Already used `colorPrimary`/theme colors — auto-updated when `color.dart` changed
 
-### ❌ REMOVED FEATURES (confirmed — not coming back):
-- **Reels / Shorts** — removed from codebase (frontend + backend)
-- **Feeds / Social posts** — removed from codebase (frontend + backend)
-- **Livestream** — removed from codebase (backend controllers, models, socket, route, settings)
-- These features are completely stripped from both the Flutter app and Laravel backend
+### ❌ REMOVED FEATURES (confirmed — fully purged):
+- **Reels / Shorts** — removed from codebase (frontend + backend, all translation keys, constants)
+- **Feeds / Social posts** — removed from codebase (frontend + backend, all translation keys, constants)
+- **Livestream** — removed from codebase (backend controllers, models, socket, route, settings, translation keys)
+- All feed/reels/livestream translation keys purged from EN/FR/HI
+- Feed model references (`Feed::`, `Feed_Comment::`, `Feed_Like::`, `Feed_Report::`) removed from Common.php
+- `reelsEnabled`/`feedEnabled` removed from Flutter constants
+- Commented-out `shortProvider` references cleaned
 - Only music+video+radio+podcasts core remains
 
 ### Flutter app structure:

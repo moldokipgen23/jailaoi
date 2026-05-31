@@ -41,7 +41,7 @@ use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
-// 1- Video, 2- Music, 3- Reels, 4- Podcasts, 5- Playlist, 6- Radio	
+// 1- Video, 2- Music, 4- Podcasts, 5- Playlist, 6- Radio	
 class HomeController extends Controller
 {
     private $folder_setting = "setting";

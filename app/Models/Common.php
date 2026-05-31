@@ -600,9 +600,8 @@ class Common extends Model
     {
         $total_contents = 0;
         $total_content = Content::where('channel_id', $channel_id)->where('status', 1)->count();
-        $total_feed = Feed::where('channel_id', $channel_id)->where('status', 1)->count();
 
-        $total_contents = $total_content + $total_feed;
+        $total_contents = $total_content;
         return $total_contents;
     }
     public function total_subscriber($to_user_id)
@@ -752,12 +751,7 @@ class Common extends Model
         }
         return 0;
     }
-    public function deleted_feed_all_data($id)
-    {
-        Feed_Comment::where('feed_id', $id)->delete();
-        Feed_Like::where('feed_id', $id)->delete();
-        Feed_Report::where('feed_id', $id)->delete();
-    }
+
     public function getHashTag($hashTag)
     {
         $tag_id = array_filter(explode(',', $hashTag));
@@ -768,14 +762,7 @@ class Common extends Model
         }
         return $hashtage;
     }
-    public function get_all_count_for_feed($array, $user_id)
-    {
-        $array['total_comment'] = Feed_Comment::where('feed_id', $array['id'])->where('status', 1)->count();
-        $array['total_like'] = Feed_Like::where('feed_id', $array['id'])->where('status', 1)->count();
-        $array['is_like'] = Feed_Like::where('feed_id', $array['id'])->where('user_id', $user_id)->where('status', 1)->exists() ? 1 : 0;
-        $array['is_subscriber'] = ($user_id > 0 && !empty($array['channel']['id']) && Subscriber::where('user_id', $user_id)->where('to_user_id', $array['channel']['id'])->exists()) ? 1 : 0;
-        return $array;
-    }
+
     public function gift_buy($user_id, $gift_id)
     {
         return (int) Gift_Transaction::where('user_id', $user_id)->where('gift_id', $gift_id)->exists() ? 1 : 0;
