@@ -320,9 +320,9 @@ class ContentController extends Controller
             $more_page = false;
 
             if ($is_home_screen == 1) {
-                $data = Section::where('is_home_screen', $is_home_screen)->where('status', 1)->orderBy('sort_order', 'asc')->latest();
+                $data = Section::where('is_home_screen', $is_home_screen)->where('status', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc');
             } else if ($is_home_screen == 2) {
-                $data = Section::where('is_home_screen', $is_home_screen)->where('content_type', $content_type)->where('status', 1)->orderBy('sort_order', 'asc')->latest();
+                $data = Section::where('is_home_screen', $is_home_screen)->where('content_type', $content_type)->where('status', 1)->orderBy('is_fixed', 'desc')->orderBy('sort_order', 'asc');
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
@@ -334,7 +334,7 @@ class ContentController extends Controller
 
             $more_page = $this->common->more_page($page_no, $page_size);
             $pagination = $this->common->pagination_array($total_rows, $page_size, $page_no, $more_page);
-            $data = $data->take($total_page)->offset($offset)->latest()->get();
+            $data = $data->take($total_page)->offset($offset)->get();
 
             if (count($data) > 0) {
 
