@@ -29,7 +29,7 @@ class LoginController extends Controller
         try {
 
             $params['result'] = Setting_Data();
-            $params['result']['login_page_image'] = $this->common->Get_Image($this->folder, $params['result']['login_page_image']);
+            $params['result']['login_page_image'] = $this->common->Get_Image($this->folder, $params['result']['login_page_image'] ?? '');
             Auth()->guard('admin')->logout();
             return view('admin.login.login', $params);
         } catch (Exception $e) {

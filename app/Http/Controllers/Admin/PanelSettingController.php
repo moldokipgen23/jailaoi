@@ -24,7 +24,7 @@ class PanelSettingController extends Controller
             $params['result'] = Setting_Data();
             if ($params['result']) {
 
-                $params['result']['login_page_image'] = $this->common->Get_Image($this->folder, $params['result']['login_page_image']);
+                $params['result']['login_page_image'] = $this->common->Get_Image($this->folder, $params['result']['login_page_image'] ?? '');
 
                 return view('admin.panel_setting.index', $params);
             } else {
