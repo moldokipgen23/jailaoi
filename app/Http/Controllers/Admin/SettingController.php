@@ -29,9 +29,9 @@ class SettingController extends Controller
             foreach ($setting as $row) {
                 $data[$row->key] = $row->value;
             }
-            $data['app_logo'] = $this->common->Get_Image($this->folder, $data['app_logo']);
-            $data['dev_logo'] = $this->common->Get_Image($this->folder, $data['dev_logo']);
-            $data['company_logo'] = $this->common->Get_Image($this->folder, $data['company_logo']);
+            $data['app_logo'] = $this->common->Get_Image($this->folder, $data['app_logo'] ?? '');
+            $data['dev_logo'] = $this->common->Get_Image($this->folder, $data['dev_logo'] ?? '');
+            $data['company_logo'] = $this->common->Get_Image($this->folder, $data['company_logo'] ?? '');
 
             if ($data) {
                 $params['result'] = $data;

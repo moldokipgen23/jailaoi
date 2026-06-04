@@ -22,7 +22,7 @@ class NotificationConfigurationController extends Controller
         try {
 
             $data = Setting_Data();
-            $params['main_status'] = $data['notification_configuration'];
+            $params['main_status'] = $data['notification_configuration'] ?? '1';
 
             if ($request->ajax()) {
                 $notification = Notification_Configuration::get();

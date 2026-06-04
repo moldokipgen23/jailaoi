@@ -70,6 +70,9 @@ class SeedAppSettings extends Command
             'fb_rewardvideo_status' => '1',
             'onesignal_apid' => '',
             'onesignal_rest_key' => '',
+            'dev_logo' => '',
+            'company_logo' => '',
+            'notification_configuration' => '1',
         ];
 
         foreach ($keys as $key => $value) {
