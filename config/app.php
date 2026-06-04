@@ -56,7 +56,7 @@ return [
 
     'asset_url' => env('ASSET_URL', null),
 
-    'image_url' => env('APP_URL', null) . "/storage/app/public/",
+    'image_url' => env('APP_URL', null) . "/storage/",
 
     /*
     |--------------------------------------------------------------------------
