@@ -171,9 +171,6 @@ return new class extends Migration
     {
         if (!Schema::hasTable($tableName)) {
             Schema::create($tableName, $callback);
-            $this->command?->info("Created {$tableName}");
-        } else {
-            $this->command?->warn("{$tableName} already exists, skipped");
         }
     }
 };
