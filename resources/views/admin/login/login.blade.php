@@ -13,7 +13,7 @@
 
                         <?php $setting = Setting_Data(); ?>
                         <p class="text">
-                            {{$setting['app_desripation']}}
+                            {{$setting['app_desripation'] ?? $setting['app_description'] ?? 'Welcome'}}
                         </p>
                     </div>
                 </div>
