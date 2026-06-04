@@ -412,7 +412,11 @@ class Common extends Model
     }
     public function get_all_count_for_content($type, $array)
     {
-        $array['total_comment'] = Comment::where('type', $type)->where('content_id', $array['id'])->count();
+        try {
+            $array['total_comment'] = Comment::where('type', $type)->where('content_id', $array['id'])->count();
+        } catch (\Exception $e) {
+            $array['total_comment'] = 0;
+        }
         return $array;
     }
     public function GetPodcastNameByIds($ids)
