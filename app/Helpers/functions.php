@@ -32,7 +32,7 @@ function Setting_Data()
 function Tab_Icon()
 {
     $settingData = Setting_Data();
-    $name = $settingData['app_logo'];
+    $name = $settingData['app_logo'] ?? '';
     $folder = "app";
 
     if ($name != "" && $folder != "") {
@@ -77,7 +77,7 @@ function No_Format($num)
 function Currency_Code()
 {
     $data = Setting_Data();
-    return $data['currency_code'];
+    return $data['currency_code'] ?? '$';
 }
 function TimeToMilliseconds($str)
 {
@@ -116,7 +116,7 @@ function Item_Code()
 function login_image()
 {
     $setting_data = Setting_Data();
-    $login_image = $setting_data['login_page_image'];
+    $login_image = $setting_data['login_page_image'] ?? '';
 
     if ($login_image != "") {
         if (Storage::disk('public')->exists('app/' . $login_image)) {
