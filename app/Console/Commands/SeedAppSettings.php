@@ -13,21 +13,32 @@ class SeedAppSettings extends Command
     public function handle()
     {
         $keys = [
-            'app_name' => 'Jailaoi',
+            'app_name' => 'DTRadio',
             'app_version' => '1.0',
-            'app_desripation' => 'Radio Streaming App',
+            'app_desripation' => 'Music & Radio Streaming App',
+            'app_description' => '',
             'app_logo' => '',
+            'app_logo_storage_type' => '0',
             'app_favicon' => '',
             'app_contact' => '',
             'app_email' => '',
-            'app_copyright' => '© Jailaoi',
+            'app_copyright' => '',
+            'appstore_id' => '',
             'currency_code' => 'USD',
-            'author' => '',
             'currency' => 'USD',
+            'author' => '',
             'contact' => '',
             'email' => '',
             'website' => '',
             'host_email' => '',
+            'company_name' => '',
+            'company_logo' => '',
+            'dev_logo' => '',
+            'dev_title' => '',
+            'screenshot' => '0',
+            'login_page_image' => '',
+            'ai_api_key' => '',
+            'ai_section' => '0',
             'banner_ad' => '1',
             'banner_adid' => '',
             'interstital_ad' => '1',
@@ -70,9 +81,17 @@ class SeedAppSettings extends Command
             'fb_rewardvideo_status' => '1',
             'onesignal_apid' => '',
             'onesignal_rest_key' => '',
-            'dev_logo' => '',
-            'company_logo' => '',
             'notification_configuration' => '1',
+            'refer_and_earn_status' => '0',
+            'parent_user_earn' => '0',
+            'child_user_earn' => '0',
+            'ads_commission' => '0',
+            'rent_commission' => '0',
+            'video_status' => '1',
+            'playstore_id' => '',
+            'vap_id_key' => '',
+            'deepar_android_key' => '',
+            'deepar_ios_key' => '',
         ];
 
         foreach ($keys as $key => $value) {
@@ -81,12 +100,11 @@ class SeedAppSettings extends Command
                     ['key' => $key],
                     ['value' => $value, 'updated_at' => now()]
                 );
-                $this->line("  <info>OK</info>  $key");
             } catch (\Exception $e) {
                 $this->error("FAIL $key: " . $e->getMessage());
             }
         }
 
-        $this->info('All settings seeded!');
+        $this->info(count($keys) . ' settings seeded!');
     }
 }
