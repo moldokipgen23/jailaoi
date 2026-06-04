@@ -192,6 +192,16 @@ class MigrateContentToDtradio extends Command
             return $filename;
         }
 
+        $files = Storage::disk('public')->allFiles($sourceFolder);
+        foreach ($files as $file) {
+            if (basename($file) === $filename) {
+                if (!Storage::disk('public')->exists($destPath)) {
+                    Storage::disk('public')->copy($file, $destPath);
+                }
+                return $filename;
+            }
+        }
+
         return '';
     }
 }
