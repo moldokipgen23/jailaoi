@@ -23,32 +23,38 @@ return new class extends Migration
             });
         }
 
-        Schema::table('tbl_content', function (Blueprint $table) {
-            if (!Schema::hasColumn('tbl_content', 'album_id')) {
-                $table->unsignedBigInteger('album_id')->nullable()->after('language_id');
-            }
-            if (!Schema::hasColumn('tbl_content', 'lyrics')) {
-                $table->text('lyrics')->nullable()->after('description');
-            }
-            if (!Schema::hasColumn('tbl_content', 'waveform_data')) {
-                $table->string('waveform_data', 255)->default('')->after('content');
-            }
-        });
+        $musicTable = Schema::hasTable('tbl_music') ? 'tbl_music' : 'tbl_content';
+        if (Schema::hasTable($musicTable)) {
+            Schema::table($musicTable, function (Blueprint $table) use ($musicTable) {
+                if (!Schema::hasColumn($musicTable, 'album_id')) {
+                    $table->unsignedBigInteger('album_id')->nullable()->after('language_id');
+                }
+                if (!Schema::hasColumn($musicTable, 'lyrics')) {
+                    $table->text('lyrics')->nullable()->after('description');
+                }
+                if (!Schema::hasColumn($musicTable, 'waveform_data')) {
+                    $table->string('waveform_data', 255)->default('')->after('content');
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('tbl_content', function (Blueprint $table) {
-            if (Schema::hasColumn('tbl_content', 'album_id')) {
-                $table->dropColumn('album_id');
-            }
-            if (Schema::hasColumn('tbl_content', 'lyrics')) {
-                $table->dropColumn('lyrics');
-            }
-            if (Schema::hasColumn('tbl_content', 'waveform_data')) {
-                $table->dropColumn('waveform_data');
-            }
-        });
+        $musicTable = Schema::hasTable('tbl_music') ? 'tbl_music' : 'tbl_content';
+        if (Schema::hasTable($musicTable)) {
+            Schema::table($musicTable, function (Blueprint $table) use ($musicTable) {
+                if (Schema::hasColumn($musicTable, 'album_id')) {
+                    $table->dropColumn('album_id');
+                }
+                if (Schema::hasColumn($musicTable, 'lyrics')) {
+                    $table->dropColumn('lyrics');
+                }
+                if (Schema::hasColumn($musicTable, 'waveform_data')) {
+                    $table->dropColumn('waveform_data');
+                }
+            });
+        }
         Schema::dropIfExists('tbl_album');
     }
 };
