@@ -59,7 +59,7 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->common = new Common;
-        $this->page_limit = env('PAGE_LIMIT');
+        $this->page_limit = env('PAGE_LIMIT', 20);
     }
 
     public function general_setting()
