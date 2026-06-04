@@ -8,12 +8,12 @@
                 <!-- Alert MSG -->
                 @if(session()->has('error'))
                     <div class="alert alert-danger alert-block">
-                        <button type="button" class="close" data-dismiss="alert">X</button>
+                        <button type="button" class="close" data-dismiss="alert" >X</button>
                         <strong>{{ Session::get('error') }}</strong>
                     </div>
                 @elseif(session()->has('success'))
                     <div class="alert alert-danger alert-block">
-                        <button type="button" class="close" data-dismiss="alert">X</button>
+                        <button type="button" class="close" data-dismiss="alert" >X</button>
                         <strong>{{ Session::get('success') }}</strong>
                     </div>
                 @endif
@@ -62,7 +62,7 @@
                         @else
                             <i class="fa-solid fa-circle-xmark fa-xl text-danger mr-2"></i>
                         @endif
-                        <b>{{__('label.storage/logs')}}</b> {{__('label.file_permission')}}
+                        <b>{{__('label.storage/log')}}</b> {{__('label.file_permission')}}
                     </li>
                 </ul>
                 @if ($phpVersion >= 8.1 && $permission['curl_enabled'] == 1 && $permission['env_file'] == 1 && $permission['framework_file'] == 1 && $permission['logs_file'] == 1)

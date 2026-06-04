@@ -3,27 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Artist;
 use App\Models\Category;
-use App\Models\Comment;
+use App\Models\City;
 use App\Models\Common;
+use App\Models\Favorite;
 use App\Models\Language;
-use App\Models\Hashtag;
-use App\Models\User;
-use App\Models\Content;
-use App\Models\Content_Like;
-use App\Models\Content_Report;
-use App\Models\Content_View;
-use App\Models\History;
-use App\Models\Notification;
-use App\Models\Watch_later;
+use App\Models\Music;
+use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
+// Music Upload Type :1- Server Content, 2- External URL
 class MusicController extends Controller
 {
-    private $folder = "content";
-    private $folder_ffmpeg = "/app/public/content/";
+    private $folder = "music";
     public $common;
     public function __construct()
     {
@@ -33,39 +28,30 @@ class MusicController extends Controller
     public function index(Request $request)
     {
         try {
-            $params['data'] = [];
-            $params['channel'] = User::where('role', 'artist')->latest()->get();
-            $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
-            $params['language'] = Language::orderby('sort_order', 'asc')->latest()->get();
+
+            $params['artist'] = Artist::where('type', 3)->orderBy('sort_order', 'asc')->where('status', 1)->get();
 
             $input_search = $request['input_search'];
-            $input_channel = $request['input_channel'];
-            $input_category = $request['input_category'];
-            $input_language = $request['input_language'];
+            $input_artist = $request['input_artist'];
 
-            $query = Content::where('content_type', 2);
-            if ($input_search) {
+            $query = Music::query();
+
+            if (!empty($input_search)) {
                 $query->where('title', 'LIKE', "%{$input_search}%");
             }
-            if ($input_channel != 0) {
-                $query->where('channel_id', $input_channel);
-            }
-            if ($input_category != 0) {
-                $query->where('category_id', $input_category);
-            }
-            if ($input_language != 0) {
-                $query->where('language_id', $input_language);
-            }
-            $params['data'] = $query->orderBy('id', 'DESC')->paginate(20);
 
-            for ($i = 0; $i < count($params['data']); $i++) {
+            if (!empty($input_artist)) {
+                $query->whereRaw("FIND_IN_SET(?,artist_id)", $input_artist);
+            }
+            $params['data'] = $query->latest()->paginate(15);
 
-                $params['data'][$i]['portrait_img'] = $this->common->getImage($this->folder, $params['data'][$i]['portrait_img'], $params['data'][$i]['portrait_img_storage_type']);
-                $params['data'][$i]['landscape_img'] = $this->common->getImage($this->folder, $params['data'][$i]['landscape_img'], $params['data'][$i]['landscape_img_storage_type']);
-                if ($params['data'][$i]['content_upload_type'] == 'server_video') {
-                    $params['data'][$i]['content'] = $this->common->getVideo($this->folder, $params['data'][$i]['content'], $params['data'][$i]['content_storage_type']);
+            foreach ($params['data'] as $music) {
+                $music['portrait_img'] = $this->common->Get_Image($this->folder, $music['portrait_img']);
+                if ($music['upload_type'] == 1) {
+                    $music['music'] = $this->common->Get_Song($this->folder, $music['music']);
                 }
             }
+
             return view('admin.music.index', $params);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -76,9 +62,10 @@ class MusicController extends Controller
         try {
 
             $params['data'] = [];
-            $params['channel'] = User::where('role', 'artist')->latest()->get();
-            $params['category'] = Category::orderBy('sort_order', 'asc')->latest()->get();
-            $params['language'] = Language::orderBy('sort_order', 'asc')->latest()->get();
+            $params['category'] = Category::orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['artist'] = Artist::where('type', 3)->orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['language'] = Language::orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
             return view('admin.music.add', $params);
         } catch (Exception $e) {
@@ -88,90 +75,103 @@ class MusicController extends Controller
     public function store(Request $request)
     {
         try {
-            $rules = [
-                'title' => 'required',
-                'channel_id' => 'required',
-                'category_id' => 'required',
-                'language_id' => 'required',
-                'content_upload_type' => 'required',
-                'portrait_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'landscape_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'content_duration' => 'required|after_or_equal:00:00:01',
-                'is_comment' => 'required',
-                'is_download' => 'required',
-                'is_like' => 'required',
-            ];
-            if ($request['content_upload_type'] == 'server_video') {
-                $rules['music'] = 'required';
-            } else {
-                $rules['url'] = 'required';
-            }
-            $validator = Validator::make($request->all(), $rules);
+
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'title' => 'required',
+                    'is_premium' => 'required',
+                    'upload_type' => 'required',
+                    'portrait_img' => 'required|image|mimes:jpg,png,jpeg|max:2048',
+                    'ogtag_img' => 'image|mimes:jpg,png,jpeg|max:2048',
+                    'landscape_img' => 'image|mimes:jpg,png,jpeg|max:2048',
+                ]
+            );
+
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
-            $storage_type = Storage_Type();
-            $requestData['portrait_img_storage_type'] = $storage_type;
-            $requestData['landscape_img_storage_type'] = $storage_type;
-            $requestData['content_storage_type'] = $storage_type;
-
-            $requestData['content_type'] = 2;
-            $requestData['description'] = $requestData['description'] ?? "";
-            $hashtag_id = $this->common->checkHashTag($requestData['description']);
-            $hashtagId = 0;
-            if (count($hashtag_id) > 0) {
-                $hashtagId = implode(',', $hashtag_id);
-            }
-            $requestData['hashtag_id'] = $hashtagId;
-            if (isset($requestData['portrait_img'])) {
-                $file1 = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder, 'port_', $requestData['portrait_img_storage_type']);
+            if ($request->upload_type == 1) {
+                $validator2 = Validator::make(
+                    $request->all(),
+                    [
+                        'music' => 'required',
+                    ]
+                );
             } else {
-                $requestData['portrait_img'] = "";
+                $validator2 = Validator::make(
+                    $request->all(),
+                    [
+                        'url' => 'required|url',
+                    ]
+                );
+            }
+
+            if ($validator2->fails()) {
+                $errs = $validator2->errors()->all();
+                return response()->json(array('status' => 400, 'errors' => $errs));
+            }
+
+            $requestData = $request->all();
+
+            if (isset($requestData['artist_id'])) {
+                $requestData['artist_id'] = implode(',', $requestData['artist_id']);
+            } else {
+                $requestData['artist_id'] = "";
+            }
+            if (isset($requestData['portrait_img'])) {
+                $files = $requestData['portrait_img'];
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "music_");
+            }
+            if (isset($requestData['ogtag_img'])) {
+                $files = $requestData['ogtag_img'];
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder, "music_");
+            } else {
+                $requestData['ogtag_img'] = "";
             }
             if (isset($requestData['landscape_img'])) {
-                $file2 = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder, 'land_', $requestData['landscape_img_storage_type']);
+                $files = $requestData['landscape_img'];
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder, "music_");
             } else {
                 $requestData['landscape_img'] = "";
             }
-            if ($requestData['content_upload_type'] == 'server_video') {
+            $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
+            $requestData['description'] = isset($requestData['description']) ? $requestData['description'] : "";
+            $requestData['album_name'] = isset($requestData['album_name']) ? $requestData['album_name'] : "";
+            $requestData['language_id'] = isset($requestData['language_id']) ? $requestData['language_id'] : 0;
+            $requestData['category_id'] = isset($requestData['category_id']) ? $requestData['category_id'] : 0;
+            $requestData['total_play'] = 0;
 
-                if ($requestData['content_storage_type'] == 1) {
-                    $requestData['content'] = $requestData['music'];
-                    if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
-                        $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
-                        if ($dur > 0) $requestData['content_duration'] = $dur;
-                    }
-                    $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
-                    if ($wf) $requestData['waveform_data'] = $wf;
-                } else {
-                    $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $requestData['content_storage_type']);
-                }
+            if ($requestData['upload_type'] == 1) {
+                $requestData['music'] = $requestData['music'];
             } else {
-                $requestData['content'] = $requestData['url'];
+                $requestData['music'] = $requestData['url'];
             }
-            unset($requestData['music'], $requestData['url']);
+            unset($requestData['url']);
 
-            $requestData['is_rent'] = 0;
-            $requestData['rent_price'] = 0;
-            $requestData['rent_day'] = 0;
-            $requestData['content_duration'] = $this->common->time_to_milliseconds($requestData['content_duration']);
-            $requestData['total_view'] = 0;
-            $requestData['total_like'] = 0;
-            $requestData['total_dislike'] = 0;
-            $requestData['playlist_type'] = 0;
-            $requestData['total_watch_time'] = 0;
-            $requestData['status'] = 1;
+            $music_data = Music::updateOrCreate(['id' => $requestData['id']], $requestData);
+            if (isset($music_data->id)) {
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($data->id)) {
+                // Send Notification
+                $imageURL = $this->common->Get_Image($this->folder, $requestData['portrait_img']);
+
+                $noti_array = array(
+                    'title' => __('label.new_music_added'),
+                    'description' => $music_data->title,
+                    'image' => $music_data->portrait_img,
+                    'image_url' => $imageURL,
+                );
+                $check = $this->common->basic_notification_configuration('add-music');
+                if ($check['status'] == 1 && $check['send_notification'] == 1) {
+
+                    $this->common->sendNotification($noti_array);
+                }
+
                 return response()->json(['status' => 200, 'success' => __('label.success_add_music')]);
             } else {
-                return response()->json(['status' => 400, 'errors' => __('label.error_add_music')]);
+                return response()->json(['status' => 400, 'errors' => __('label.music_not_added')]);
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -180,22 +180,24 @@ class MusicController extends Controller
     public function edit($id)
     {
         try {
-            $params['data'] = Content::where('id', $id)->first();
+
+            $params['data'] = music::where('id', $id)->first();
+            $params['category'] = Category::orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['artist'] = Artist::where('type', 3)->orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['language'] = Language::orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
+
+            // Image Name to URL
+            $this->common->imageNameToUrl(array($params['data']), 'portrait_img', $this->folder);
+            $this->common->imageNameToUrl(array($params['data']), 'ogtag_img', $this->folder);
+            $this->common->imageNameToUrl(array($params['data']), 'landscape_img', $this->folder);
+            if ($params['data']['upload_type'] == 1) {
+                $params['data']['music'] = $this->common->Get_Song($this->folder, $params['data']['music']);
+            }
             if ($params['data'] != null) {
-
-                $params['channel'] = User::where('role', 'artist')->latest()->get();
-                $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
-                $params['language'] = Language::orderby('sort_order', 'asc')->latest()->get();
-
-                $params['data']['portrait_img'] = $this->common->getImage($this->folder, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
-                $params['data']['landscape_img'] = $this->common->getImage($this->folder, $params['data']['landscape_img'], $params['data']['landscape_img_storage_type']);
-                $params['data']['content_file'] = $params['data']['content'];
-                if ($params['data']['content_upload_type'] == 'server_video') {
-                    $params['data']['content'] = $this->common->getVideo($this->folder, $params['data']['content'], $params['data']['content_storage_type']);
-                }
                 return view('admin.music.edit', $params);
             } else {
-                return redirect()->back()->with('error', __('label.data_not_found'));
+                return redirect()->back()->with('error', __('label.page_not_found'));
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -204,114 +206,112 @@ class MusicController extends Controller
     public function update(Request $request)
     {
         try {
-            $rules = [
-                'title' => 'required',
-                'channel_id' => 'required',
-                'category_id' => 'required',
-                'language_id' => 'required',
-                'portrait_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'landscape_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'content_upload_type' => 'required',
-                'content_duration' => 'required|after_or_equal:00:00:01',
-                'is_comment' => 'required',
-                'is_like' => 'required',
-                'is_download' => 'required',
-            ];
-            if ($request['content_upload_type'] != 'server_video') {
-                $rules['url'] = 'required';
-            }
-            $validator = Validator::make($request->all(), $rules);
+
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'title' => 'required',
+                    'is_premium' => 'required',
+                    'upload_type' => 'required',
+                    'portrait_img' => 'image|mimes:jpg,png,jpeg|max:2048',
+                    'ogtag_img' => 'image|mimes:jpg,png,jpeg|max:2048',
+                    'landscape_img' => 'image|mimes:jpg,png,jpeg|max:2048',
+                ]
+            );
+
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
+            }
+
+            if ($request->upload_type == 1) {
+                $validator2 = Validator::make(
+                    $request->all(),
+                    [
+                        'music' => 'required',
+                    ]
+                );
+            } else {
+                $validator2 = Validator::make(
+                    $request->all(),
+                    [
+                        'url' => 'required|url',
+                    ]
+                );
+            }
+
+            if ($validator2->fails()) {
+                $errs = $validator2->errors()->all();
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
             $requestData = $request->all();
-            $storage_type = Storage_Type();
 
-            $requestData['content_type'] = 2;
-            $requestData['description'] = $requestData['description'] ?? "";
-            $old_hashtag = explode(',', $requestData['old_hashtag_id']);
-            Hashtag::whereIn('id', $old_hashtag)->decrement('total_used', 1);
-            $hashtag_id = $this->common->checkHashTag($requestData['description']);
-            $hashtagId = 0;
-            if (count($hashtag_id) > 0) {
-                $hashtagId = implode(',', $hashtag_id);
+            if (isset($requestData['artist_id'])) {
+                $requestData['artist_id'] = implode(',', $requestData['artist_id']);
             }
-            $requestData['hashtag_id'] = $hashtagId;
+
+            $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
+
+            $requestData['description'] = isset($requestData['description'])  ? $requestData['description'] : "";
+            $requestData['album_name'] = isset($requestData['album_name'])  ? $requestData['album_name'] : "";
+            $requestData['language_id'] = isset($requestData['language_id'])  ? $requestData['language_id'] : 0;
+            $requestData['category_id'] = isset($requestData['category_id'])  ? $requestData['category_id'] : 0;
+            // potrait_image
             if (isset($requestData['portrait_img'])) {
-                $file1 = $requestData['portrait_img'];
-                $requestData['portrait_img_storage_type'] = $storage_type;
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder, 'port_', $requestData['portrait_img_storage_type']);
+                $files = $requestData['portrait_img'];
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "music_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']), $request['old_portrait_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']));
             }
+            // ogtag_image
+            if (isset($requestData['ogtag_img'])) {
+                $files = $requestData['ogtag_img'];
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder, "music_");
+
+                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_ogtag_img']));
+            }
+            // landscape_image
             if (isset($requestData['landscape_img'])) {
-                $file2 = $requestData['landscape_img'];
-                $requestData['landscape_img_storage_type'] = $storage_type;
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder, 'land_', $requestData['landscape_img_storage_type']);
+                $files = $requestData['landscape_img'];
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder, "music_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']), $request['old_landscape_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']));
             }
-            if ($requestData['content_upload_type'] == 'server_video') {
-
-                if ($requestData['content_upload_type'] == $requestData['old_content_upload_type']) {
-
+            // music URL
+            if ($requestData['upload_type'] == 1) {
+                if ($requestData['upload_type'] == $requestData['old_upload_type']) {
                     if ($requestData['music']) {
-
-                        $requestData['content_storage_type'] = $storage_type;
-                        if ($storage_type == 1) {
-                            $requestData['content'] = $requestData['music'];
-                            if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
-                                $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
-                                if ($dur > 0) $requestData['content_duration'] = $dur;
-                            }
-                            $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
-                            if ($wf) $requestData['waveform_data'] = $wf;
-                        } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
+                        $requestData['music'] = $requestData['music'];
+                        if ($requestData['music'] != basename($requestData['old_music'])) {
+                            $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
                         }
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
+                    } else {
+                        $requestData['music'] = basename($requestData['old_music']);
                     }
                 } else {
-
-                    $requestData['content_storage_type'] = $storage_type;
                     if ($requestData['music']) {
-
-                        if ($storage_type == 1) {
-                            $requestData['content'] = $requestData['music'];
-                            if (empty($requestData['content_duration']) || $requestData['content_duration'] === '00:00:00') {
-                                $dur = $this->common->ExtractDuration($requestData['music'], $this->folder_ffmpeg);
-                                if ($dur > 0) $requestData['content_duration'] = $dur;
-                            }
-                            $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
-                            if ($wf) $requestData['waveform_data'] = $wf;
-                        } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
-                        }
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
+                        $requestData['music'] = $requestData['music'];
+                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
                     } else {
-                        $requestData['content'] = '';
+                        $requestData['music'] = "";
+                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
                     }
                 }
             } else {
-
-                $requestData['content_storage_type'] = $storage_type;
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $requestData['old_content_storage_type']);
-
-                $requestData['content'] = "";
+                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
+                $requestData['music'] = "";
                 if ($requestData['url']) {
-                    $requestData['content'] = $requestData['url'];
+                    $requestData['music'] = $requestData['url'];
                 }
             }
-            unset($requestData['music'], $requestData['url'], $requestData['old_content_upload_type'], $requestData['old_hashtag_id'], $requestData['old_content'], $requestData['old_portrait_img'], $requestData['old_landscape_img'], $requestData['old_portrait_img_storage_type'], $requestData['old_landscape_img_storage_type'], $requestData['old_content_storage_type']);
-            $requestData['content_duration'] = $this->common->time_to_milliseconds($requestData['content_duration']);
+            unset($requestData['old_image'], $requestData['url'], $requestData['old_music'], $requestData['old_upload_type'], $requestData['old_portrait_img'], $requestData['old_ogtag_img'], $requestData['old_landscape_img']);
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($data->id)) {
+            $music_data = Music::updateOrCreate(['id' => $requestData['id']], $requestData);
+            if (isset($music_data->id)) {
                 return response()->json(['status' => 200, 'success' => __('label.success_edit_music')]);
             } else {
-                return response()->json(['status' => 400, 'errors' => __('label.error_edit_music')]);
+                return response()->json(['status' => 400, 'errors' => __('label.music_not_updated')]);
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -321,42 +321,30 @@ class MusicController extends Controller
     {
         try {
 
-            $data = Content::where('id', $id)->first();
+            $data = Music::where('id', $id)->first();
             if (isset($data)) {
-
-                $old_hashtag = explode(',', $data['hashtag_id']);
-                Hashtag::whereIn('id', $old_hashtag)->decrement('total_used', 1);
-
-                $this->common->deleteImageToFolder($this->folder, $data['portrait_img'], $data['portrait_img_storage_type']);
-                $this->common->deleteImageToFolder($this->folder, $data['landscape_img'], $data['landscape_img_storage_type']);
-                $this->common->deleteImageToFolder($this->folder, $data['content'], $data['content_storage_type']);
+                $this->common->deleteImageToFolder($this->folder, $data['image']);
+                $this->common->deleteImageToFolder($this->folder, $data['music_url']);
                 $data->delete();
 
-                // Content Releted Data Delete
-                Comment::where('content_id', $id)->delete();
-                Content_Report::where('content_id', $id)->delete();
-                History::where('content_id', $id)->delete();
-                Notification::where('content_id', $id)->delete();
-                Content_Like::where('content_id', $id)->delete();
-                Content_View::where('content_id', $id)->delete();
-                Watch_later::where('content_id', $id)->delete();
+                Favorite::where('content_id', $id)->delete();
+                Banner::where('content_id', $id)->delete();
             }
-            return redirect()->route('admin.music.index')->with('success', __('label.music_delete'));
+
+            return redirect()->route('music.index')->with('success', __('label.success_delete_music'));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    // Status Change
-    public function changeStatus(Request $request)
+    public function changeStatus($id)
     {
         try {
 
-            $data = Content::where('id', $request['id'])->first();
-            if (isset($data)) {
-
-                $data['status'] = $data['status'] === 1 ? 0 : 1;
+            $data = Music::where('id', $id)->first();
+            if ($data) {
+                $data->status = $data->status == 1 ?  0 : 1;
                 $data->save();
-                return response()->json(['status' => 200, 'success' => __('label.status_changed'), 'status_code' => $data['status']]);
+                return response()->json(['status' => 200, 'success' => __('label.status_changed')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
             }
@@ -364,19 +352,21 @@ class MusicController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    // Save Chunk
+
     public function saveChunk()
     {
         @set_time_limit(5 * 60);
 
-        $datePath = date('Y') . '/' . date('m');
-        $targetDir = storage_path('/app/public/content/' . $datePath);
-        $cleanupTargetDir = true;
-        $maxFileAge = 5 * 3600;
+        $targetDir = storage_path('/app/public/music');
+        //$targetDir = 'uploads';
+
+        $cleanupTargetDir = true; // Remove old files
+
+        $maxFileAge = 5 * 3600; // Temp file age in seconds
 
         // Create target dir
         if (!file_exists($targetDir)) {
-            @mkdir($targetDir, 0777, true);
+            @mkdir($targetDir);
         }
 
         // Get a file name
@@ -387,26 +377,36 @@ class MusicController extends Controller
         } else {
             $fileName = uniqid("file_");
         }
-        $filePath = $targetDir . DIRECTORY_SEPARATOR . $fileName;
-
+        $category_image = $fileName;
+        $filePath = $targetDir . DIRECTORY_SEPARATOR . $category_image;
         // Chunking might be enabled
+
         $chunk = isset($_REQUEST["chunk"]) ? intval($_REQUEST["chunk"]) : 0;
         $chunks = isset($_REQUEST["chunks"]) ? intval($_REQUEST["chunks"]) : 0;
-
         // Remove old temp files
-        if ($cleanupTargetDir && is_dir($targetDir) && $dir = opendir($targetDir)) {
+
+        if ($cleanupTargetDir) {
+            if (!is_dir($targetDir) || !$dir = opendir($targetDir)) {
+                die('{"jsonrpc" : "2.0", "error" : {"code": 100, "message": "Failed to open temp directory."}, "id" : "id"}');
+            }
+
             while (($file = readdir($dir)) !== false) {
                 $tmpfilePath = $targetDir . DIRECTORY_SEPARATOR . $file;
+                // If temp file is current file proceed to the next
+                if ($tmpfilePath == "{$filePath}.part") {
+                    continue;
+                }
+
+                // Remove temp file if it is older than the max age and is not the current file
                 if (preg_match('/\.part$/', $file) && (filemtime($tmpfilePath) < time() - $maxFileAge)) {
                     @unlink($tmpfilePath);
                 }
             }
             closedir($dir);
-        } else {
-            die('{"jsonrpc" : "2.0", "error" : {"code": 100, "message": "Failed to open temp directory."}, "id" : "id"}');
         }
 
         // Open temp file
+
         if (!$out = @fopen("{$filePath}.part", $chunks ? "ab" : "wb")) {
             die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
         }
@@ -415,6 +415,8 @@ class MusicController extends Controller
             if ($_FILES["file"]["error"] || !is_uploaded_file($_FILES["file"]["tmp_name"])) {
                 die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "id"}');
             }
+
+            // Read binary input stream and append it to temp file
             if (!$in = @fopen($_FILES["file"]["tmp_name"], "rb")) {
                 die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
             }
@@ -430,20 +432,23 @@ class MusicController extends Controller
 
         @fclose($out);
         @fclose($in);
-
         // Check if file has been uploaded
         if (!$chunks || $chunk == $chunks - 1) {
+            // Strip the temp .part suffix off
             rename("{$filePath}.part", $filePath);
 
-            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-            $newFileName = 'music' . date('_Y_m_d_') . uniqid() . '.' . $extension;
+            // Generate a new filename based on the current date and time
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION); // Get the file extension from the original filename
+            $newFileName = 'music' . date('_d_m_Y_') . rand(1111, 9999) . '.' . $extension; // Use the extracted extension
             $newFilePath = $targetDir . DIRECTORY_SEPARATOR . $newFileName;
 
+            // Rename the uploaded file to the new filename
             rename($filePath, $newFilePath);
 
-            die(json_encode(array('jsonrpc' => '2.0', 'result' => $datePath . '/' . $newFileName, 'id' => 'id')));
+            // Send the new file name back to the client
+            die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
         }
-
+        // Return Success JSON-RPC response
         die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');
     }
 }

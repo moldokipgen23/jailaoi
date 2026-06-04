@@ -2,11 +2,10 @@
 
 namespace App\Providers;
 
-use App\Models\Storage_Setting;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use App\Models\Smtp;
+use Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,21 +28,24 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
 
-        // Set dynamic AWS S3 config from DB/cache
-        $storage = Cache::rememberForever('s3_storage_settings', function () {
-            return Storage_Setting::first();
-        });
+        // $smtp = Smtp::first();
+        // if (isset($smtp) && $smtp != null && $smtp != false && $smtp['status'] == 1) {
 
-        if ($storage) {
-            Config::set('filesystems.disks.s3', [
-                'driver' => 's3',
-                'key'    => $storage['s3_access_key'],
-                'secret' => $storage['s3_secret_key'],
-                'region' => $storage['s3_region'],
-                'bucket' => $storage['s3_bucket_name'],
-                'use_path_style_endpoint' => false,
-                'throw' => false,
-            ]);
-        }
+        //     if ($smtp) {
+        //         $data = [
+        //             'driver' => 'smtp',
+        //             'host' => $smtp->host,
+        //             'port' => $smtp->port,
+        //             'encryption' => 'tls',
+        //             'username' => $smtp->user,
+        //             'password' => $smtp->pass,
+        //             'from' => [
+        //                 'address' => $smtp->from_email,
+        //                 'name' => env('APP_NAME'),
+        //             ]
+        //         ];
+        //         Config::set('mail', $data);
+        //     }
+        // }
     }
 }

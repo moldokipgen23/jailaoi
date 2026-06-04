@@ -89,32 +89,34 @@ class InstallController extends Controller
         return redirect()->route('step0');
     }
     public function purchase_code(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'user_name' => 'required',
-                'purchase_code' => 'required',
-            ]);
-            if ($validator->fails()) {
-                $errs = $validator->errors()->first();
-                session()->flash('error', $errs);
-                return redirect()->route('step2', ['token' => bcrypt('step_2')]);
-            }
-
-            Set_Environment_Value('PURCHASE_CODE', $request[base64_decode('cHVyY2hhc2VfY29kZQ==')]);
-            Set_Environment_Value('BUYER_USERNAME', 'buyer');
-            Set_Environment_Value('PURCHASE_STATUS', 1);
-
-            return redirect()->route('step3', ['token' => bcrypt('step_3')]);
-        } catch (Exception $e) {
-            session()->flash('error', $e->getMessage());
-            return back();
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'user_name' => 'required',
+            'purchase_code' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $errs = $validator->errors()->first();
+            session()->flash('error', $errs);
+            return redirect()->route('step2', ['token' => bcrypt('step_2')]);
         }
+
+        // BYPASS: skip API verify, save fake purchase data
+        $this->common->setEnvironmentValue('PURCHASE_CODE', $request['purchase_code']);
+        $this->common->setEnvironmentValue('BUYER_USERNAME', $request['user_name']);
+        $this->common->setEnvironmentValue('PURCHASE_STATUS', 0);
+
+        return redirect()->route('step3', ['token' => bcrypt('step_3')]);
+    } catch (Exception $e) {
+        session()->flash('error', $e->getMessage());
+        return back();
     }
-    public function update_purchase_code()
-    {
-		return redirect()->route('step3', ['token' => bcrypt('step_3')]);
-    }
+}
+
+public function update_purchase_code()
+{
+    return redirect()->route('step3', ['token' => bcrypt('step_3')]);
+}
 
     // Step 3
     public function step3(Request $request)
@@ -315,7 +317,7 @@ class InstallController extends Controller
             session()->flash('error', __('label.access_denied'));
             return redirect()->route('step0');
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
     public function import_sql()
@@ -327,7 +329,7 @@ class InstallController extends Controller
                 Schema::drop($table_array[key($table_array)]);
             }
 
-            $sql_path = base_path('db/dt_tube.sql'); // rename file later if needed
+            $sql_path = base_path('db/dt_radio.sql');
             if (file_exists($sql_path)) {
 
                 DB::unprepared(file_get_contents($sql_path));

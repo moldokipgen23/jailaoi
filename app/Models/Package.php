@@ -15,17 +15,16 @@ class Package extends Model
     protected $casts = [
         'id' => 'integer',
         'name' => 'string',
-        'price' => 'integer',
-        'storage_type' => 'integer',
         'image' => 'string',
+        'price' => 'string',
         'time' => 'string',
         'type' => 'string',
-        'ads_free' => 'integer',
-        'download_content' => 'integer',
-        'background_play' => 'integer',
         'android_product_package' => 'string',
         'ios_product_package' => 'string',
         'web_product_package' => 'string',
+        'color' => 'string',
+        'device_limit' => 'integer',
+        'is_download' => 'integer',
         'status' => 'integer',
     ];
 }

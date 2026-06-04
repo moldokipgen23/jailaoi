@@ -20,31 +20,12 @@ class FaceBookAdsSettingController extends Controller
     {
         try {
 
-            $params['result'] = Setting_Data();
-            if ($params['result']) {
-                return view('admin.facebook_ads.index', $params);
+            $data = Setting_Data();
+            if ($data) {
+                return view('admin.facebook_ads.index', ['result' => $data]);
             } else {
-                return redirect()->back()->with('error', __('label.data_not_found'));
+                return redirect()->back()->with('error', __('label.page_not_found'));
             }
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function facebookadStatus(Request $request)
-    {
-        try {
-
-            $data = $request->all();
-            $data['facebook_ads_status'] = $data['facebook_ads_status'] ?? 0;
-
-            foreach ($data as $key => $value) {
-                $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
-                    $setting->save();
-                }
-            }
-            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -54,20 +35,22 @@ class FaceBookAdsSettingController extends Controller
         try {
 
             $data = $request->all();
-            $data['fb_native_id'] = $data['fb_native_id'] ?? '';
-            $data['fb_banner_id'] = $data['fb_banner_id'] ?? '';
-            $data['fb_interstiatial_id'] = $data['fb_interstiatial_id'] ?? '';
-            $data['fb_rewardvideo_id'] = $data['fb_rewardvideo_id'] ?? '';
-            $data['fb_native_full_id'] = $data['fb_native_full_id'] ?? '';
+            $data["fb_native_id"] = isset($data['fb_native_id']) ? $data['fb_native_id'] : '';
+            $data["fb_banner_id"] = isset($data['fb_banner_id']) ? $data['fb_banner_id'] : '';
+            $data["fb_native_full_id"] = isset($data['fb_native_full_id']) ? $data['fb_native_full_id'] : '';
+            $data["fb_rewardvideo_id"] = isset($data['fb_rewardvideo_id']) ? $data['fb_rewardvideo_id'] : '';
+            $data["fb_reward_adclick"] = isset($data['fb_reward_adclick']) ? $data['fb_reward_adclick'] : '';
+            $data["fb_interstiatial_id"] = isset($data['fb_interstiatial_id']) ? $data['fb_interstiatial_id'] : '';
+            $data["fb_interstital_adclick"] = isset($data['fb_interstital_adclick']) ? $data['fb_interstital_adclick'] : '';
 
             foreach ($data as $key => $value) {
                 $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
+                if (isset($setting->id)) {
+                    $setting->value = $value;
                     $setting->save();
                 }
             }
-            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
+            return response()->json(array('status' => 200, 'success' => __('label.save_setting')));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -77,20 +60,22 @@ class FaceBookAdsSettingController extends Controller
         try {
 
             $data = $request->all();
-            $data['fb_ios_native_id'] = $data['fb_ios_native_id'] ?? '';
-            $data['fb_ios_banner_id'] = $data['fb_ios_banner_id'] ?? '';
-            $data['fb_ios_interstiatial_id'] = $data['fb_ios_interstiatial_id'] ?? '';
-            $data['fb_ios_rewardvideo_id'] = $data['fb_ios_rewardvideo_id'] ?? '';
-            $data['fb_ios_native_full_id'] = $data['fb_ios_native_full_id'] ?? '';
+            $data["fb_ios_native_id"] = isset($data['fb_ios_native_id']) ? $data['fb_ios_native_id'] : '';
+            $data["fb_ios_banner_id"] = isset($data['fb_ios_banner_id']) ? $data['fb_ios_banner_id'] : '';
+            $data["fb_ios_native_full_id"] = isset($data['fb_ios_native_full_id']) ? $data['fb_ios_native_full_id'] : '';
+            $data["fb_ios_rewardvideo_id"] = isset($data['fb_ios_rewardvideo_id']) ? $data['fb_ios_rewardvideo_id'] : '';
+            $data["fb_ios_reward_adclick"] = isset($data['fb_ios_reward_adclick']) ? $data['fb_ios_reward_adclick'] : '';
+            $data["fb_ios_interstiatial_id"] = isset($data['fb_ios_interstiatial_id']) ? $data['fb_ios_interstiatial_id'] : '';
+            $data["fb_ios_interstital_adclick"] = isset($data['fb_ios_interstital_adclick']) ? $data['fb_ios_interstital_adclick'] : '';
 
             foreach ($data as $key => $value) {
                 $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
+                if (isset($setting->id)) {
+                    $setting->value = $value;
                     $setting->save();
                 }
             }
-            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
+            return response()->json(array('status' => 200, 'success' => __('label.save_setting')));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

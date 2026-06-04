@@ -3,29 +3,29 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Common;
+use App\Models\Artist;
+use App\Models\Song;
 use App\Models\User;
-use App\Models\General_Setting;
-use App\Models\Category;
-use App\Models\Coin_Package;
-use App\Models\Coin_Transaction;
-use App\Models\Content;
-use App\Models\Gift;
-use App\Models\Hashtag;
 use App\Models\Language;
+use App\Models\Page;
 use App\Models\Package;
-use App\Models\Rent_Transaction;
-use App\Models\Subscriber;
 use App\Models\Transaction;
-use App\Models\Withdrawal_Request;
+use App\Models\City;
+use App\Models\Category;
+use App\Models\Podcast;
+use App\Models\Common;
+use App\Models\Event_Join_User;
+use App\Models\Live_Event;
+use App\Models\Music;
 use Exception;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class DashboardController extends Controller
 {
-    private $folder_content = "content";
-    private $folder_user = "user";
-    private $folder_category = "category";
+    private $folder_song = "song";
+    private $folder_city = "city";
+    private $folder_language = "language";
+    private $folder_podcast = "podcast";
     public $common;
     public function __construct()
     {
@@ -36,150 +36,94 @@ class DashboardController extends Controller
     {
         try {
 
-            // Expiry
-            $this->common->package_expiry();
-            $this->common->rent_expiry();
-
-            // Content toggle settings
-            $setting = [];
-            $settingRows = General_Setting::whereIn('key', ['video_status'])->pluck('value', 'key');
-            $videoEnabled = ($settingRows['video_status'] ?? '1') === '1';
-
-            // Counter Card
             $params['UserCount'] = User::count();
-            $params['CategoryCount'] = Category::count();
+            $params['ArtistCount'] = Artist::count();
+            $params['SongCount'] = Song::count();
+            $params['MusicCount'] = Music::count();
             $params['LanguageCount'] = Language::count();
-            $params['HashtagCount'] = Hashtag::count();
-            $params['VideoCount'] = $videoEnabled ? Content::where('content_type', 1)->count() : 0;
-            $params['MusicCount'] = Content::where('content_type', 2)->count();
-            $params['PodcastsCount'] = Content::where('content_type', 4)->count();
-            $params['PlaylistCount'] = Content::where('content_type', 5)->count();
-            $params['RadioCount'] = Content::where('content_type', 6)->count();
-            $params['GiftCount'] = Gift::count();
-            $params['video_enabled'] = $videoEnabled;
+            $params['CategoryCount'] = Category::count();
+            $params['PodcastCount'] = Podcast::count();
+            $params['CurrentMounthCount'] = Transaction::whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->sum('price');
+            $params['TransactionCount'] = Transaction::sum('price');
+            $params['PackageCount'] = Package::count();
+            $params['LiveEventCount'] = Live_Event::count();
+            $params['LiveEventEarningCount'] = Event_Join_User::sum('price');
 
             // User Statistice
-            $user_data = [];
+            $user_year = [];
             $user_month = [];
-            $d = cal_days_in_month(CAL_GREGORIAN, date('m'), date('Y'));
+            $d = date('t', mktime(0, 0, 0, date('m'), 1, date('Y')));
+
             for ($i = 1; $i < 13; $i++) {
                 $Sum = User::whereYear('created_at', date('Y'))->whereMonth('created_at', $i)->count();
-                $user_data['sum'][] = (int) $Sum;
+                $user_year['sum'][] = (int) $Sum;
             }
             for ($i = 1; $i <= $d; $i++) {
+
                 $Sum = User::whereYear('created_at', date('Y'))->whereMonth('created_at', date('m'))->whereDay('created_at', $i)->count();
                 $user_month['sum'][] = (int) $Sum;
             }
-            $params['user_year'] = json_encode($user_data);
+            $params['user_year'] = json_encode($user_year);
             $params['user_month'] = json_encode($user_month);
 
-            // Most Subscriber
-            $params['top_subscriber'] = Subscriber::select('to_user_id', 'to_user_id as user_id', DB::raw('count(*) as total_subscriber'))->groupBy('to_user_id')->orderBy('total_subscriber', 'desc')->with('to_user')->take(5)->get();
-            for ($i = 0; $i < count($params['top_subscriber']); $i++) {
-                if ($params['top_subscriber'][$i]['to_user'] != null && isset($params['top_subscriber'][$i]['to_user'])) {
-                    $this->common->imageNameToUrl(array($params['top_subscriber'][$i]['to_user']), 'image', $this->folder_user, 'image_storage_type');
+            // Best City
+            $params['best_city'] = City::orderBy('id', 'desc')->take(8)->get();
+            $this->common->imageNameToUrl($params['best_city'], 'image', $this->folder_city);
+
+            // Most Play Song
+            $params['most_play_song'] = Song::orderBy('total_play', 'desc')->latest()->take(6)->get();
+            $this->common->imageNameToUrl($params['most_play_song'], 'image', $this->folder_song);
+
+            // package 
+            $subscription = Package::where('status', 1)->get();
+            $pack_data = [];
+            $pack_name = [];
+
+            foreach ($subscription as $row) {
+                $pack_name[] = ucfirst($row->name);
+                $d = date('t');
+
+                for ($i = 1; $i < 13; $i++) {
+                    $sum = Transaction::where('package_id', $row->id)->whereYear('created_at', date('Y'))->whereMonth('created_at', $i)->sum('price');
+
+                    $pack_data[ucfirst($row->name)]['sum'][] = (int)$sum;
                 }
             }
+            $params['pack_data'] = json_encode($pack_data);
+            $params['pack_name'] = json_encode($pack_name);
 
-            // Most Like Content
-            $params['top_video_like'] = $videoEnabled ? Content::where('content_type', 1)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get() : [];
-            $params['top_music_like'] = Content::where('content_type', 2)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_podcasts_like'] = Content::where('content_type', 4)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_radio_like'] = Content::where('content_type', 6)->orderBy('total_like', 'desc')->where('status', 1)->take(5)->get();
-            $this->common->imageNameToUrl($params['top_video_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_music_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_podcasts_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_radio_like'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
+            // Best Language
+            $params['best_language'] = Language::orderBy('id', 'desc')->take(8)->get();
+            $this->common->imageNameToUrl($params['best_language'], 'image', $this->folder_language);
 
-            // Most View Content
-            $params['top_video_view'] = $videoEnabled ? Content::where('content_type', 1)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get() : [];
-            $params['top_music_view'] = Content::where('content_type', 2)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_podcasts_view'] = Content::where('content_type', 4)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
-            $params['top_radio_view'] = Content::where('content_type', 6)->orderBy('total_view', 'desc')->where('status', 1)->take(5)->get();
-            $this->common->imageNameToUrl($params['top_video_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_music_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_podcasts_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-            $this->common->imageNameToUrl($params['top_radio_view'], 'portrait_img', $this->folder_content, 'portrait_img_storage_type');
-
-            // Best Category
-            $params['best_category'] = Category::orderBy('id', 'desc')->take(8)->get();
-            $this->common->imageNameToUrl($params['best_category'], 'image', $this->folder_category);
-
-            // Most Used Hashtag
-            $params['most_used_hashtag'] = Hashtag::orderBy('total_used', 'desc')->take(8)->get();
+            // Most Play Podcast
+            $params['most_play_podcasts'] = Podcast::orderBy('total_play', 'desc')->latest()->take(6)->get();
+            $this->common->imageNameToUrl($params['most_play_podcasts'], 'portrait_img', $this->folder_podcast);
 
             return view('admin.dashboard.dashboard', $params);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    public function earningDashboard()
+
+    public function Page()
     {
         try {
 
-            // Counter Card
-            $params['PackageCount'] = Package::count();
-            $params['CoinPackageCount'] = Coin_Package::count();
-            $params['TotalMonthRentRevenueCount'] = Rent_Transaction::whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->sum('price');
-            $params['TotalRentRevenueCount'] = Rent_Transaction::whereYear('created_at', date('Y'))->sum('price');
-            $params['CurrentMonthCount'] = Transaction::whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->sum('price');
-            $params['CurrentMonthCoinCount'] = Coin_Transaction::whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->sum('price');
-            $params['TotalMonthRentEarningCount'] = Rent_Transaction::whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'))->sum('admin_commission');
-            $params['TotalRentEarningCount'] = Rent_Transaction::sum('admin_commission');
-            $params['TransactionCount'] = Transaction::whereYear('created_at', date('Y'))->sum('price');
-            $params['CoinTransactionCount'] = Coin_Transaction::whereYear('created_at', date('Y'))->sum('price');
-            $params['PendingWithdrawalCount'] = Withdrawal_Request::where('status', 0)->sum('amount');
-            $params['CompletedWithdrawalCount'] = Withdrawal_Request::where('status', 1)->sum('amount');
+            $currentURL = URL::current();
 
-            // Package Statistice
-            $subscription = Package::get();
-            $pack_data = [];
-            foreach ($subscription as $row) {
+            $link_array = explode('/', $currentURL);
+            $page = urldecode(end($link_array));
 
-                $sum = array();
-                for ($i = 1; $i < 13; $i++) {
-                    $Sum = Transaction::where('package_id', $row['id'])->whereYear('created_at', date('Y'))->whereMonth('created_at', $i)->sum('price');
-                    $sum[] = (int) $Sum;
-                }
-                $pack_data['label'][] = $row['name'];
-                $pack_data['sum'][] = $sum;
+            $params['result'] = Page::where('title', $page)->first();
+
+            $params['settings'] = Setting_Data();
+
+            if (isset($params['result'])) {
+                return view('page', $params);
+            } else {
+                return view('errors.404');
             }
-            $params['package'] = json_encode($pack_data);
-
-            // Rent Earning Statistice
-            $rent_data = [];
-            for ($i = 1; $i < 13; $i++) {
-                $Sum = Rent_Transaction::whereYear('created_at', date('Y'))->whereMonth('created_at', $i)->sum('price');
-                $rent_data['sum'][] = (int) $Sum;
-            }
-            $months = [];
-            for ($i = 1; $i <= 12; $i++) {
-                $months[] = date('F', mktime(0, 0, 0, $i, 10));  // Full month names (January, February, ...)
-            }
-            $params['rent_earning'] = json_encode($rent_data);
-            $params['months'] = json_encode($months);
-
-            // Coin Package Statistice
-            $coin_subscription = Coin_Package::get();
-            $coin_pack_data = [];
-            foreach ($coin_subscription as $row) {
-
-                $sum = array();
-                for ($i = 1; $i < 13; $i++) {
-                    $Sum = Coin_Transaction::where('package_id', $row->id)->whereYear('created_at', date('Y'))->whereMonth('created_at', $i)->sum('price');
-                    $sum[] = (int) $Sum;
-                }
-                $coin_pack_data['label'][] = $row->name;
-                $coin_pack_data['sum'][] = $sum;
-            }
-            $params['coin_package'] = json_encode($coin_pack_data);
-
-            // Withdrawal Statistice
-            $withdrawal_data['sum'][0] = (int) Withdrawal_Request::whereYear('created_at', date('Y'))->where('status', 0)->sum('amount');
-            $withdrawal_data['sum'][1] = (int) Withdrawal_Request::whereYear('created_at', date('Y'))->where('status', 1)->sum('amount');
-            $params['withdrawal_earning'] = json_encode($withdrawal_data);
-
-            return view('admin.dashboard.earning_dashboard', $params);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

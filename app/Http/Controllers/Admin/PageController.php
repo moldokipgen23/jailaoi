@@ -9,11 +9,10 @@ use App\Models\General_Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
-use Illuminate\Support\Facades\URL;
 
 class PageController extends Controller
 {
-    private $folder = "setting";
+    private $folder_app = "app";
     public $common;
     public function __construct()
     {
@@ -23,53 +22,52 @@ class PageController extends Controller
     public function index(Request $request)
     {
         try {
+
             $params['data'] = [];
             $params['setting_data'] = Setting_Data();
 
             if ($request->ajax()) {
 
-                $query = Page::query();
-
                 $input_search = $request['input_search'];
-                if ($input_search != null) {
-                    $query->where('title', 'LIKE', "%{$input_search}%");
+                if (!empty($input_search)) {
+                    $data = Page::where('title', 'LIKE', "%{$input_search}%")->latest()->get();
+                } else {
+                    $data = Page::latest()->get();
                 }
-                $data = $query->latest()->get();
 
-                $this->common->imageNameToUrl($data, 'icon', $this->folder);
+                $this->common->imageNameToUrl($data, 'icon', $this->folder_app);
 
                 return DataTables()::of($data)
                     ->addIndexColumn()
+                    ->addColumn('status', function ($row) {
+                        $status = $row->status == 1 ? "checked" : "";
+                        return '<div class="switch">
+                                    <input class="status-checkbox" id="checkbox' . $row->id . '" data-id="' . $row->id . '" type="checkbox" ' . $status . '>
+                                    <label for="checkbox' . $row->id . '"></label>
+                                      <span class="toggle-text"
+                                        data-on="' . __('label.show') . '"
+                                        data-off="' . __('label.hide') . '"></span>
+                                    </div>';
+                    })
                     ->addColumn('action', function ($row) {
 
-                        $page_delete = __('label.delete_page');
+                        $delete = '<form onsubmit="return confirm(\'' . __('label.delete_page') . '\');" method="POST"  action="' . route('page.destroy', [$row->id]) . '">
+                                <input type="hidden" name="_token" value="' . csrf_token() . '">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="edit-delete-btn"  title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
 
-                        $delete = '<form onsubmit="return confirm(\'' . $page_delete . '\');" method="POST" action="' . route('admin.page.destroy', [$row->id]) . '">
-                            <input type="hidden" name="_token" value="' . csrf_token() . '">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="edit-delete-btn" style="outline: none;"><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
-
-                        $btn = '<div class="d-flex justify-content-around">';
-                        $btn .= '<a href="' . route('page.view', [$row->title]) . '" class="edit-delete-btn mr-2" target="_blank">';
-                        $btn .= '<i class="fa-regular fa-eye fa-xl"></i>';
-                        $btn .= '</a>';
-                        $btn .= '<a href="' . route('admin.page.edit', [$row->id]) . '" class="edit-delete-btn mr-2">';
+                        $btn = '<div class="d-flex justify-content-center">';
+                        $btn .= '<a href="' . route('page.edit', [$row->id]) . '" class="edit-delete-btn mr-4" title=' . __('label.edit') . '>';
                         $btn .= '<i class="fa-solid fa-pen-to-square fa-xl"></i>';
+                        $btn .= '</a>';
+                        $btn .= '<a href="' . route('admin.pages', $row->title) . '" class="edit-delete-btn mr-4" target="_blank" title="View">';
+                        $btn .= '<i class="fa-regular fa-eye fa-xl"></i>';
                         $btn .= '</a>';
                         $btn .= $delete;
                         $btn .= '</a></div>';
                         return $btn;
                     })
-                    ->addColumn('status', function ($row) {
-                        if ($row->status == 1) {
-                            $showLabel = __('label.show');
-                            return "<button type='button' id='$row->id' onclick='change_status($row->id)' class='show-btn'>$showLabel</button>";
-                        } else {
-                            $hideLabel = __('label.hide');
-                            return "<button type='button' id='$row->id' onclick='change_status($row->id)' class='hide-btn'>$hideLabel</button>";
-                        }
-                    })
-                    ->rawColumns(['action', 'status'])
+                    ->rawColumns(['status', 'action'])
                     ->make(true);
             }
             return view('admin.page.index', $params);
@@ -80,7 +78,7 @@ class PageController extends Controller
     public function create()
     {
         try {
-            $params['data'] = [];
+
             $params['settings'] = Setting_Data();
             return view('admin.page.add', $params);
         } catch (Exception $e) {
@@ -90,24 +88,25 @@ class PageController extends Controller
     public function store(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
-                'title' => 'required',
+                'title' => 'required|min:2',
                 'description' => 'required',
-                'icon' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+                'icon' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $page = new Page();
-            $page['storage_type'] = Storage_Type();
-            $page['title'] = $request['title'];
-            $page['description'] = $request['description'];
-            $file = $request['icon'];
-            $page['icon'] = $this->common->saveImage($file, $this->folder, 'page_', $page['storage_type']);
-            $page['status'] = 1;
-            if ($page->save()) {
+            $requestData = $request->all();
+            if (isset($requestData['icon'])) {
+                $files = $requestData['icon'];
+                $requestData['icon'] = $this->common->saveImage($files, $this->folder_app, 'page_');
+            }
+
+            $page_data = Page::updateOrCreate(['id' => $requestData['id']], $requestData);
+            if (isset($page_data->id)) {
                 return response()->json(['status' => 200, 'success' => __('label.success_add_page')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_add_page')]);
@@ -121,14 +120,15 @@ class PageController extends Controller
         try {
 
             $params['data'] = Page::where('id', $id)->first();
+
             if ($params['data'] != null) {
 
                 $params['settings'] = Setting_Data();
-                $this->common->imageNameToUrl(array($params['data']), 'icon', $this->folder);
+                $this->common->imageNameToUrl(array($params['data']), 'icon', $this->folder_app);
 
                 return view('admin.page.edit', $params);
             } else {
-                return view('errors.404');
+                return redirect()->back()->with('error', __('label.page_not_found'));
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -137,35 +137,84 @@ class PageController extends Controller
     public function update(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required',
                 'description' => 'required',
-                'icon' => 'image|mimes:jpeg,png,jpg|max:5120',
+                'icon' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
-            $page = Page::where('id', $request['id'])->first();
-            if (isset($page['id'])) {
+            $page = Page::where('id', $request->id)->first();
 
-                $page['title'] = $request['title'];
-                $page['description'] = $request['description'];
-                if (isset($request['icon'])) {
+            if (isset($page->id)) {
 
-                    $file = $request['icon'];
-                    $page['storage_type'] = Storage_Type();
-                    $page['icon'] = $this->common->saveImage($file, $this->folder, 'page_', $page['storage_type']);
+                $page->title = $request->title;
+                $page->description = $request->description;
+                $page->status = 1;
 
-                    $this->common->deleteImageToFolder($this->folder, basename($request['old_icon']), $request['old_storage_type']);
+                if (isset($request->icon)) {
+                    $files = $request->icon;
+                    $page->icon = $this->common->saveImage($files, $this->folder_app, "pages_");
+
+                    $this->common->deleteImageToFolder($this->folder_app, basename($request->old_icon));
                 }
 
                 if ($page->save()) {
                     return response()->json(['status' => 200, 'success' => __('label.success_edit_page')]);
                 } else {
-                    return response()->json(['status' => 400, 'errors' => __('label.error_edit_page')]);
+                    return response()->json(['status' => 400, 'errors' => __('label.page_not_updated')]);
                 }
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+    public function save_setting(Request $request)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'background_color' => 'required',
+                'title_color' => 'required',
+            ]);
+            if ($validator->fails()) {
+                $errs = $validator->errors()->all();
+                return response()->json(array('status' => 400, 'errors' => $errs));
+            }
+
+            $data = $request->all();
+            $data["page_background_color"] = isset($data['background_color']) ? $data['background_color'] : '';
+            $data["page_title_color"] = isset($data['title_color']) ? $data['title_color'] : '';
+
+            foreach ($data as $key => $value) {
+                $setting = General_Setting::where('key', $key)->first();
+                if (isset($setting->id)) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.data_edit_successfully')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+
+            $data = Page::where('id', $id)->first();
+            if ($data) {
+                $data->status = $data->status == 1 ? 0 : 1;
+                $data->save();
+
+                return response()->json(['status' => 200, 'success' => __('label.status_changed')]);
+            } else {
+                return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -176,76 +225,12 @@ class PageController extends Controller
         try {
 
             $data = Page::where('id', $id)->first();
-            if (isset($data)) {
-                $this->common->deleteImageToFolder($this->folder, $data['icon'], $data['storage_type']);
+
+            if ($data) {
+                $this->common->deleteImageToFolder($this->folder_app, $data['image']);
                 $data->delete();
             }
-            return redirect()->route('admin.page.index')->with('success', __('label.page_delete'));
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function show($id)
-    {
-        try {
-
-            $data = Page::where('id', $id)->first();
-            if (isset($data)) {
-
-                $data['status'] = $data['status'] === 1 ? 0 : 1;
-                $data->save();
-                return response()->json(['status' => 200, 'success' => __('label.status_changed'), 'status_code' => $data['status']]);
-            } else {
-                return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
-            }
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function page_layout(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'background_color' => 'required',
-                'title_color' => 'required',
-            ]);
-            if ($validator->fails()) {
-                $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
-            }
-
-            $data = $request->all();
-            $data['page_background_color'] = isset($data['background_color']) ? $data['background_color'] : '';
-            $data['page_title_color'] = isset($data['title_color']) ? $data['title_color'] : '';
-
-            foreach ($data as $key => $value) {
-                $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
-                    $setting->save();
-                }
-            }
-            return response()->json(['status' => 200, 'success' => __('label.success_edit_page_layout')]);
-        } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
-        }
-    }
-    public function page_view()
-    {
-        try {
-            $currentURL = URL::current();
-
-            $link_array = explode('/', $currentURL);
-            $page = urldecode(end($link_array));
-
-            $params['result'] = Page::where('title', $page)->first();
-            if (isset($params['result'])) {
-
-                $params['settings'] = Setting_Data();
-                return view('page', $params);
-            } else {
-                return view('errors.404');
-            }
+            return redirect()->route('page.index')->with('success', __('label.success_delete_category'));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

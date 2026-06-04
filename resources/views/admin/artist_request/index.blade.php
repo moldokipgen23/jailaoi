@@ -57,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Reject Modal -->
     <div class="modal fade" id="RejectModal" tabindex="-1" data-backdrop="static" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -125,24 +124,17 @@
 
     $(document).on('click', '.approve_request', function() {
         var requestId = $(this).data('id');
-        var btn = $(this);
-        confirmAction({
-            title: '{{__("label.approve")}}',
-            message: '{{__("label.approve")}} this request?',
-            btnText: '{{__("label.approve")}}',
-            btnClass: 'btn-success',
-            onConfirm: function() {
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('admin.artist-requests.approve') }}",
-                    data: {
-                        request_id: requestId,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function(res) {
-                        if (res.status == 200) {
-                            toastr.success(res.success);
-                            $('#datatable').DataTable().draw();
+        $.ajax({
+            type: 'POST',
+            url: "{{ route('admin.artist-requests.approve') }}",
+            data: {
+                request_id: requestId,
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(res) {
+                if (res.status == 200) {
+                    toastr.success(res.success);
+                    $('#datatable').DataTable().draw();
                 } else {
                     toastr.error(res.errors);
                 }

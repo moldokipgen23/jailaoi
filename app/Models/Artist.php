@@ -17,6 +17,8 @@ class Artist extends Model
         'name' => 'string',
         'image' => 'string',
         'bio' => 'string',
+        'type' => 'integer',
+        'sort_order' => 'integer',
         'status' => 'integer',
         'user_id' => 'integer',
     ];
@@ -24,10 +26,5 @@ class Artist extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function content()
-    {
-        return $this->hasManyThrough(Content::class, User::class, 'id', 'channel_id', 'user_id', 'channel_id');
     }
 }

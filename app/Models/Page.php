@@ -16,7 +16,6 @@ class Page extends Model
         'id' => 'integer',
         'title' => 'string',
         'description' => 'string',
-        'storage_type' => 'integer',
         'icon' => 'string',
         'status' => 'integer',
     ];

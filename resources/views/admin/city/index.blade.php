@@ -1,0 +1,384 @@
+@extends('admin.layout.page-app')
+@section('page_title', __('label.city'))
+
+@section('content')
+@include('admin.layout.sidebar')
+
+<div class="right-content">
+    @include('admin.layout.header')
+
+    <div class="body-content">
+        <!-- mobile title -->
+        <h1 class="page-title-sm"> {{__('label.category')}} </h1>
+
+        <div class="border-bottom row mb-3">
+            <div class="col-sm-11">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{__('label.city')}}</li>
+                </ol>
+            </div>
+            <div class="col-sm-1 d-flex justify-content-start mb-3" title="{{__('label.sortable')}}">
+                <button type="button" data-toggle="modal" data-target="#sortableModal" class="btn btn-default rounded-10">
+                    <i class="fa-solid fa-sort fa-1x"></i>
+                </button>
+            </div>
+        </div>
+        <!-- add city -->
+        <div class="card custom-border-card mt-3">
+            <h5 class="card-header">{{__('label.add_city')}}</h5>
+            <div class="card-body">
+                <form id="city" enctype="multipart/form-data">
+                    <input type="hidden" name="id">
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{__('label.name')}}<span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" placeholder="{{__('label.city_here')}}" autofocus>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group ml-5">
+                                <label class="ml-5">{{__('label.image')}}<span class="text-danger">*</span></label>
+                                <div class="avatar-upload ml-5">
+                                    <div class="avatar-edit">
+                                        <input type='file' name="image" id="imageUpload" accept=".png, .jpg, .jpeg" />
+                                        <label for="imageUpload" title="Select File"></label>
+                                    </div>
+                                    <div class="avatar-preview">
+                                        <img src="{{asset('assets/imgs/upload_img.png')}}" alt="upload_img.png" id="imagePreview">
+                                    </div>
+                                </div>
+                                <label class="mt-3 ml-5 text-gray">{{__('label.image_note')}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-top pt-3 text-right">
+                        <button type="button" class="btn btn-default mw-120" onclick="save_city()">{{__('label.save')}}</button>
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- search && table -->
+        <div class="card custom-border-card mt-3">
+            <div class="page-search mb-3">
+                <div class="input-group" title="Search">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-magnifying-glass fa-xl light-gray"></i></span>
+                    </div>
+                    <input type="text" id="input_search" class="form-control" placeholder="{{__('label.search_city')}}" aria-label="Search" aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="table-responsive table">
+                <table class="table table-striped text-center table-bordered" id="datatable">
+                    <thead>
+                        <tr class="bg-table">
+                            <th> {{__('label.#')}} </th>
+                            <th> {{__('label.image')}} </th>
+                            <th> {{__('label.name')}} </th>
+                            <th> {{__('label.status')}} </th>
+                            <th> {{__('label.action')}} </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- edit model -->
+        <div class="modal fade" id="EditModel" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="exampleModallabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModallabel">{{__('label.edit_city')}}</h5>
+                        <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="edit_city" autocomplete="off">
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label>{{__('label.name')}}<span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="edit_name" class="form-control" placeholder="{{__('label.city_here')}}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group ">
+                                        <label class="">{{__('label.thumbnail_image')}}<span class="text-danger">*</span></label>
+                                        <div class="avatar-upload">
+                                            <div class="avatar-edit">
+                                                <input type='file' name="image" id="imageUploadModel" accept=".png, .jpg, .jpeg" />
+                                                <label for="imageUploadModel" title="Select File"></label>
+                                            </div>
+                                            <div class="avatar-preview">
+                                                <img src="" alt="upload_img.png" id="imagePreviewModel">
+                                            </div>
+                                        </div>
+                                        <label class="mt-3 text-gray">{{__('label.image_note')}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="id" id="edit_id">
+                            <input type="hidden" name="old_image" id="edit_old_image">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default mw-120" onclick="update_city()">{{__('label.update')}}</button>
+                            <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.close')}}</button>
+                            <input type="hidden" name="_method" value="PATCH">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- sortableModal -->
+        <div class="modal fade" id="sortableModal" tabindex="-1" data-backdrop="static" role="dialog"
+            aria-labelledby="sortableModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title w-100 text-center" id="sortableModalLabel">{{ __('label.city_sortable_list') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close">
+                            <span aria-hidden="true" class="text-dark">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="imageListId">
+                            @foreach($city as $value)
+                            <div id="{{$value['id']}}" class="listitemClass mb-2">
+                                <p class="m-2">{{$value['name']}}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <form enctype="multipart/form-data" id="save_city_sortable">
+                            @csrf
+                            <input id="outputvalues" type="hidden" name="ids" value="" />
+                            <div class="w-100 text-center">
+                                <button type="button" class="btn btn-default mw-120" onclick="save_city_sortable()">{{ __('label.save') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('pagescript')
+<script>
+    $(document).ready(function() {
+
+        var table = $('#datatable').DataTable({
+            ...datatabledefault,
+            ajax: {
+                url: "{{ route('city.index') }}",
+                data: function(d) {
+                    d.input_search = $('#input_search').val();
+                },
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex'
+                },
+                {
+                    data: 'image',
+                    name: 'image',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, full, meta) {
+                        return "<a href='" + data + "' target='_blank' title='Watch'><img src='" + data + "' class='img-thumbnail size-55'></a>";
+                    },
+                },
+                {
+                    data: 'name',
+                    name: 'name',
+                    render: function(data, type, full, meta) {
+                        if (data) {
+                            return data;
+                        } else {
+                            return "-";
+                        }
+                    }
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+        });
+
+        $('#input_search').keyup(function() {
+            table.draw();
+        });
+    });
+
+    function save_city() {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var formData = new FormData($("#city")[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("city.store") }}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    get_responce_message(resp, 'city', '{{ route("city.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    }
+
+    $(document).on("click", ".edit_city", function() {
+
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var image = $(this).data('image');
+
+        $(".modal-body #edit_id").val(id);
+        $(".modal-body #edit_name").val(name);
+        $(".modal-body #imagePreviewModel").attr("src", image);
+        $(".modal-body #edit_old_image").val(image);
+    });
+
+    function update_city() {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var formData = new FormData($("#edit_city")[0]);
+
+            var Edit_Id = $("#edit_id").val();
+            var url = '{{ route("city.update", ":id") }}';
+            url = url.replace(':id', Edit_Id);
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                url: url,
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $('#EditModel').modal('toggle');
+                    get_responce_message(resp, 'edit_city', '{{ route("city.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    }
+
+    // Sortable Section
+    $("#imageListId").sortable({
+        update: function(event, ui) {
+            getIdsOfImages();
+        } //end update
+    });
+
+    function getIdsOfImages() {
+        var values = [];
+        $('.listitemClass').each(function(index) {
+            values.push($(this).attr("id")
+                .replace("imageNo", ""));
+        });
+        $('#outputvalues').val(values);
+    }
+
+    function save_city_sortable() {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+            $("#dvloader").show();
+            var formData = new FormData($("#save_city_sortable")[0]);
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('city.sortable.save') }}",
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    get_responce_message(resp, 'save_city_sortable', "{{ route('city.index') }}");
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    }
+
+    function change_status(id) {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var url = "{{route('city.show', '')}}" + "/" + id;
+            $.ajax({
+                type: "GET",
+                url: url,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: id,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    if (resp.status == 200) {
+                        toastr.success(resp.success);
+                    } else {
+                        toastr.error(resp.errors);
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    };
+    $(document).on('change', '.status-checkbox', function() {
+        id = $(this).data('id');
+        change_status(id);
+    })
+</script>
+@endsection

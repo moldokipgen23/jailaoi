@@ -1,3 +1,7 @@
 $(".side-toggle").click(function () {
-    document.body.classList.toggle('sidebar-collapsed');
+  $(".sidebar").toggleClass("hide-sidebar");
+  $(".right-content").toggleClass("right-content-0");
 });
+
+// feather icon
+feather.replace()

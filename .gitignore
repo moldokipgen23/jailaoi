@@ -15,3 +15,5 @@ docker-compose.override.yml
 /storage/app/public/
 /storage/app/public/*
 .env
+.env.*
+!.env.example

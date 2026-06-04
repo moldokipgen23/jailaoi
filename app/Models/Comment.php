@@ -14,9 +14,8 @@ class Comment extends Model
 
     protected $casts = [
         'id' => 'integer',
-        'comment_id' => 'integer',
+        'type' => 'integer',
         'user_id' => 'integer',
-        'content_type' => 'integer',
         'content_id' => 'integer',
         'episode_id' => 'integer',
         'comment' => 'string',
@@ -27,8 +26,16 @@ class Comment extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    public function content()
+    public function song()
     {
-        return $this->belongsTo(Content::class, 'content_id');
+        return $this->belongsTo(Song::class, 'content_id');
+    }
+    public function podcasts()
+    {
+        return $this->belongsTo(Podcast::class, 'content_id');
+    }
+    public function episode()
+    {
+        return $this->belongsTo(Episode::class, 'episode_id');
     }
 }

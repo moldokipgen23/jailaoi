@@ -21,6 +21,7 @@ class Admin extends Authenticatable
         'user_name' => 'string',
         'email' => 'string',
         'password' => 'string',
+        'type' => 'integer',
         'status' => 'integer',
     ];
 }

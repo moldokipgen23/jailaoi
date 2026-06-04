@@ -18,13 +18,4 @@ class Subscriber extends Model
         'to_user_id' => 'integer',
         'status' => 'integer',
     ];
-
-    public function to_user()
-    {
-        return $this->belongsTo(User::class, 'to_user_id');
-    }
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
 }

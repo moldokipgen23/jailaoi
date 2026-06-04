@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\ArtistRequest;
 use App\Models\Common;
-use App\Models\Content;
 use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 use Exception;
 
 class ArtistController extends Controller
@@ -33,7 +31,10 @@ class ArtistController extends Controller
             $page_no = $request->page_no ?? 1;
             $user_id = $request->user_id ?? 0;
 
-            $data = Artist::with('user')->where('status', 1)->latest();
+            $data = Artist::where('status', 1)->latest();
+            if (method_exists($data, 'with')) {
+                $data = $data->with('user');
+            }
 
             $total = $data->count();
             $offset = $this->page_limit * ($page_no - 1);
@@ -44,7 +45,7 @@ class ArtistController extends Controller
             $result = [];
             foreach ($artists as $artist) {
                 $is_following = 0;
-                if ($user_id > 0) {
+                if ($user_id > 0 && $artist->user_id) {
                     $follow = Subscriber::where('user_id', $user_id)
                         ->where('to_user_id', $artist->user_id)
                         ->first();
@@ -56,13 +57,12 @@ class ArtistController extends Controller
                     'name' => $artist->name,
                     'image' => $artist->image,
                     'bio' => $artist->bio,
-                    'total_followers' => Subscriber::where('to_user_id', $artist->user_id)->count(),
-                    'total_content' => Content::where('channel_id', $artist->user?->channel_id ?? '')->count(),
+                    'total_followers' => $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->count() : 0,
                     'is_following' => $is_following,
                 ];
             }
 
-            $more_page = ($page_no * $this->page_limit) < $total ? true : false;
+            $more_page = ($page_no * $this->page_limit) < $total;
             $pagination = [
                 'total_rows' => $total,
                 'total_page' => ceil($total / $this->page_limit),
@@ -86,27 +86,29 @@ class ArtistController extends Controller
                 return ['status' => 400, 'message' => $validation->errors()->first()];
             }
 
-            $artist_id = $request->artist_id;
-            $artist = Artist::with('user')->where('id', $artist_id)->first();
+            $artist = Artist::where('id', $request->artist_id)->first();
             if (!$artist) {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
-            $artist['total_followers'] = Subscriber::where('to_user_id', $artist->user_id)->count();
-            $artist['monthly_listeners'] = Subscriber::where('to_user_id', $artist->user_id)->where('created_at', '>=', now()->subDays(30))->count();
+            $artist['total_followers'] = $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->count() : 0;
+            $artist['monthly_listeners'] = $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->where('created_at', '>=', now()->subDays(30))->count() : 0;
 
             $login_user_id = $request->login_user_id ?? 0;
             $artist['is_following'] = 0;
-            if ($login_user_id > 0) {
+            if ($login_user_id > 0 && $artist->user_id) {
                 $follow = Subscriber::where('user_id', $login_user_id)->where('to_user_id', $artist->user_id)->first();
                 if ($follow) $artist['is_following'] = 1;
             }
 
-            if ($artist->user) {
-                $this->common->imageNameToUrl([$artist->user], 'image', $this->folder_user);
-                $artist['channel_name'] = $artist->user->channel_name;
-                $artist['channel_image'] = $artist->user->image;
+            if ($artist->user_id) {
+                $user = User::find($artist->user_id);
+                if ($user) {
+                    $this->common->imageNameToUrl([$user], 'image', $this->folder_user);
+                    $artist['channel_name'] = $user->channel_name ?? '';
+                    $artist['channel_image'] = $user->image ?? '';
+                }
             }
 
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [$artist]);
@@ -125,30 +127,42 @@ class ArtistController extends Controller
                 return ['status' => 400, 'message' => $validation->errors()->first()];
             }
 
-            $artist_id = $request->artist_id;
-            $artist = Artist::with('user')->where('id', $artist_id)->first();
-            if (!$artist || !$artist->user) {
+            $artist = Artist::where('id', $request->artist_id)->first();
+            if (!$artist) {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
 
             $page_no = $request->page_no ?? 1;
-            $data = Content::where('channel_id', $artist->user->channel_id)
-                ->where('status', 1);
+            $content_model = null;
+            $channel_id = null;
 
-            if (!$this->common->isContentTypeEnabled(1)) {
-                $data = $data->where('content_type', '!=', 1);
+            if ($artist->user_id) {
+                $user = User::find($artist->user_id);
+                $channel_id = $user->channel_id ?? null;
             }
 
-            $data = $data->latest();
+            if (!$channel_id) {
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [], [
+                    'total_rows' => 0, 'total_page' => 1, 'current_page' => 1, 'more_page' => false,
+                ]);
+            }
 
-            $total = $data->count();
+            $content = collect();
+            $total = 0;
+
+            $songs = \App\Models\Song::where('status', 1)
+                ->where(function($q) use ($channel_id, $artist) {
+                    $q->where('artist_id', 'LIKE', "%{$artist->id}%")
+                      ->orWhere('artist_id', $artist->id);
+                });
+
+            $total = $songs->count();
             $offset = $this->page_limit * ($page_no - 1);
-            $content = $data->skip($offset)->take($this->page_limit)->get();
+            $content = $songs->skip($offset)->take($this->page_limit)->get();
 
-            $this->common->imageNameToUrl($content, 'portrait_img', 'content');
-            $this->common->imageNameToUrl($content, 'landscape_img', 'content');
+            $this->common->imageNameToUrl($content, 'image', 'song');
 
-            $more_page = ($page_no * $this->page_limit) < $total ? true : false;
+            $more_page = ($page_no * $this->page_limit) < $total;
             $pagination = [
                 'total_rows' => $total,
                 'total_page' => ceil($total / $this->page_limit),
@@ -168,7 +182,6 @@ class ArtistController extends Controller
             $validation = Validator::make($request->all(), [
                 'user_id' => 'required|numeric',
                 'artist_name' => 'required|min:2',
-                'bio' => 'nullable|string',
             ]);
             if ($validation->fails()) {
                 return ['status' => 400, 'message' => $validation->errors()->first()];
@@ -310,10 +323,9 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, 'You are not an artist');
             }
 
-            $total_content = Content::where('channel_id', $user->channel_id)->count();
+            $total_content = \App\Models\Song::where('artist_id', 'LIKE', "%{$artist->id}%")->count();
             $total_followers = Subscriber::where('to_user_id', $user->id)->count();
-            $total_views = Content::where('channel_id', $user->channel_id)->sum('total_view');
-            $total_likes = Content::where('channel_id', $user->channel_id)->sum('total_like');
+            $total_views = \App\Models\Song::where('artist_id', 'LIKE', "%{$artist->id}%")->sum('total_play');
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
 
@@ -322,7 +334,6 @@ class ArtistController extends Controller
                 'total_content' => $total_content,
                 'total_followers' => $total_followers,
                 'total_views' => $total_views,
-                'total_likes' => $total_likes,
             ]]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);

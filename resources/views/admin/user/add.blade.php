@@ -1,380 +1,146 @@
 @extends('admin.layout.page-app')
 @section('page_title', __('label.add_user'))
-@section('tab_title', __('label.add_user'))
 
 @section('content')
-    @include('admin.layout.sidebar')
+@include('admin.layout.sidebar')
 
-    <div class="right-content">
-        @include('admin.layout.header')
+<div class="right-content">
+    @include('admin.layout.header')
 
-        <div class="body-content">
-            <!-- mobile title -->
-            <h1 class="page-title-sm">{{__('label.add_user')}}</h1>
+    <div class="body-content">
+        <!-- mobile title -->
+        <h1 class="page-title-sm">{{__('label.add_user')}}</h1>
 
-            <div class="border-bottom row mb-3">
-                <div class="col-sm-10">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.user.index') }}">{{__('label.users')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('label.add_user')}}</li>
-                    </ol>
-                </div>
-                <div class="col-sm-2 d-flex align-items-center justify-content-end">
-                    <a href="{{ route('admin.user.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">{{__('label.users_list')}}</a>
-                </div>
+        <div class="border-bottom row mb-3">
+            <div class="col-sm-10">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('user.index') }}">{{__('label.user')}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{__('label.add_user')}}</li>
+                </ol>
             </div>
-
-            <form id="user" enctype="multipart/form-data">
+            <div class="col-sm-2 d-flex align-items-center justify-content-end">
+                <a href="{{ route('user.index') }}" class="btn btn-default mw-120 mb-3">{{__('label.user_list')}}</a>
+            </div>
+        </div>
+        <!-- add user  -->
+        <div class="card custom-border-card mt-3">
+            <form id="user" autocomplete="off" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="">
-                <div class="card custom-border-card">
-                    <h5 class="card-header">{{__('label.channel_info')}}</h5>
-                    <div class="card-body">
+                <div class="form-row">
+                    <div class="col-md-8">
                         <div class="form-row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>{{__('label.channel_name')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="channel_name" class="form-control" placeholder="{{__('label.channel_name_here')}}" autofocus>
+                                    <label>{{__('label.full_name')}}<span class="text-danger">*</span></label>
+                                    <input type="text" name="full_name" class="form-control" placeholder="{{__('label.full_name_here')}}" autofocus>
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <label>{{__('label.description')}}<span class="text-danger">*</span></label>
-                                    <textarea name="description" rows="1" class="form-control" placeholder="{{__('label.description_here')}}"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card custom-border-card">
-                    <h5 class="card-header">{{__('label.personal_info')}}</h5>
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="col-md-8">
-                                <div class="form-row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.full_name')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="full_name" class="form-control" placeholder="{{__('label.full_name_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.email')}}<span class="text-danger">*</span></label>
-                                            <input type="email" name="email" class="form-control" placeholder="{{__('label.email_here')}}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>{{__('label.country_code')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="country_code" class="form-control" placeholder="{{__('label.+91')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.mobile_number')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="mobile_number" class="form-control" placeholder="{{__('label.mobile_number_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.password')}}<span class="text-danger">*</span></label>
-                                            <input type="password" name="password" class="form-control" placeholder="{{__('label.password_here')}}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>{{__('label.country_name')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="country_name" class="form-control" placeholder="{{__('label.in')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.push_notification_status')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="push_notification_status_on" name="push_notification_status" class="custom-control-input" value="1" checked>
-                                                    <label class="custom-control-label" for="push_notification_status_on">{{__('label.on')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="push_notification_status_off" name="push_notification_status" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="push_notification_status_off">{{__('label.off')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.send_mail_status')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="send_mail_status_on" name="send_mail_status" class="custom-control-input" value="1" checked>
-                                                    <label class="custom-control-label" for="send_mail_status_on">{{__('label.on')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="send_mail_status_off" name="send_mail_status" class="custom-control-input" value="0">
-                                                    <label class="custom-control-label" for="send_mail_status_off">{{__('label.off')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label>{{__('label.thumbnail_image')}}<span class="text-danger">*</span></label>
-                                    <div class="avatar-upload">
-                                        <div class="avatar-edit">
-                                            <input type='file' name="image" id="imageUpload1" accept=".png, .jpg, .jpeg" />
-                                            <label for="imageUpload1" title="{{__('label.upload_file')}}"></label>
-                                        </div>
-                                        <div class="avatar-preview">
-                                            <img src="{{ asset('assets/imgs/upload_img.png') }}" id="imagePreview1">
-                                        </div>
-                                    </div>
-                                    <label class="mt-3 text-gray">{{__('label.max_size_5mb')}}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label>{{__('label.cover_image')}}</label>
-                                    <div class="avatar-upload-landscape">
-                                        <div class="avatar-edit-landscape">
-                                            <input type='file' name="cover_img" id="imageUpload2" accept=".png, .jpg, .jpeg" />
-                                            <label for="imageUpload2" title="{{__('label.upload_file')}}"></label>
-                                        </div>
-                                        <div class="avatar-preview-landscape">
-                                            <img src="{{ asset('assets/imgs/upload_img.png') }}" id="imagePreview2">
-                                        </div>
-                                    </div>
-                                    <label class="mt-3 text-gray">{{__('label.max_size_5mb')}}</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card custom-border-card">
-                    <h5 class="card-header">{{__('label.address_info')}}</h5>
-                    <div class="card-body">
-                        <div class="form-row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>{{__('label.address')}}<span class="text-danger">*</span></label>
-                                    <textarea name="address" rows="1" class="form-control" placeholder="{{__('label.address_here')}}"></textarea>
+                                    <label>{{__('label.email')}}<span class="text-danger">*</span></label>
+                                    <input type="email" name="email" class="form-control" placeholder="{{__('label.email_here')}}">
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="form-row">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>{{__('label.city')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="city" class="form-control" placeholder="{{__('label.city_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>{{__('label.state')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="state" class="form-control" placeholder="{{__('label.state_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>{{__('label.country')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="country" class="form-control" placeholder="{{__('label.country_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>{{__('label.pincode')}}<span class="text-danger">*</span></label>
-                                            <input type="number" name="pincode" class="form-control" placeholder="{{__('label.pincode_here')}}">
-                                        </div>
-                                    </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label> {{__('label.password')}}<span class="text-danger">*</span></label>
+                                    <input type="password" name="password" class="form-control" placeholder="{{__('label.password_here')}}">
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card custom-border-card">
-                    <h5 class="card-header">{{__('label.social_info')}}</h5>
-                    <div class="card-body">
                         <div class="form-row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>{{__('label.website')}}</label>
-                                    <input type="text" name="website" class="form-control" placeholder="{{__('label.website_here')}}">
+                                    <label>{{__('label.country_code')}}<span class="text-danger">*</span></label>
+                                    <input type="text" name="country_code" class="form-control" placeholder="{{__('label.+91')}}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label> {{__('label.mobile_number')}}<span class="text-danger">*</span></label>
+                                    <input type="number" name="mobile_number" min="0" class="form-control" placeholder="{{__('label.mobile_number_here')}}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>{{__('label.facebook_url')}}</label>
-                                    <input type="text" name="facebook_url" class="form-control" placeholder="{{__('label.facebook_url_here')}}">
+                                    <label>{{__('label.country_name')}}<span class="text-danger">*</span></label>
+                                    <input type="text" name="country_name" class="form-control" placeholder="{{__('label.country_name_here')}}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>{{__('label.instagram_url')}}</label>
-                                    <input type="text" name="instagram_url" class="form-control" placeholder="{{__('label.instagram_url_here')}}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label>{{__('label.twitter_url')}}</label>
-                                    <input type="text" name="twitter_url" class="form-control" placeholder="{{__('label.twitter_url_here')}}">
+                                    <label for="gender">{{__('label.gender')}}<span class="text-danger">*</span></label>
+                                    <div class="radio-group">
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="gender" name="gender" class="custom-control-input" value="1" checked>
+                                            <label class="custom-control-label" for="gender">{{__('label.male')}}</label>
+                                        </div>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="gender1" name="gender" class="custom-control-input" value="2">
+                                            <label class="custom-control-label" for="gender1">{{__('label.female')}}</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="card custom-border-card">
-                    <h5 class="card-header">{{__('label.banking_info')}}</h5>
-                    <div class="card-body">
-                        <div class="form-row">
-                            <div class="col-md-8">
-                                <div class="form-row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.is_account_verify')}}<span class="text-danger">*</span></label>
-                                            <div class="radio-group">
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="is_account_verify_no" name="is_account_verify" class="custom-control-input" value="0" checked>
-                                                    <label class="custom-control-label" for="is_account_verify_no">{{__('label.no')}}</label>
-                                                </div>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="is_account_verify_yes" name="is_account_verify" class="custom-control-input" value="1">
-                                                    <label class="custom-control-label" for="is_account_verify_yes">{{__('label.yes')}}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group ml-5">
+                            <label class="ml-5">{{__('label.image')}}<span class="text-danger">*</span></label>
+                            <div class="avatar-upload ml-5">
+                                <div class="avatar-edit">
+                                    <input type='file' name="image" id="imageUpload" accept=".png, .jpg, .jpeg" />
+                                    <label for="imageUpload" title="Select File"></label>
                                 </div>
-                                <div class="form-row bank_info">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.bank_name')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="bank_name" class="form-control" placeholder="{{__('label.bank_name_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.bank_address')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="bank_address" class="form-control" placeholder="{{__('label.bank_address_here')}}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row bank_info">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.account_no')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="account_no" class="form-control" placeholder="{{__('label.account_no_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.ifsc_no')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="ifsc_no" class="form-control" placeholder="{{__('label.ifsc_no_here')}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>{{__('label.bank_code')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="bank_code" class="form-control" placeholder="{{__('label.bank_code_here')}}">
-                                        </div>
-                                    </div>
+                                <div class="avatar-preview">
+                                    <img src="{{asset('assets/imgs/upload_img.png')}}" alt="upload_img.png" id="imagePreview">
                                 </div>
                             </div>
-                            <div class="col-md-2 bank_info">
-                                <div class="form-group">
-                                    <label>{{__('label.id_proof_front')}}<span class="text-danger">*</span></label>
-                                    <div class="avatar-upload">
-                                        <div class="avatar-edit">
-                                            <input type='file' name="front_id_proof" id="imageUpload3" accept=".png, .jpg, .jpeg" />
-                                            <label for="imageUpload3" title="{{__('label.upload_file')}}"></label>
-                                        </div>
-                                        <div class="avatar-preview">
-                                            <img src="{{ asset('assets/imgs/upload_img.png') }}" id="imagePreview3">
-                                        </div>
-                                    </div>
-                                    <label class="mt-3 text-gray">{{__('label.max_size_5mb')}}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-2 bank_info">
-                                <div class="form-group">
-                                    <label>{{__('label.id_proof_back')}}<span class="text-danger">*</span></label>
-                                    <div class="avatar-upload">
-                                        <div class="avatar-edit">
-                                            <input type='file' name="back_id_proof" id="imageUpload4" accept=".png, .jpg, .jpeg" />
-                                            <label for="imageUpload4" title="{{__('label.upload_file')}}"></label>
-                                        </div>
-                                        <div class="avatar-preview">
-                                            <img src="{{ asset('assets/imgs/upload_img.png') }}" id="imagePreview4">
-                                        </div>
-                                    </div>
-                                    <label class="mt-3 text-gray">{{__('label.max_size_5mb')}}</label>
-                                </div>
-                            </div>
+                            <label class="mt-3 ml-5 text-gray">{{__('label.image_note')}}</label>
                         </div>
                     </div>
                 </div>
-                <div class="text-right">
+                <div class="border-top pt-3 text-right">
                     <button type="button" class="btn btn-default mw-120" onclick="save_user()">{{__('label.save')}}</button>
-                    <a href="{{route('admin.user.index')}}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
+                    <a href="{{route('user.index')}}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 </div>
             </form>
         </div>
     </div>
+</div>
 @endsection
 
 @section('pagescript')
-    <script>
-        $(document).ready(function () {
-            function toggleBankInfo() {
-                if ($('#is_account_verify_yes').is(':checked')) {
-                    $('.bank_info').show();
-                } else {
-                    $('.bank_info').hide();
+<script>
+    function save_user() {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var formData = new FormData($("#user")[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("user.store") }}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    get_responce_message(resp, 'user', '{{ route("user.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
                 }
-            }
-
-            // Initial toggle on page load
-            toggleBankInfo();
-
-            // Toggle on radio button change
-            $('input[name="is_account_verify"]').change(function () {
-                toggleBankInfo();
             });
-        });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
 
-        function save_user() {
-
-			var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if(Demo_Mode == 1){
-
-                $("#dvloader").show();
-                var formData = new FormData($("#user")[0]);
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route("admin.user.store") }}',
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        get_responce_message(resp, 'user', '{{ route("admin.user.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            } else {
-                showError();
-            }
         }
-    </script>
+    }
+</script>
 @endsection

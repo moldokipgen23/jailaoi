@@ -22,14 +22,10 @@ class ProfileController extends Controller
     {
         try {
 
-            $admin = Admin_Data();
-            if (isset($admin) && isset($admin['id'])) {
+            $params['data'] = [];
+            $params['data'] = Admin::latest()->first();
 
-                $params['data'] = Admin::where('id', $admin['id'])->first();
-                return view('admin.profile.index', $params);
-            } else {
-                return redirect()->route('admin.logout');
-            }
+            return view('admin.profile.index', $params);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -37,19 +33,21 @@ class ProfileController extends Controller
     public function store(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
                 'user_name' => 'required|min:4',
                 'email' => 'required|email',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
             $requestData = $request->all();
 
-            $data = Admin::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($data['id'])) {
+            $check_admin = Admin::where('id', $requestData['id'])->first();
+            if (isset($check_admin) && $check_admin != null) {
+                $admin = Admin::where('id', $requestData['id'])->update(['user_name' => $requestData['user_name'], 'email' => $requestData['email']]);
                 return response()->json(['status' => 200, 'success' => __('label.data_edit_successfully')]);
             } else {
                 return redirect()->route('admin.logout');
@@ -61,6 +59,7 @@ class ProfileController extends Controller
     public function ChangePassword(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
                 'current_password' => 'required',
                 'new_password' => 'required|min:4',
@@ -68,17 +67,17 @@ class ProfileController extends Controller
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
-            $admin = Admin::where('id', $request['id'])->first();
-            if (isset($admin) && $admin != null) {
+            $check_admin = Admin::where('id', $request['id'])->first();
+            if (isset($check_admin) && $check_admin != null) {
 
-                if (Hash::check($request['current_password'], $admin['password'])) {
+                if (Hash::check($request['current_password'], $check_admin['password'])) {
 
-                    $admin['password'] = Hash::make($request['new_password']);
-                    if ($admin->save()) {
-                        return response()->json(['status' => 200, 'success' => __('label.password_change_successfully')]);
+                    $check_admin->password = Hash::make($request['new_password']);
+                    if ($check_admin->save()) {
+                        return response()->json(['status' => 200, 'success' => __('label.password_change')]);
                     }
                 } else {
                     return response()->json(['status' => 400, 'errors' => __('label.please_enter_right_current_password')]);

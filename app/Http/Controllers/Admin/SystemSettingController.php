@@ -3,50 +3,38 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ads;
-use App\Models\Ads_View_Click_Count;
-use App\Models\Badges_Bonus;
-use App\Models\Block_Channel;
+use App\Models\Artist;
+use App\Models\Banner;
+use App\Models\Batch;
 use App\Models\Category;
-use App\Models\Coin_Package;
-use App\Models\Coin_Transaction;
+use App\Models\City;
 use App\Models\Comment;
 use App\Models\Common;
-use App\Models\Content;
-use App\Models\Content_Like;
-use App\Models\Content_Report;
-use App\Models\Content_View;
 use App\Models\Episode;
-use App\Models\Gift;
-use App\Models\Gift_Transaction;
-use App\Models\Hashtag;
-use App\Models\History;
-use App\Models\Interests;
+use App\Models\Event_Join_User;
+use App\Models\Favorite;
+use App\Models\Follow;
 use App\Models\Language;
+use App\Models\Live_Event;
+use App\Models\Music;
 use App\Models\Notification;
 use App\Models\Onboarding_Screen;
 use App\Models\Package;
-use App\Models\Package_Detail;
 use App\Models\Page;
-use App\Models\Playlist_Content;
-use App\Models\Read_Notification;
-use App\Models\Reason;
-use App\Models\Refer_Earn;
-use App\Models\Rent_Section;
-use App\Models\Rent_Transaction;
-use App\Models\Section;
+use App\Models\Play;
+use App\Models\Podcast;
 use App\Models\Social_Link;
-use App\Models\Subscriber;
+use App\Models\Song;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\User_Badges_Bonus;
-use App\Models\Watch_later;
-use App\Models\Withdrawal_Request;
+use App\Models\User_Action;
+use App\Models\User_Notification_Tracking;
+use App\Models\User_Summary;
 use Illuminate\Support\Facades\DB;
-use Exception;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
+use Exception;
 
 class SystemSettingController extends Controller
 {
@@ -69,175 +57,192 @@ class SystemSettingController extends Controller
     public function ClearData()
     {
         try {
+            // Folder Name
+            $app = 'public/app';
+            $artist = 'public/artist';
+            $category = 'public/category';
+            $city = 'public/city';
+            $database = 'public/database';
+            $language = 'public/language';
+            $live_event = 'public/live_event';
+            $notification = 'public/notification';
+            $package = 'public/package';
+            $podcast = 'public/podcast';
+            $song = 'public/song';
+            $user = 'public/user';
+            $music = 'public/music';
 
-            $s3_ads_file = [];
-            $s3_badges_file = [];
-            $s3_category_file = [];
-            $s3_content_file = [];
-            $s3_gift_file = [];
-            $s3_language_file = [];
-            $s3_package_file = [];
-            $s3_setting_file = [];
-            $s3_user_file = [];
-            $s3_notification_file = [];
-            try {
-                $s3_ads_file = Storage::disk('s3')->allFiles('ads');
-                $s3_badges_file = Storage::disk('s3')->allFiles('badges_bonus');
-                $s3_category_file = Storage::disk('s3')->allFiles('category');
-                $s3_content_file = Storage::disk('s3')->allFiles('content');
-                $s3_gift_file = Storage::disk('s3')->allFiles('gift');
-                $s3_language_file = Storage::disk('s3')->allFiles('language');
-                $s3_package_file = Storage::disk('s3')->allFiles('package');
-                $s3_setting_file = Storage::disk('s3')->allFiles('setting');
-                $s3_user_file = Storage::disk('s3')->allFiles('user');
-                $s3_notification_file = Storage::disk('s3')->allFiles('notification');
-            } catch (Exception $e) {
+            // Name Array
+            $app_name = [];
+            $artist_name = [];
+            $category_name = [];
+            $city_name = [];
+            $database_name = [];
+            $language_name = [];
+            $live_event_name = [];
+            $notification_name = [];
+            $package_name = [];
+            $podcast_name = [];
+            $song_name = [];
+            $user_name = [];
+            $music_name = [];
+
+            // Get Files
+            $app_file = Storage::allFiles($app);
+            $artist_file = Storage::allFiles($artist);
+            $category_file = Storage::allFiles($category);
+            $city_file = Storage::allFiles($city);
+            $database_file = Storage::allFiles($database);
+            $language_file = Storage::allFiles($language);
+            $live_event_file = Storage::allFiles($live_event);
+            $notification_file = Storage::allFiles($notification);
+            $package_file = Storage::allFiles($package);
+            $podcast_file = Storage::allFiles($podcast);
+            $song_file = Storage::allFiles($song);
+            $user_file = Storage::allFiles($user);
+            $music_file = Storage::allFiles($music);
+
+            // Add Name In Array
+            foreach ($app_file as $app_file) {
+                array_push($app_name, pathinfo($app_file)['basename']);
+            }
+            foreach ($artist_file as $artist_file) {
+                array_push($artist_name, pathinfo($artist_file)['basename']);
+            }
+            foreach ($category_file as $file_name) {
+                array_push($category_name, pathinfo($file_name)['basename']);
+            }
+            foreach ($city_file as $city_file) {
+                array_push($city_name, pathinfo($city_file)['basename']);
+            }
+            foreach ($database_file as $database_file) {
+                array_push($database_name, pathinfo($database_file)['basename']);
+            }
+            foreach ($language_file as $language_file) {
+                array_push($language_name, pathinfo($language_file)['basename']);
+            }
+            foreach ($live_event_file as $live_event_file) {
+                array_push($live_event_name, pathinfo($live_event_file)['basename']);
+            }
+            foreach ($notification_file as $notification_file) {
+                array_push($notification_name, pathinfo($notification_file)['basename']);
+            }
+            foreach ($package_file as $package_file) {
+                array_push($package_name, pathinfo($package_file)['basename']);
+            }
+            foreach ($podcast_file as $podcast_file) {
+                array_push($podcast_name, pathinfo($podcast_file)['basename']);
+            }
+            foreach ($song_file as $song_file) {
+                array_push($song_name, pathinfo($song_file)['basename']);
+            }
+            foreach ($user_file as $user_file) {
+                array_push($user_name, pathinfo($user_file)['basename']);
+            }
+            foreach ($music_file as $music_file) {
+                array_push($music_name, pathinfo($music_file)['basename']);
             }
 
-            // Ads
-            $local_ads_file = Storage::allFiles('public/ads');
-            $ads_files = array_merge($local_ads_file, $s3_ads_file);
-            $ads_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $ads_files);
-            $used_ads_files = Ads::pluck('image')->merge(Ads::pluck('video'))->filter()->toArray();
-            foreach ($ads_name as $value) {
-                if (!in_array($value, $used_ads_files)) {
-                    $this->common->deleteImageToFolder('ads', $value, 1);
-                    $this->common->deleteImageToFolder('ads', $value, 2);
+            // Delete File In Folder
+            foreach ($app_name as $key => $value) {
+
+                $app_file_check = Page::select('id')->where('icon', $value)->first();
+                $app_file_check_1 = Onboarding_Screen::select('id')->where('image', $value)->first();
+
+                $settingData = Setting_Data();
+                $app_file_check_2 = 'yes';
+                if ($settingData['app_logo'] != $value) {
+                    $app_file_check_2 = 'no';
+                }
+
+                if ($app_file_check == null && $app_file_check_1 == null && $app_file_check_2 == 'no') {
+                    $this->common->deleteImageToFolder('app', $value);
+                }
+            }
+            foreach ($artist_name as $key => $value) {
+
+                $artist_file_check = Artist::select('id')->where('image', $value)->first();
+                if ($artist_file_check == null) {
+                    $this->common->deleteImageToFolder('artist', $value);
+                }
+            }
+            foreach ($category_name as $key => $value) {
+
+                $category_file_check = Category::select('id')->where('image', $value)->first();
+                if ($category_file_check == null) {
+                    $this->common->deleteImageToFolder('category', $value);
+                }
+            }
+            foreach ($city_name as $key => $value) {
+
+                $city_file_check = City::select('id')->where('image', $value)->first();
+                if ($city_file_check == null) {
+                    $this->common->deleteImageToFolder('city', $value);
+                }
+            }
+            foreach ($database_name as $key => $value) {
+                $this->common->deleteImageToFolder('database', $value);
+            }
+            foreach ($language_name as $key => $value) {
+
+                $language_file_check = Language::select('id')->where('image', $value)->first();
+                if ($language_file_check == null) {
+                    $this->common->deleteImageToFolder('language', $value);
+                }
+            }
+            foreach ($live_event_name as $key => $value) {
+
+                $live_event_file_check = Live_Event::select('id')->where('portrait_img', $value)->orwhere('landscape_img', $value)->first();
+                if ($live_event_file_check == null) {
+                    $this->common->deleteImageToFolder('live_event', $value);
+                }
+            }
+            foreach ($notification_name as $key => $value) {
+
+                $notification_file_check = Notification::select('id')->where('image', $value)->first();
+                if ($notification_file_check == null) {
+                    $this->common->deleteImageToFolder('notification', $value);
+                }
+            }
+            foreach ($package_name as $key => $value) {
+
+                $package_file_check = Package::select('id')->where('image', $value)->first();
+                if ($package_file_check == null) {
+                    $this->common->deleteImageToFolder('package', $value);
+                }
+            }
+            foreach ($podcast_name as $key => $value) {
+
+                $podcast_file_check = Podcast::select('id')->where('portrait_img', $value)->orwhere('landscape_img', $value)->first();
+                $podcast_file_check_1 = Episode::select('id')->where('portrait_img', $value)->orwhere('landscape_img', $value)->orwhere('episode_audio', $value)->first();
+
+                if ($podcast_file_check == null && $podcast_file_check_1 == null) {
+                    $this->common->deleteImageToFolder('podcast', $value);
+                }
+            }
+            foreach ($song_name as $key => $value) {
+
+                $song_file_check = Song::select('id')->where('image', $value)->orwhere('song_url', $value)->first();
+                if ($song_file_check == null) {
+                    $this->common->deleteImageToFolder('song', $value);
+                }
+            }
+            foreach ($user_name as $key => $value) {
+
+                $user_file_check = User::select('id')->where('image', $value)->first();
+                if ($user_file_check == null) {
+                    $this->common->deleteImageToFolder('user', $value);
+                }
+            }
+            foreach ($music_name as $key => $value) {
+
+                $music_file_check = Music::select('id')->where('portrait_img', $value)->orwhere('landscape_img', $value)->orwhere('ogtag_img', $value)->first();
+                if ($music_file_check == null) {
+                    $this->common->deleteImageToFolder('music', $value);
                 }
             }
 
-            // Badges & Bonus
-            $local_badges_file = Storage::allFiles('public/badges_bonus');
-            $badges_files = array_merge($local_badges_file, $s3_badges_file);
-            $badges_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $badges_files);
-            $used_badges_files = Badges_Bonus::pluck('image')->filter()->toArray();
-            foreach ($badges_name as $value) {
-                if (!in_array($value, $used_badges_files)) {
-                    $this->common->deleteImageToFolder('badges_bonus', $value, 1);
-                    $this->common->deleteImageToFolder('badges_bonus', $value, 2);
-                }
-            }
-
-            // Category
-            $local_category_file = Storage::allFiles('public/category');
-            $category_files = array_merge($local_category_file, $s3_category_file);
-            $category_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $category_files);
-            $used_category_files = Category::pluck('image')->filter()->toArray();
-            foreach ($category_name as $value) {
-                if (!in_array($value, $used_category_files)) {
-                    $this->common->deleteImageToFolder('category', $value, 1);
-                    $this->common->deleteImageToFolder('category', $value, 2);
-                }
-            }
-
-            // Content
-            $local_content_file = Storage::allFiles('public/content');
-            $content_files = array_merge($local_content_file, $s3_content_file);
-            $content_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $content_files);
-            $content_used_files = Content::pluck('portrait_img')->merge(Content::pluck('landscape_img'))->merge(Content::pluck('content'))->filter()->toArray();
-            $episode_used_files = Episode::pluck('portrait_img')->merge(Episode::pluck('landscape_img'))->merge(Episode::pluck('episode_audio'))->filter()->toArray();
-            $used_content_files = array_unique(array_merge($content_used_files, $episode_used_files));
-            foreach ($content_name as $value) {
-                if (!in_array($value, $used_content_files)) {
-                    $this->common->deleteImageToFolder('content', $value, 1);
-                    $this->common->deleteImageToFolder('content', $value, 2);
-                }
-            }
-
-            // Database
-            $local_database_file = Storage::allFiles('public/database');
-            $database_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $local_database_file);
-            foreach ($database_name as $value) {
-                $this->common->deleteImageToFolder('database', $value, 1);
-            }
-
-            // Gift
-            $local_gift_file = Storage::allFiles('public/gift');
-            $gift_files = array_merge($local_gift_file, $s3_gift_file);
-            $gift_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $gift_files);
-            $used_gift_files = Gift::pluck('image')->filter()->toArray();
-            foreach ($gift_name as $value) {
-                if (!in_array($value, $used_gift_files)) {
-                    $this->common->deleteImageToFolder('gift', $value, 1);
-                    $this->common->deleteImageToFolder('gift', $value, 2);
-                }
-            }
-
-            // Language
-            $local_language_file = Storage::allFiles('public/language');
-            $language_files = array_merge($local_language_file, $s3_language_file);
-            $language_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $language_files);
-            $used_language_files = Language::pluck('image')->filter()->toArray();
-            foreach ($language_name as $value) {
-                if (!in_array($value, $used_language_files)) {
-                    $this->common->deleteImageToFolder('language', $value, 1);
-                    $this->common->deleteImageToFolder('language', $value, 2);
-                }
-            }
-
-            // Package
-            $local_package_file = Storage::allFiles('public/package');
-            $package_files = array_merge($local_package_file, $s3_package_file);
-            $package_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $package_files);
-            $package_used_files = Package::pluck('image')->filter()->toArray();
-            $coin_package_used_files = Coin_Package::pluck('image')->filter()->toArray();
-            $used_package_files = array_unique(array_merge($package_used_files, $coin_package_used_files));
-            foreach ($package_name as $value) {
-                if (!in_array($value, $used_package_files)) {
-                    $this->common->deleteImageToFolder('package', $value, 1);
-                    $this->common->deleteImageToFolder('package', $value, 2);
-                }
-            }
-
-            // Setting
-            $local_setting_file = Storage::allFiles('public/setting');
-            $setting_files = array_merge($local_setting_file, $s3_setting_file);
-            $setting_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $setting_files);
-            $page_used_files = Page::pluck('icon')->filter()->toArray();
-            $social_link_used_files = Social_Link::pluck('image')->filter()->toArray();
-            $onboarding_used_files = Onboarding_Screen::pluck('image')->filter()->toArray();
-            $setting_used_files = Setting_Data();
-            $used_setting_files = array_unique(array_merge($page_used_files, $social_link_used_files, $onboarding_used_files));
-            foreach ($setting_name as $key => $value) {
-
-                if (!in_array($value, $used_setting_files)) {
-
-                    $check = 'no';
-                    if ($setting_used_files['app_logo'] != $value && $setting_used_files['panel_login_page_bg_image'] != $value && $setting_used_files['panel_login_page_image'] != $value) {
-                        $check = 'yes';
-                    }
-
-                    if ($check == 'yes') {
-                        $this->common->deleteImageToFolder('setting', $value, 1);
-                        $this->common->deleteImageToFolder('setting', $value, 2);
-                    }
-                }
-            }
-
-            // User
-            $local_user_file = Storage::allFiles('public/user');
-            $user_files = array_merge($local_user_file, $s3_user_file);
-            $user_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $user_files);
-            $used_user_files = User::pluck('image')->merge(User::pluck('cover_img'))->merge(User::pluck('front_id_proof'))->merge(User::pluck('back_id_proof'))->filter()->toArray();
-            foreach ($user_name as $value) {
-                if (!in_array($value, $used_user_files)) {
-                    $this->common->deleteImageToFolder('user', $value, 1);
-                    $this->common->deleteImageToFolder('user', $value, 2);
-                }
-            }
-
-            // Notification
-            $local_notification_file = Storage::allFiles('public/notification');
-            $notification_files = array_merge($local_notification_file, $s3_notification_file);
-            $notification_name = array_map(fn($file) => pathinfo($file, PATHINFO_BASENAME), $notification_files);
-            $used_notification_files = Notification::pluck('image')->filter()->toArray();
-            foreach ($notification_name as $value) {
-                if (!in_array($value, $used_notification_files)) {
-                    $this->common->deleteImageToFolder('notification', $value, 1);
-                    $this->common->deleteImageToFolder('notification', $value, 2);
-                }
-            }
-            return response()->json(['status' => 200, 'success' => __('label.data_clear_successfully')]);
+            return response()->json(['status' => 200, 'success' => __('label.data_clear')]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -261,7 +266,6 @@ class SystemSettingController extends Controller
             // get all table name
             $result = DB::select("SHOW TABLES");
             $prep = "Tables_in_$DbName";
-
             foreach ($result as $res) {
                 $tables[] =  $res->$prep;
             }
@@ -316,81 +320,515 @@ class SystemSettingController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    public function CleanDatabase()
+    public function DummyData()
     {
         try {
 
-            Ads::query()->truncate();
-            Ads_View_Click_Count::query()->truncate();
-            Badges_Bonus::query()->truncate();
-            Block_Channel::query()->truncate();
-            Category::query()->truncate();
-            Coin_Package::query()->truncate();
-            Coin_Transaction::query()->truncate();
-            Comment::query()->truncate();
-            Content::query()->truncate();
-            Content_Like::query()->truncate();
-            Content_Report::query()->truncate();
-            Content_View::query()->truncate();
-            Episode::query()->truncate();
-            Gift::query()->truncate();
-            Gift_Transaction::query()->truncate();
-            Hashtag::query()->truncate();
-            History::query()->truncate();
-            Interests::query()->truncate();
-            Language::query()->truncate();
-            Notification::query()->truncate();
-            Onboarding_Screen::query()->truncate();
-            Package::query()->truncate();
-            Package_Detail::query()->truncate();
-            Playlist_Content::query()->truncate();
-            Read_Notification::query()->truncate();
-            Refer_Earn::query()->truncate();
-            Rent_Section::query()->truncate();
-            Rent_Transaction::query()->truncate();
-            Reason::query()->truncate();
-            Section::query()->truncate();
-            Social_Link::query()->truncate();
-            Subscriber::query()->truncate();
-            Transaction::query()->truncate();
-            User::query()->truncate();
-            User_Badges_Bonus::query()->truncate();
-            Watch_later::query()->truncate();
-            Withdrawal_Request::query()->truncate();
+            // $artist = [
+            //     ['name' => 'Arijit Singh', 'image' => 'artist1.jpg', 'bio' => $this->common->artist_tag_line(), 'status' => 1],
+            //     ['name' => 'Sonu Nigam', 'image' => 'artist2.jpg', 'bio' => $this->common->artist_tag_line(), 'status' => 1],
+            //     ['name' => 'Shreya Ghoshal', 'image' => 'artist3.jpg', 'bio' => $this->common->artist_tag_line(), 'status' => 1],
+            // ];
+            // Artist::insert($artist);
 
-            return response()->json(['status' => 200, 'success' => __('label.data_clean_successfully')]);
+            // $category = [
+            //     ['name' => 'Sport', 'image' => 'category1.jpg', 'type' => 1, 'status' => 1],
+            //     ['name' => 'Bollywood', 'image' => 'category2.jpg', 'type' => 1, 'status' => 1],
+            //     ['name' => 'Workout', 'image' => 'category3.jpg', 'type' => 2, 'status' => 1],
+            //     ['name' => 'Romance', 'image' => 'category4.jpg', 'type' => 2, 'status' => 1],
+            // ];
+            // Category::insert($category);
+
+            // $language = [
+            //     ['name' => 'Hindi', 'image' => 'language1.jpg', 'status' => 1],
+            //     ['name' => 'English', 'image' => 'language2.jpg', 'status' => 1],
+            // ];
+            // Language::insert($language);
+
+            // $hashtag = [
+            //     ['name' => 'workout', 'total_used' => 78, 'status' => 1],
+            //     ['name' => 'travel', 'total_used' => 99, 'status' => 1],
+            //     ['name' => 'food', 'total_used' => 34, 'status' => 1],
+            //     ['name' => 'lifestyle', 'total_used' => 67, 'status' => 1],
+            //     ['name' => 'business', 'total_used' => 61, 'status' => 1],
+            // ];
+            // Hashtag::insert($hashtag);
+
+            // $user = [
+            //     [
+            //         'channel_id' => 'xnawp7wg',
+            //         'channel_name' => 'Thoughts of Devloper',
+            //         'full_name' => 'Henry',
+            //         'email' => 'henry@dt.com',
+            //         'password' => Hash::make('henry'),
+            //         'mobile_number' => '6352147890',
+            //         'type' => 4,
+            //         'image' => 'user1.jpg',
+            //         'cover_img' => 'coveruser1.jpg',
+            //         'description' => $this->common->user_tag_line(),
+            //         'device_type' => 0,
+            //         'device_token' => "",
+            //         'website' => "",
+            //         'facebook_url' => "",
+            //         'instagram_url' => "",
+            //         'twitter_url' => "",
+            //         'wallet_balance' => 0,
+            //         'wallet_earning' => 0,
+            //         'bank_name' => "",
+            //         'bank_code' => "",
+            //         'bank_address' => "",
+            //         'ifsc_no' => "",
+            //         'account_no' => "",
+            //         'id_proof' => "",
+            //         'address' => "",
+            //         'city' => "",
+            //         'state' => "",
+            //         'country' => "",
+            //         'pincode' => 0,
+            //         'country' => "",
+            //         'status' => 1
+            //     ],
+            //     [
+            //         'channel_id' => '3dsvzlwy',
+            //         'channel_name' => 'Devloper Planet',
+            //         'full_name' => 'Jack',
+            //         'email' => 'jack@dt.com',
+            //         'password' => Hash::make('jack'),
+            //         'mobile_number' => '7845120369',
+            //         'type' => 4,
+            //         'image' => 'user2.jpg',
+            //         'cover_img' => 'coveruser2.jpg',
+            //         'description' => $this->common->user_tag_line(),
+            //         'device_type' => 0,
+            //         'device_token' => "",
+            //         'website' => "",
+            //         'facebook_url' => "",
+            //         'instagram_url' => "",
+            //         'twitter_url' => "",
+            //         'wallet_balance' => 0,
+            //         'wallet_earning' => 0,
+            //         'bank_name' => "",
+            //         'bank_code' => "",
+            //         'bank_address' => "",
+            //         'ifsc_no' => "",
+            //         'account_no' => "",
+            //         'id_proof' => "",
+            //         'address' => "",
+            //         'city' => "",
+            //         'state' => "",
+            //         'country' => "",
+            //         'pincode' => 0,
+            //         'country' => "",
+            //         'status' => 1
+            //     ],
+            //     [
+            // Artist::query()->truncate();
+            // Banner::query()->truncate();
+            // Category::query()->truncate();
+            // City::query()->truncate();
+            // Comment::query()->truncate();
+            // Episode::query()->truncate();
+            // Favorite::query()->truncate();
+            // Language::query()->truncate();
+            // Live_Event::query()->truncate();
+            // Notification::query()->truncate();
+            // Package::query()->truncate();
+            // Podcast::query()->truncate();
+            // Onboarding_Screen::query()->truncate();
+            // Song::query()->truncate();
+            // Transaction::query()->truncate();
+            // User::query()->truncate();
+            // User_Notification_Tracking::query()->truncate();
+            // Event_Join_User::query()->truncate();
+
+            // return response()->json(array('status' => 200, 'success' => __('label.data_clean)));
+            //         'channel_id' => '32gko0af',
+            //         'channel_name' => 'Devloper Studio',
+            //         'full_name' => 'Axel',
+            //         'email' => 'axel@dt.com',
+            //         'password' => Hash::make('axel'),
+            //         'mobile_number' => '820147963',
+            //         'type' => 4,
+            //         'image' => 'user3.jpg',
+            //         'cover_img' => 'coveruser3.jpg',
+            //         'description' => $this->common->user_tag_line(),
+            //         'device_type' => 0,
+            //         'device_token' => "",
+            //         'website' => "",
+            //         'facebook_url' => "",
+            //         'instagram_url' => "",
+            //         'twitter_url' => "",
+            //         'wallet_balance' => 0,
+            //         'wallet_earning' => 0,
+            //         'bank_name' => "",
+            //         'bank_code' => "",
+            //         'bank_address' => "",
+            //         'ifsc_no' => "",
+            //         'account_no' => "",
+            //         'id_proof' => "",
+            //         'address' => "",
+            //         'city' => "",
+            //         'state' => "",
+            //         'country' => "",
+            //         'pincode' => 0,
+            //         'country' => "",
+            //         'status' => 1
+            //     ],
+            // ];
+            // User::insert($user);
+
+            // $content = [
+            //     [
+            //         'content_type' => 1,
+            //         'channel_id' => 'xnawp7wg',
+            //         'category_id' => 1,
+            //         'language_id' => 1,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Thoughts of Devloper',
+            //         'description' => 'Thoughts of Devloper',
+            //         'portrait_img' => 'videocontent1.jpg',
+            //         'landscape_img' => 'videocontent1.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'video.mp4',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 4578,
+            //         'total_like' => 2700,
+            //         'total_dislike' => 125,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 1,
+            //         'channel_id' => '3dsvzlwy',
+            //         'category_id' => 1,
+            //         'language_id' => 1,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Devloper Planet',
+            //         'description' => 'Devloper Planet',
+            //         'portrait_img' => 'videocontent2.jpg',
+            //         'landscape_img' => 'videocontent2.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'video.mp4',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 2789,
+            //         'total_like' => 156,
+            //         'total_dislike' => 25,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 2,
+            //         'channel_id' => '0',
+            //         'category_id' => 1,
+            //         'language_id' => 1,
+            //         'artist_id' => 1,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Music - The Language of Feelings.',
+            //         'description' => 'Music - The Language of Feelings.',
+            //         'portrait_img' => 'musiccontent1.jpg',
+            //         'landscape_img' => 'musiccontent1.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'music.mp3',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 4578,
+            //         'total_like' => 2700,
+            //         'total_dislike' => 125,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 2,
+            //         'channel_id' => '0',
+            //         'category_id' => 2,
+            //         'language_id' => 2,
+            //         'artist_id' => 2,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Music - Part of Life',
+            //         'description' => 'Music - Part of Life',
+            //         'portrait_img' => 'musiccontent2.jpg',
+            //         'landscape_img' => 'musiccontent2.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'music.mp3',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 2789,
+            //         'total_like' => 156,
+            //         'total_dislike' => 25,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 3,
+            //         'channel_id' => 'xnawp7wg',
+            //         'category_id' => 0,
+            //         'language_id' => 0,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Types of Devloper',
+            //         'description' => 'Types of Devloper',
+            //         'portrait_img' => 'reelscontent1.jpg',
+            //         'landscape_img' => 'reelscontent1.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'reels.mp4',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 4578,
+            //         'total_like' => 2700,
+            //         'total_dislike' => 125,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 3,
+            //         'channel_id' => '3dsvzlwy',
+            //         'category_id' => 0,
+            //         'language_id' => 0,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Planet Life',
+            //         'description' => 'Planet Life',
+            //         'portrait_img' => 'reelscontent2.jpg',
+            //         'landscape_img' => 'reelscontent2.jpg',
+            //         'content_upload_type' => 'server_video',
+            //         'content' => 'reels.mp4',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 2789,
+            //         'total_like' => 156,
+            //         'total_dislike' => 25,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 4,
+            //         'channel_id' => 'xnawp7wg',
+            //         'category_id' => 1,
+            //         'language_id' => 1,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'My Daily !!!',
+            //         'description' => 'My Daily !!!',
+            //         'portrait_img' => 'podcastscontent1.jpg',
+            //         'landscape_img' => 'podcastscontent1.jpg',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 4578,
+            //         'total_like' => 2700,
+            //         'total_dislike' => 125,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 4,
+            //         'channel_id' => '3dsvzlwy',
+            //         'category_id' => 2,
+            //         'language_id' => 2,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Life partner',
+            //         'description' => 'Life partner',
+            //         'portrait_img' => 'podcastscontent2.jpg',
+            //         'landscape_img' => 'podcastscontent2.jpg',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 1,
+            //         'is_download' => 1,
+            //         'is_like' => 1,
+            //         'total_play' => 2789,
+            //         'total_like' => 156,
+            //         'total_dislike' => 25,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 5,
+            //         'channel_id' => 'xnawp7wg',
+            //         'category_id' => 0,
+            //         'language_id' => 0,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'My Fav Playlist',
+            //         'description' => 'My Fav Playlist',
+            //         'portrait_img' => '',
+            //         'landscape_img' => '',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 0,
+            //         'is_download' => 0,
+            //         'is_like' => 0,
+            //         'total_play' => 0,
+            //         'total_like' => 0,
+            //         'total_dislike' => 0,
+            //         'playlist_type' => 1,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 5,
+            //         'channel_id' => '3dsvzlwy',
+            //         'category_id' => 0,
+            //         'language_id' => 0,
+            //         'artist_id' => 0,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Driving Song Playlist',
+            //         'description' => 'Driving Song Playlist',
+            //         'portrait_img' => '',
+            //         'landscape_img' => '',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 0,
+            //         'is_download' => 0,
+            //         'is_like' => 0,
+            //         'total_play' => 0,
+            //         'total_like' => 0,
+            //         'total_dislike' => 0,
+            //         'playlist_type' => 1,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 6,
+            //         'channel_id' => '0',
+            //         'category_id' => 1,
+            //         'language_id' => 1,
+            //         'artist_id' => 1,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Morning Radio...',
+            //         'description' => 'Morning Radio...',
+            //         'portrait_img' => 'radiocontent1.jpg',
+            //         'landscape_img' => 'radiocontent1.jpg',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 0,
+            //         'is_download' => 0,
+            //         'is_like' => 0,
+            //         'total_play' => 0,
+            //         'total_like' => 0,
+            //         'total_dislike' => 0,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            //     [
+            //         'content_type' => 6,
+            //         'channel_id' => '0',
+            //         'category_id' => 2,
+            //         'language_id' => 2,
+            //         'artist_id' => 2,
+            //         'hashtag_id' => 0,
+            //         'title' => 'Radio With RJ...',
+            //         'description' => 'Radio With RJ...',
+            //         'portrait_img' => 'radiocontent2.jpg',
+            //         'landscape_img' => 'radiocontent2.jpg',
+            //         'content_upload_type' => '',
+            //         'content' => '',
+            //         'content_size' => '0',
+            //         'is_rent' => 0,
+            //         'rent_price' => 0,
+            //         'is_comment' => 0,
+            //         'is_download' => 0,
+            //         'is_like' => 0,
+            //         'total_play' => 0,
+            //         'total_like' => 0,
+            //         'total_dislike' => 0,
+            //         'playlist_type' => 0,
+            //         'is_admin_added' => 1,
+            //         'status' => 1,
+            //     ],
+            // ];
+            // Content::insert($content);
+
+            return response()->json(array('status' => 200, 'success' => __('label.data_insert')));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    public function ClearInterests()
+    public function CleanDatabase()
     {
         try {
 
-            $data = Interests::all();
-            foreach ($data as $interests) {
+            Artist::query()->truncate();
+            Banner::query()->truncate();
+            Category::query()->truncate();
+            City::query()->truncate();
+            Comment::query()->truncate();
+            Episode::query()->truncate();
+            Event_Join_User::query()->truncate();
+            Favorite::query()->truncate();
+            Follow::query()->truncate();
+            Language::query()->truncate();
+            Live_Event::query()->truncate();
+            Music::query()->truncate();
+            Notification::query()->truncate();
+            Onboarding_Screen::query()->truncate();
+            Package::query()->truncate();
+            Play::query()->truncate();
+            Podcast::query()->truncate();
+            Social_Link::query()->truncate();
+            Song::query()->truncate();
+            Transaction::query()->truncate();
+            User::query()->truncate();
+            User_Notification_Tracking::query()->truncate();
+            User_Action::query()->truncate();
+            User_Summary::query()->truncate();
+            Batch::query()->truncate();
 
-                $categoryData = json_decode($interests['category_ids'], true) ?? [];
-                if (count($categoryData) > 10) {
-
-                    arsort($categoryData);
-                    $categoryData = array_slice($categoryData, 0, 10, true);
-
-                    $interests['category_ids'] = json_encode($categoryData);
-                    $interests->save();
-                }
-
-                $hashtagData = json_decode($interests['hashtag_ids'], true) ?? [];
-                if (count($hashtagData) > 20) {
-
-                    arsort($hashtagData);
-                    $hashtagData = array_slice($hashtagData, 0, 20, true);
-
-                    $interests['hashtag_ids'] = json_encode($hashtagData);
-                    $interests->save();
-                }
-            }
-            return response()->json(['status' => 200, 'success' => __('label.data_clear_successfully')]);
+            return response()->json(['status' => 200, 'success' => __('label.data_clean')]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

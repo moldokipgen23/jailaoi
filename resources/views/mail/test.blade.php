@@ -1,24 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>{{ $details['title'] }}</title>
 </head>
 
-<body>
-    <div class="container">
-        <h4>Hello,</h4>
+<body style="margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0e7ff, #f5f7fa);">
 
-        <p><strong>{{ $details['title'] }}</strong></p>
+    <table align="center" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <table align="center" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px; background: linear-gradient(135deg, #6d5dfc, #2d1944); color: #ffffff; text-align: center;">
+                            <h1 style="margin: 0; font-size: 24px;">{{ $details['title'] }}</h1>
+                        </td>
+                    </tr>
 
-        <p>{{ $details['body'] }}</p>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 4px 30px; color: #000000">
+                            <div style="font-size: 18px; line-height: 1.7;">
+                                <p style="margin-bottom: 20px;">
+                                    Hello! 👋<br><br>
+                                    This is a test email from <strong>{{ App_Name(); }}</strong> to verify that SMTP is working correctly.
+                                </p>
+                                <p>Regards,<br><strong>{{ App_Name(); }}</strong></p>
+                            </div>
+                        </td>
+                    </tr>
 
-        <div class="footer">
-            <p>Best regards,</p>
-            <p><strong>The {{ App_Name() }} Team</strong></p>
-        </div>
-    </div>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px; background-color: #f8f8f8; text-align: center; font-size: 14px; color: #999;">
+                            &copy; {{ date('Y') }} {{ App_Name(); }}. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
 </body>
 
 </html>

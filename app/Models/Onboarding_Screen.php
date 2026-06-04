@@ -15,9 +15,7 @@ class Onboarding_Screen extends Model
     protected $casts = [
         'id' => 'integer',
         'title' => 'string',
-        'storage_type' => 'string',
         'image' => 'string',
-        'description' => 'string',
         'status' => 'integer',
     ];
 }

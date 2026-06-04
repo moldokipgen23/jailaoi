@@ -52,11 +52,11 @@ return [
     |
     */
 
-    'url' => env('APP_URL', null),
+    'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL', null),
 
-    'image_url' => env('APP_URL', null) . "/storage/",
+    'image_url' => env('APP_URL', null) . "/storage/app/public/",
 
     /*
     |--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ return [
     |
     */
 
-    'timezone' => 'Asia/Kolkata',
+    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -163,7 +163,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-        Yajra\DataTables\DataTablesServiceProvider::class,
+        Laravel\Sanctum\SanctumServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -206,7 +206,6 @@ return [
         'Crypt' => Illuminate\Support\Facades\Crypt::class,
         'Date' => Illuminate\Support\Facades\Date::class,
         'DB' => Illuminate\Support\Facades\DB::class,
-        'DataTables' => Yajra\DataTables\Facades\DataTables::class,
         'Eloquent' => Illuminate\Database\Eloquent\Model::class,
         'Event' => Illuminate\Support\Facades\Event::class,
         'File' => Illuminate\Support\Facades\File::class,
@@ -234,5 +233,4 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
     ],
-
 ];

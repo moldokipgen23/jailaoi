@@ -2,34 +2,47 @@
 <html>
 
 <head>
+    <meta charset="utf-8">
     <title>{{ $details['title'] }}</title>
 </head>
 
-<body>
+<body style="margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0e7ff, #f5f7fa);">
 
-    <h4>Dear,</h4>
+    <table align="center" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <table align="center" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px; background: linear-gradient(135deg, #6d5dfc, #2d1944); color: #ffffff; text-align: center;">
+                            <h1 style="margin: 0; font-size: 24px;">{{ $details['title'] }}</h1>
+                        </td>
+                    </tr>
 
-    <p>Welcome to {{App_Name()}} We are excited to have you join our community.</p>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 4px 30px; color: #000000">
+                            <div style="font-size: 18px; line-height: 1.7;">
+                                <p style="margin-bottom: 20px;">
+                                    Welcome to {{ App_Name(); }}! 🎉<br><br>
+                                    Your registration is now complete. You can log in and start exploring all the features only on <strong>{{ App_Name(); }}</strong>.
+                                </p>
+                                <p>Thank you,<br><strong>{{ App_Name(); }}</strong></p>
+                            </div>
+                        </td>
+                    </tr>
 
-    <p>Your login was successful, and you are now part of the ultimate all-in-one entertainment platform. With {{App_Name()}}, you can enjoy a seamless and personalized experience across all your devices—Android, iOS, and web. Here’s a glimpse of what awaits you:</p>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px; background-color: #f8f8f8; text-align: center; font-size: 14px; color: #999;">
+                            &copy; {{ date('Y') }} {{ App_Name(); }}. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
-    <p><b>Video Streaming</b> : Enjoy high-quality videos across various genres.</p>
-    <p><b>Reels</b> : Stay entertained with trending short-form video content.</p>
-    <p><b>Podcasts & Radio</b> : Access a diverse selection of podcasts and live radio stations.</p>
-    <p><b>Music</b> : Dive into an extensive music library that caters to every mood.</p>
-    <p><b>Personalized User Panel</b> : Manage your playlists, watch later lists, and content preferences.</p>
-    <p><b>Subscription Plans</b> : Explore flexible subscription options tailored to your needs.</p>
-    <p><b>Custom Ads</b> : Experience targeted ads that enhance your browsing.</p>
-    <p><b>In-App Purchases</b> : Utilize our wallet and coins system for exclusive content and features.</p>
-    <p><b>Multiplatform Access</b> : Enjoy {{App_Name()}} seamlessly on Android, iOS, and web.</p>
-
-    <p>We are committed to providing you with the best entertainment experience possible. If you have any questions or need assistance, our support team is here to help.</p>
-
-    <p>Thank you for choosing {{App_Name()}}. We look forward to bringing you endless entertainment!</p><br>
-
-    <p>Best regards,</p>
-
-    <h4>The {{App_Name()}} Team</h4>
 </body>
 
 </html>

@@ -10,12 +10,12 @@ class AuthAdmin
 {
     public function handle(Request $request, Closure $next)
     {
+
         if (Auth::guard('admin')->guest()) {
             if (!$request->ajax() || !$request->wantsJson()) {
-                return redirect(route('admin.login'));
+                return redirect(route('admin.logout'));
             }
         }
-        $response = $next($request);
-        return $response;
+        return $next($request);
     }
 }

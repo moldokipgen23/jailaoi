@@ -1,264 +1,463 @@
 @extends('admin.layout.page-app')
-@section('page_title', __('label.artists'))
-@section('tab_title', __('label.artists'))
+@section('page_title', __('label.artist_rj'))
 
 @section('content')
-    @include('admin.layout.sidebar')
+@include('admin.layout.sidebar')
 
-    <div class="right-content">
-        @include('admin.layout.header')
+<div class="right-content">
+    @include('admin.layout.header')
 
-        <div class="body-content">
-            <h1 class="page-title-sm">{{__('label.artists')}}</h1>
+    <div class="body-content">
+        <!-- mobile title -->
+        <h1 class="page-title-sm">{{__('label.artist_rj')}} </h1>
 
-            <div class="border-bottom row mb-3">
-                <div class="col-sm-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('label.artists')}}</li>
-                    </ol>
-                </div>
+        <div class="border-bottom row mb-3">
+            <div class="col-sm-11">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{__('label.artist_rj')}}</li>
+                </ol>
             </div>
-
-            <div class="card custom-border-card mt-3">
-                <h5 class="card-header">{{__('label.add_artist')}}</h5>
-                <div class="card-body">
-                    <form id="artist" enctype="multipart/form-data" autocomplete="off">
-                        <input type="hidden" name="id">
-                        <div class="form-row">
-                            <div class="col-md-5">
-                                <div class="form-row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>{{__('label.name')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="name" class="form-control" placeholder="{{__('label.name_here')}}" autofocus>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>{{__('label.bio')}}<span class="text-danger">*</span></label>
-                                            <textarea name="bio" class="form-control" rows="2" placeholder="{{__('label.bio_here')}}"></textarea>
-                                        </div>
+            <div class="col-sm-1 d-flex justify-content-start mb-3" title="{{__('label.sortable')}}">
+                <button type="button" data-toggle="modal" data-target="#sortableModal" class="btn btn-default rounded-10">
+                    <i class="fa-solid fa-sort fa-1x"></i>
+                </button>
+            </div>
+        </div>
+        <!-- add artist -->
+        <div class="card custom-border-card mt-3">
+            <h5 class="card-header">{{__('label.add_artist')}}</h5>
+            <div class="card-body">
+                <form id="artist" enctype="multipart/form-data" autocomplete="off">
+                    <input type="hidden" name="id">
+                    <div class="form-row">
+                        <div class="col-md-5">
+                            <div class="form-row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label>{{__('label.name')}}<span class="text-danger">*</span></label>
+                                        <input type="text" name="name" class="form-control" placeholder="{{__('label.name_here')}}" autofocus>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.type')}}<span class="text-danger">*</span></label>
+                                        <select class="form-control" name="type">
+                                            <option value="">{{__('label.select_artist')}}</option>
+                                            <option value="1">{{__('label.radio_station')}}</option>
+                                            <option value="2">{{__('label.podcast')}}</option>
+                                            <option value="3">{{__('label.music')}}</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group ml-5">
-                                    <label class="ml-5">{{__('label.image')}}<span class="text-danger">*</span></label>
-                                    <div class="avatar-upload ml-5">
-                                        <div class="avatar-edit">
-                                            <input type='file' name="image" id="imageUpload" accept=".png, .jpg, .jpeg" />
-                                            <label for="imageUpload" title="Select File"></label>
-                                        </div>
-                                        <div class="avatar-preview">
-                                            <img src="{{asset('assets/imgs/upload_img.png')}}" alt="upload_img.png" id="imagePreview">
-                                        </div>
+                            <div class="form-row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>{{__('label.bio')}}<span class="text-danger">*</span></label>
+                                        <textarea name="bio" class="form-control" rows="2" placeholder="I am artist ..."></textarea>
                                     </div>
-                                    <label class="mt-3 ml-5 text-gray">{{__('label.image_note')}}</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="border-top pt-3 text-right">
-                            <button type="button" class="btn btn-default mw-120" onclick="save_artist()">{{__('label.save')}}</button>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <div class="col-md-4">
+                            <div class="form-group ml-5">
+                                <label class="ml-5">{{__('label.image')}}<span class="text-danger">*</span></label>
+                                <div class="avatar-upload ml-5">
+                                    <div class="avatar-edit">
+                                        <input type='file' name="image" id="imageUpload" accept=".png, .jpg, .jpeg" />
+                                        <label for="imageUpload" title="Select File"></label>
+                                    </div>
+                                    <div class="avatar-preview">
+                                        <img src="{{asset('assets/imgs/upload_img.png')}}" alt="upload_img.png" id="imagePreview">
+                                    </div>
+                                </div>
+                                <label class="mt-3 ml-5 text-gray">{{__('label.image_note')}}</label>
+                            </div>
                         </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="card custom-border-card mt-3">
-                <div class="page-search mb-3">
-                    <div class="input-group" title="Search">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-magnifying-glass fa-xl light-gray"></i></span>
-                        </div>
-                        <input type="text" id="input_search" class="form-control" placeholder="{{__('label.search')}}" aria-label="Search" aria-describedby="basic-addon1">
                     </div>
-                </div>
-
-                <div class="table-responsive table">
-                    <table class="table table-striped text-center table-bordered" id="datatable">
-                        <thead>
-                            <tr style="background: #F9FAFF;">
-                                <th> {{__('label.#')}} </th>
-                                <th> {{__('label.image')}} </th>
-                                <th> {{__('label.name')}} </th>
-                                <th> {{__('label.bio')}} </th>
-                                <th> {{__('label.linked_user')}} </th>
-                                <th> {{__('label.type')}} </th>
-                                <th> {{__('label.action')}} </th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="border-top pt-3 text-right">
+                        <button type="button" class="btn btn-default mw-120" onclick="save_artist()">{{__('label.save')}}</button>
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- search && table -->
+        <div class="card custom-border-card mt-3">
+            <div class="page-search mb-3">
+                <div class="input-group" title="Search">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-magnifying-glass fa-xl light-gray"></i></span>
+                    </div>
+                    <input type="text" id="input_search" class="form-control" placeholder="{{__('label.search_artist')}}" aria-label="Search" aria-describedby="basic-addon1">
                 </div>
             </div>
-
-            <div class="modal fade" id="EditModel" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">{{__('label.edit')}} {{__('label.artist')}}</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
+            <div class="table-responsive table">
+                <table class="table table-striped text-center table-bordered" id="datatable">
+                    <thead>
+                        <tr class="bg-table">
+                            <th> {{__('label.#')}} </th>
+                            <th> {{__('label.image')}} </th>
+                            <th> {{__('label.name')}} </th>
+                            <th> {{__('label.type')}} </th>
+                            <th> {{__('label.bio')}} </th>
+                            <th> {{__('label.status')}} </th>
+                            <th> {{__('label.action')}} </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- edit model -->
+        <div class="modal fade" id="EditModel" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">{{__('label.edit_artist')}}</h5>
+                        <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="edit_artist" autocomplete="off">
                         <div class="modal-body">
-                            <form id="edit_form" enctype="multipart/form-data" autocomplete="off">
-                                <input type="hidden" name="id" id="edit_id">
-                                <div class="form-row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.name')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="name" id="edit_name" class="form-control" placeholder="{{__('label.name_here')}}">
+                            <div class="form-row">
+                                <div class="col-md-8">
+                                    <div class="form-row">
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <label>{{__('label.name')}}<span class="text-danger">*</span></label>
+                                                <input type="text" name="name" id="edit_name" class="form-control" placeholder="{{__('label.name_here')}}">
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label>{{__('label.bio')}}<span class="text-danger">*</span></label>
-                                            <textarea name="bio" id="edit_bio" class="form-control" rows="2" placeholder="{{__('label.bio_here')}}"></textarea>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>{{__('label.type')}}<span class="text-danger">*</span></label>
+                                                <select class="form-control" name="type" id="edit_type">
+                                                    <option value="">{{__('label.select_artist')}}</option>
+                                                    <option value="1">{{__('label.radio_station')}}</option>
+                                                    <option value="2">{{__('label.podcast')}}</option>
+                                                    <option value="3">{{__('label.music')}}</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>{{__('label.image')}}</label>
-                                            <div class="avatar-upload">
-                                                <div class="avatar-edit">
-                                                    <input type='file' name="image" id="edit_imageUpload" accept=".png, .jpg, .jpeg" />
-                                                    <label for="edit_imageUpload" title="Select File"></label>
-                                                </div>
-                                                <div class="avatar-preview">
-                                                    <img src="{{asset('assets/imgs/upload_img.png')}}" alt="upload_img.png" id="edit_imagePreview" height="200">
-                                                </div>
+                                    <div class="form-row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>{{__('label.bio')}}<span class="text-danger">*</span></label>
+                                                <textarea name="bio" class="form-control" rows="2" id="edit_bio" placeholder="I am artist ..."></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="border-top pt-3 text-right">
-                                    <button type="button" class="btn btn-default mw-120" onclick="update_artist()">{{__('label.update')}}</button>
+                                <div class="col-md-4">
+                                    <div class="form-group ">
+                                        <label class="">{{__('label.image')}}<span class="text-danger">*</span></label>
+                                        <div class="avatar-upload">
+                                            <div class="avatar-edit">
+                                                <input type='file' name="image" id="imageUploadModel" accept=".png, .jpg, .jpeg" />
+                                                <label for="imageUploadModel" title="Select File"></label>
+                                            </div>
+                                            <div class="avatar-preview">
+                                                <img src="" alt="upload_img.png" id="imagePreviewModel">
+                                            </div>
+                                        </div>
+                                        <label class="mt-3 text-gray">{{__('label.image_note')}}</label>
+                                    </div>
                                 </div>
-                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            </form>
+                            </div>
+                            <input type="hidden" name="id" id="edit_id">
+                            <input type="hidden" name="old_image" id="edit_old_image">
                         </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default mw-120" onclick="update_artist()">{{__('label.update')}}</button>
+                            <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.close')}}</button>
+                            <input type="hidden" name="_method" value="PATCH">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- sortableModal -->
+        <div class="modal fade" id="sortableModal" tabindex="-1" data-backdrop="static" role="dialog"
+            aria-labelledby="sortableModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title w-100 text-center" id="sortableModalLabel">{{ __('label.artist_sortable_list') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close">
+                            <span aria-hidden="true" class="text-dark">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="imageListId">
+                            @foreach($artist as $value)
+                            <div id="{{$value['id']}}" class="listitemClass mb-2">
+                                <p class="m-2">{{$value['name']}}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <form enctype="multipart/form-data" id="save_artist_sortable">
+                            @csrf
+                            <input id="outputvalues" type="hidden" name="ids" value="" />
+                            <div class="w-100 text-center">
+                                <button type="button" class="btn btn-default mw-120" onclick="save_artist_sortable()">{{ __('label.save') }}</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @section('pagescript')
 <script>
     $(document).ready(function() {
+
         var table = $('#datatable').DataTable({
-            dom: "<'top'f>rt<'row'<'col-2'i><'col-1'l><'col-9'p>>",
-            "responsive": true,
-            "autoWidth": false,
-            "searching": false,
-            processing: true,
-            serverSide: true,
-            language: {
-                paginate: {
-                    previous: "<i class='fa-solid fa-chevron-left'></i>",
-                    next: "<i class='fa-solid fa-chevron-right'></i>"
-                }
-            },
-            "ajax": {
-                "url": "{{ route('admin.artist.index') }}",
-                "data": function(d) {
+            ...datatabledefault,
+            ajax: {
+                url: "{{ route('artist.index') }}",
+                data: function(d) {
                     d.input_search = $('#input_search').val();
                 },
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'image', name: 'image', orderable: false, searchable: false,
-                    render: function(data, type, full, meta) {
-                        return `<a href='${data}' target='_blank'>
-                                    <img src='${data}' class='img-thumbnail' style='height:55px; width:55px'>
-                                </a>`;
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex'
+                },
+                {
+                    data: 'image',
+                    name: 'image',
+                    orderable: false,
+                    searchable: false,
+                    "render": function(data, type, full, meta) {
+                        return "<a href='" + data + "' target='_blank' title='Watch'><img src='" + data + "' class='rounded-circle size-55'></a>";
                     },
                 },
-                { data: 'name', name: 'name' },
-                { data: 'bio', name: 'bio' },
-                { data: 'linked_user', name: 'linked_user', orderable: false, searchable: false },
-                { data: 'type_badge', name: 'type_badge', orderable: false, searchable: false },
-                { data: 'action', name: 'action', orderable: false, searchable: false },
+                {
+                    data: 'name',
+                    name: 'name',
+                    "render": function(data, type, full, meta) {
+                        if (data) {
+                            return data;
+                        } else {
+                            return "-";
+                        }
+                    }
+                }, {
+                    data: 'type',
+                    name: 'type',
+                    "render": function(data, type, full, meta) {
+                        if (data == 1) {
+                            return "Radio Statio";
+                        } else if (data == 2) {
+                            return "Podcast";
+                        } else if (data == 3) {
+                            return "Music";
+                        } else {
+                            return "-";
+                        }
+                    }
+                },
+                {
+                    data: 'bio',
+                    name: 'bio',
+                    "render": function(data, type, full, meta) {
+                        if (data) {
+                            return (data.length > 75) ? data.substring(0, 75) + '...' : data;
+                        } else {
+                            return "-";
+                        }
+                    }
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
             ],
         });
 
-        $('#input_search').on('keyup', function() {
+        $('#input_search').keyup(function() {
             table.draw();
         });
     });
 
     function save_artist() {
-        var formData = new FormData($('#artist')[0]);
-        $.ajax({
-            type: 'POST',
-            url: "{{ route('admin.artist.store') }}",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res.status == 200) {
-                    toastr.success(res.success);
-                    $('#artist')[0].reset();
-                    $('#imagePreview').attr('src', "{{asset('assets/imgs/upload_img.png')}}");
-                    $('#datatable').DataTable().draw();
-                } else {
-                    toastr.error(res.errors);
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var formData = new FormData($("#artist")[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("artist.store") }}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    get_responce_message(resp, 'artist', '{{ route("artist.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
                 }
-            },
-            error: function(data) {
-                toastr.error('Something went wrong');
-            }
-        });
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
     }
 
-    $(document).on('click', '.edit_artist', function() {
-        $('#edit_id').val($(this).data('id'));
-        $('#edit_name').val($(this).data('name'));
-        $('#edit_bio').val($(this).data('bio'));
-        var img = $(this).data('image');
-        if (img) {
-            $('#edit_imagePreview').attr('src', img);
-        }
+    $(document).on("click", ".edit_artist", function() {
+
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var bio = $(this).data('bio');
+        var image = $(this).data('image');
+        var type = $(this).data('type');
+
+        $(".modal-body #edit_id").val(id);
+        $(".modal-body #edit_name").val(name);
+        $(".modal-body #edit_bio").val(bio);
+        $(".modal-body #edit_type").val(type);
+
+        $(".modal-body #imagePreviewModel").attr("src", image);
+        $(".modal-body #edit_old_image").val(image);
     });
 
     function update_artist() {
-        var formData = new FormData($('#edit_form')[0]);
-        $.ajax({
-            type: 'POST',
-            url: "{{ route('admin.artist.update') }}",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res.status == 200) {
-                    toastr.success(res.success);
-                    $('#EditModel').modal('hide');
-                    $('#datatable').DataTable().draw();
-                } else {
-                    toastr.error(res.errors);
-                }
-            },
-            error: function(data) {
-                toastr.error('Something went wrong');
-            }
-        });
-    }
 
-    /* Upload Image Preview */
-    function readUrl(input, previewId) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#' + previewId).attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]);
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var formData = new FormData($("#edit_artist")[0]);
+
+            var Edit_Id = $("#edit_id").val();
+            var url = '{{ route("artist.update", ":id") }}';
+            url = url.replace(':id', Edit_Id);
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                url: url,
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $('#EditModel').modal('toggle');
+                    get_responce_message(resp, 'edit_artist', '{{ route("artist.index") }}');
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+
         }
     }
-    $("#imageUpload").change(function() {
-        readUrl(this, 'imagePreview');
+
+    // Sortable Section
+    $("#imageListId").sortable({
+        update: function(event, ui) {
+            getIdsOfImages();
+        } //end update
     });
-    $("#edit_imageUpload").change(function() {
-        readUrl(this, 'edit_imagePreview');
-    });
+
+    function getIdsOfImages() {
+        var values = [];
+        $('.listitemClass').each(function(index) {
+            values.push($(this).attr("id")
+                .replace("imageNo", ""));
+        });
+        $('#outputvalues').val(values);
+    }
+
+    function save_artist_sortable() {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+            $("#dvloader").show();
+            var formData = new FormData($("#save_artist_sortable")[0]);
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('artist.sortable.save') }}",
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    get_responce_message(resp, 'save_artist_sortable', "{{ route('artist.index') }}");
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    }
+
+    function change_status(id, status) {
+
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
+
+            $("#dvloader").show();
+            var url = "{{route('artist.show', '')}}" + "/" + id;
+            $.ajax({
+                type: "GET",
+                url: url,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: id,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    if (resp.status == 200) {
+                        toastr.success(resp.success);
+                    } else {
+                        toastr.error(resp.errors);
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#dvloader").hide();
+                    toastr.error(errorThrown, textStatus);
+                }
+            });
+        } else {
+            toastr.error("{{__('label.you_have_no_right_to_add_edit_and_delete')}}");
+        }
+    };
+    $(document).on('change', '.status-checkbox', function() {
+        id = $(this).data('id');
+        change_status(id);
+    })
 </script>
 @endsection

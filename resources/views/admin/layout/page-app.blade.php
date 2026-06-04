@@ -7,17 +7,23 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Tab Icon -->
-    <link rel="shortcut icon" href="{{ Tab_Icon() }}">
+    <link rel="shortcut icon" href="{{Tab_Icon()}}">
 
     <!-- Title Tag  -->
-    <title>@yield('tab_title') | {{ App_Name() }}</title>
+    <title>{{ App_Name() }}</title>
 
-    <link href="{{ asset('assets/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/toastr.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+    <link href="{{asset('assets/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{asset('assets/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
+    <link href="{{asset('assets/css/toastr.min.css')}}" rel="stylesheet" type="text/css">
+    <link href="{{asset('assets/css/style.css') }}" rel="stylesheet">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+    <!-- Summer notes -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.css">
+    <!-- Date Time Picker -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
 
     <!-- base_url -->
     <input type="hidden" value="{{URL('')}}" id="base_url">
@@ -26,23 +32,25 @@
     <style>
         /* Select 2 DropDown */
         .select2-container .select2-selection--single {
-            border: 1px solid #e9ecef;
+            border: 1px solid #f5f5f5;
             background: #fdfdfd;
             border-radius: 8px;
             padding: 8px;
             font-size: 14px;
             height: auto !important;
         }
+
         .select2-container .select2-selection--multiple {
-            border: 1px solid #e9ecef;
+            border: 1px solid #f5f5f5;
             background: #fdfdfd;
             border-radius: 8px;
             padding: 8px;
             font-size: 14px;
             height: auto !important;
         }
+
         .select2-container--default.select2-container--focus .select2-selection--multiple {
-            border: 1px solid #4e45b8 !important;
+            border: 1px solid #2d1944 !important;
         }
     </style>
 
@@ -60,16 +68,41 @@
 
     <div style="display:none" id="dvloader"><img src="{{ asset('assets/imgs/loading.gif')}}" /></div>
 
+    <!-- Feather Icon -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <!-- Jquery -->
     <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/js/js.js')}}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Datatable -->
     <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('assets/js/js.js')}}"></script>
     <!-- Toastr -->
     <script src="{{ asset('assets/js/toastr.min.js')}}"></script>
+    <!-- Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Select2 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <!-- Chunk JS -->
+    <script src="{{ asset('/assets/js/plupload.full.min.js')}}"></script>
+    <script src="{{ asset('/assets/js/common.js')}}"></script>
+    <!-- Data Time Picker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+    <!-- Export Files LInk (PDF, CSV, MS-Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <!-- Summer notes -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!-- Sortable -->
+    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
     <script>
         // Counter
@@ -92,6 +125,7 @@
                 }
             });
         });
+
         function getVal(val) {
 
             multiplier = val.substr(-1).toLowerCase();
@@ -108,13 +142,13 @@
                 return val;
         }
 
-        function get_responce_message(resp, form_name="", url="") {
+        function get_responce_message(resp, form_name = "", url = "") {
             if (resp.status == '200') {
                 toastr.success(resp.success);
-                if(form_name != ""){
+                if (form_name != "") {
                     document.getElementById(form_name).reset();
                 }
-                if(url != ""){  
+                if (url != "") {
                     setTimeout(function() {
                         window.location.replace(url);
                     }, 500);
@@ -133,19 +167,19 @@
 
         // Toastr MSG Show
         @if(Session::has('error'))
-            toastr.error('{{ Session::get("error") }}');
+        toastr.error('{{ Session::get("error") }}');
         @elseif(Session::has('success'))
-            toastr.success('{{ Session::get("success") }}');
+        toastr.success('{{ Session::get("success") }}');
         @endif
 
         // Image Upload Preview Add
-        $('#imageUpload1').change(function() {
+        $('#imageUpload').change(function() {
             if (this.files && this.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    $('#imagePreview1').attr("src", e.target.result);
-                    $('#imagePreview1').hide();
-                    $('#imagePreview1').fadeIn(650);
+                    $('#imagePreview').attr("src", e.target.result);
+                    $('#imagePreview').hide();
+                    $('#imagePreview').fadeIn(650);
                 }
                 reader.readAsDataURL(this.files[0]);
             }
@@ -161,24 +195,38 @@
                 reader.readAsDataURL(this.files[0]);
             }
         });
-        $('#imageUpload3').change(function() {
+        // Image Upload Preview Edit (Model)
+        $('#imageUploadModel').change(function() {
             if (this.files && this.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    $('#imagePreview3').attr("src", e.target.result);
-                    $('#imagePreview3').hide();
-                    $('#imagePreview3').fadeIn(650);
+                    $('#imagePreviewModel').attr("src", e.target.result);
+                    $('#imagePreviewModel').hide();
+                    $('#imagePreviewModel').fadeIn(650);
                 }
                 reader.readAsDataURL(this.files[0]);
             }
         });
-        $('#imageUpload4').change(function() {
+        // Image Upload Preview Add (Landscape)
+        $('#imageUploadLandscape').change(function() {
             if (this.files && this.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    $('#imagePreview4').attr("src", e.target.result);
-                    $('#imagePreview4').hide();
-                    $('#imagePreview4').fadeIn(650);
+                    $('#imagePreviewLandscape').attr("src", e.target.result);
+                    $('#imagePreviewLandscape').hide();
+                    $('#imagePreviewLandscape').fadeIn(650);
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        // Image Upload Preview Add Model (Landscape)
+        $('#imageUploadLandscapeModel').change(function() {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreviewLandscapeModel').attr("src", e.target.result);
+                    $('#imagePreviewLandscapeModel').hide();
+                    $('#imagePreviewLandscapeModel').fadeIn(650);
                 }
                 reader.readAsDataURL(this.files[0]);
             }
@@ -191,8 +239,7 @@
             });
         }
 
-        // DataTable Defaults
-        var dataTableDefaults = {
+        var datatabledefault = {
             dom: "<'top'f>rt<'row'<'col-2'i><'col-1'l><'col-9'p>>",
             searching: false,
             responsive: true,
@@ -200,8 +247,8 @@
             processing: true,
             serverSide: true,
             lengthMenu: [
-                [10, 50, 100, 500, -1],
-                [10, 50, 100, 500, "All"]
+                [10, 100, 500, -1],
+                [10, 100, 500, "All"]
             ],
             language: {
                 paginate: {
@@ -211,103 +258,26 @@
             }
         };
 
-        // Demo Mode Ajex Error
-        function showError() {
-            toastr.error("{{__('label.access_denied_can_not_add_edit_delete')}}");
-        }
-
-        // Convert Date Time
         function msToHours(duration) {
             var hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-                hours = (hours < 10) ? "0" + hours : hours;
-                return hours;
+            hours = (hours < 10) ? "0" + hours : hours;
+            return hours;
         }
+
         function msToMinutes(duration) {
             var minutes = Math.floor((duration / (1000 * 60)) % 60),
                 minutes = (minutes < 10) ? "0" + minutes : minutes;
-                return minutes;
+            return minutes;
         }
+
         function msToSeconds(duration) {
             var seconds = Math.floor((duration / 1000) % 60),
                 seconds = (seconds < 10) ? "0" + seconds : seconds;
-                return seconds;
+            return seconds;
         }
-
-        // Sidebar toggle (desktop)
-        function toggleSidebar() {
-            document.body.classList.toggle('sidebar-collapsed');
-        }
-
-        // Mobile sidebar toggle
-        function toggleMobileSidebar() {
-            document.querySelector('.sidebar').classList.toggle('mobile-open');
-        }
-
-        // Close mobile sidebar on click outside
-        document.addEventListener('click', function(e) {
-            var sidebar = document.querySelector('.sidebar');
-            var toggle = document.getElementById('mobileToggle');
-            if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open') &&
-                !sidebar.contains(e.target) && !toggle.contains(e.target)) {
-                sidebar.classList.remove('mobile-open');
-            }
-        });
-
-        // Remove sidebar-collapsed class on small screens
-        if (window.innerWidth <= 768) {
-            document.body.classList.remove('sidebar-collapsed');
-        }
-
-        // === Global Confirmation Modal ===
-        var confirmModalCallback = null;
-        function confirmAction(options) {
-            if (options.title) $('#confirmModalTitle').text(options.title);
-            if (options.message) $('#confirmModalMessage').text(options.message);
-            if (options.btnText) $('#confirmModalBtn').text(options.btnText);
-            if (options.btnClass) {
-                $('#confirmModalBtn').removeClass('btn-danger btn-warning btn-primary').addClass(options.btnClass);
-            }
-            confirmModalCallback = options.onConfirm || null;
-            $('#confirmModal').modal('show');
-        }
-        function confirmLink(url, title, message, btnText, btnClass) {
-            confirmAction({
-                title: title || '{{__("label.confirm_delete")}}',
-                message: message || '{{__("label.delete_section")}}',
-                btnText: btnText || '{{__("label.delete")}}',
-                btnClass: btnClass || 'btn-danger',
-                onConfirm: function() { window.location.href = url; }
-            });
-        }
-        $(document).on('click', '#confirmModalBtn', function() {
-            $('#confirmModal').modal('hide');
-            if (confirmModalCallback) {
-                confirmModalCallback();
-            }
-        });
     </script>
 
-    <!-- Global Confirmation Modal -->
-    <div class="modal fade" id="confirmModal" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="confirmModalTitle">{{__('label.confirm_delete')}}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" class="text-dark">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
-                    <p class="mb-0" id="confirmModalMessage">{{__('label.delete_section')}}</p>
-                </div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.cancel')}}</button>
-                    <button type="button" class="btn btn-danger mw-120" id="confirmModalBtn">{{__('label.delete')}}</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @yield('pagescript')
-</body></html>
+</body>
+
+</html>

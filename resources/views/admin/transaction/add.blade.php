@@ -1,162 +1,151 @@
 @extends('admin.layout.page-app')
-@section('page_title', __('label.add_transaction'))
-@section('tab_title', __('label.add_transaction'))
+@section('page_title',__('label.add_transaction'))
 
 @section('content')
-    @include('admin.layout.sidebar')
+@include('admin.layout.sidebar')
 
-    <div class="right-content">
-        @include('admin.layout.header')
+<div class="right-content">
+    @include('admin.layout.header')
 
-        <!-- Select2 -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" />
+    <div class="body-content">
+        <!-- mobile title -->
+        <h1 class="page-title-sm">{{__('label.add_transaction')}}</h1>
 
-        <div class="body-content">
-            <!-- mobile title -->
-            <h1 class="page-title-sm">{{__('label.add_transaction')}}</h1>
-
-            <div class="border-bottom row mb-3">
-                <div class="col-sm-10">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.transaction.index') }}">{{__('label.transactions')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('label.add_transaction')}}</li>
-                    </ol>
-                </div>
-                <div class="col-sm-2 d-flex align-items-center justify-content-end">
-                    <a href="{{ route('admin.transaction.index') }}" class="btn btn-default mw-120" style="margin-top:-14px">{{__('label.transactions_list')}}</a>
-                </div>
+        <div class="border-bottom row mb-3">
+            <div class="col-sm-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('transaction.index') }}">{{__('label.transaction')}}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{__('label.add_transaction')}}</li>
+                </ol>
             </div>
-
+        </div>
+        <!-- add transaction  -->
+        <div class="card custom-border-card mt-3">
+            <form enctype="multipart/form-data" id="search_user">
+                @csrf
+                <div class="form-row">
+                    <div class="col-8">
+                        <div class="form-group">
+                            <input name="name" type="text" class="form-control" id="name" placeholder="{{__('label.search_user_name_or_mobile')}}" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-default mw-120 mr-3" onclick="search_user()">{{__('label.search')}}</button>
+                        <a href="{{route('transaction.create')}}" class="btn btn-cancel mw-120">{{__('label.clear')}}</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <?php if (isset($user->id)) { ?>
             <div class="card custom-border-card mt-3">
-                <form id="search_user" enctype="multipart/form-data">
+                <form enctype="multipart/form-data" id="add_transaction">
+                    @csrf
                     <div class="form-row">
-                        <div class="col-8">
+                        <div class="col-4">
                             <div class="form-group">
-                                <input name="name" type="text" class="form-control" id="name" placeholder="{{__('label.search')}}" autocomplete="off" autofocus>
+                                <input name="user_id" type="hidden" class="form-control" readonly id="user_id" value="{{$user->id}}">
+                                <label>{{__('label.name')}}</label>
+                                <input name="name" type="text" class="form-control" readonly value="{{$user->full_name}}">
                             </div>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-default mw-120 mr-3" onclick="search_user()">{{__('label.search')}}</button>
-                            <a href="{{route('admin.transaction.create')}}" class="btn btn-cancel mw-120">{{__('label.clear')}}</a>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <div class="form-group">
+                                <label>{{__('label.mobile_number')}}</label>
+                                <input name="mobile_number" type="text" class="form-control" readonly value="{{$user->mobile_number}}">
+                            </div>
                         </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label>{{__('label.email')}}</label>
+                                <input name="email" type="text" class="form-control" readonly value="{{$user->email}}">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label>{{__('label.select_package')}}</label>
+                                <select name="package_id" class="form-control">
+                                    <option value="">{{__('label.select_package')}}</option>
+                                    @foreach($package as $row)
+                                    <option value="{{$row->id}}">
+                                        {{$row->name}} &nbsp; - &nbsp; {{ $row->price}}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-default mw-120" onclick="add_transaction()">{{__('label.save')}}</button>
                     </div>
                 </form>
             </div>
+        <?php } else { ?>
+            <div class="card custom-border-card mt-3">
+                <div class="col-12">
+                    <h3>{{__('label.user_list')}}</h3>
 
-            <?php if (isset($user->id)) { ?>
-                <div class="card custom-border-card mt-3">
-                    <form id="add_transaction" enctype="multipart/form-data">
-                        <input type="hidden" name="user_id" value="{{ $user['id'] }}" class="form-control" readonly>
-                        <div class="form-row">
-                            <div class="col-4">
-                                <div class="form-group">
-                                    <label>{{__('label.channel_name')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="channel_name" value="{{ $user['channel_name'] }}" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label>{{__('label.full_name')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="full_name" value="{{ $user['full_name'] }}" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label>{{__('label.email')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="email" value="{{ $user['email']}}" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-2">
-                                <div class="form-group">
-                                    <label>{{__('label.mobile_number')}}<span class="text-danger">*</span></label>
-                                    <input type="text" name="mobile_number" value="{{ $user['mobile_number'] }}" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-group">
-                                    <label>{{__('label.package')}}<span class="text-danger">*</span></label>
-                                    <select name="package_id" class="form-control">
-                                        <option value="">{{__('label.select_package')}}</option>
-                                        @foreach($package as $row)
-                                            <option value="{{ $row['id'] }}">
-                                                {{ $row['name'] }} — {{ $row['price'] }} {{ Currency_Code(); }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-default mw-120" onclick="add_transaction()">{{__('label.save')}}</button>
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        </div>
-                    </form>
+                    <div id="user_list"></div>
                 </div>
-            <?php } else { ?>
-                <div class="card custom-border-card mt-3">
-                    <div class="col-12">
-                        <h3>{{__('label.users_list')}}</h3>
-                        <div id="user_list"></div>
-                    </div>
-                </div>
-            <?php } ?>
-        </div>
+            </div>
+        <?php } ?>
     </div>
+</div>
 @endsection
 
 @section('pagescript')
-    <script>
-        // Sidebar Scroll Down
-		sidebar_down(1330);
+<script>
+    // Sidebar Scroll Down
+    sidebar_down($(document).height());
 
-        function add_transaction() {
+    function add_transaction() {
 
-            var Demo_Mode = '<?php echo Demo_Mode(); ?>';
-            if (Demo_Mode == 1) {
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin == 1) {
 
-                $("#dvloader").show();
-                var formData = new FormData($("#add_transaction")[0]);
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route("admin.transaction.store") }}',
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function(resp) {
-                        $("#dvloader").hide();
-                        get_responce_message(resp, 'add_transaction', '{{ route("admin.transaction.index") }}');
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown) {
-                        $("#dvloader").hide();
-                        toastr.error(errorThrown, textStatus);
-                    }
-                });
-            } else {
-                showError();
-            }
-        }
-        function search_user() {
-            var formData = new FormData($("#search_user")[0]);
+            var formData = new FormData($("#add_transaction")[0]);
             $("#dvloader").show();
             $.ajax({
                 type: 'POST',
-                url: '{{ route("admin.search_user")}}',
+                url: '{{ route("transaction.store") }}',
                 data: formData,
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(resp) {
                     $("#dvloader").hide();
-                    $('#user_list').html(resp.result);
+                    get_responce_message(resp, 'add_transaction', '{{ route("transaction.index") }}');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     $("#dvloader").hide();
                     toastr.error(errorThrown, textStatus);
                 }
             });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
         }
-    </script>
+    }
+
+    function search_user() {
+        
+        var formData = new FormData($("#search_user")[0]);
+        $("#dvloader").show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("searchUser")}}',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(resp) {
+                $("#dvloader").hide();
+                $('#user_list').html(resp.result);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $("#dvloader").hide();
+                toastr.error(errorThrown, textStatus);
+            }
+        });
+    }
+</script>
 @endsection

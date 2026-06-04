@@ -10,24 +10,31 @@ class Section extends Model
     use HasFactory;
 
     protected $table = 'tbl_section';
+
     protected $guarded = array();
 
     protected $casts = [
         'id' => 'integer',
+        'user_id' => 'integer',
+        'section_type' => 'integer',
         'title' => 'string',
-        'short_title' => 'string',
-        'is_home_screen' => 'integer',
-        'content_type' => 'integer',
+        'sub_title' => 'string',
+        'type' => 'integer',
+        'artist_id' => 'integer',
         'category_id' => 'integer',
         'language_id' => 'integer',
-        'order_by_view' => 'integer',
-        'order_by_like' => 'integer',
-        'order_by_upload' => 'integer',
+        'city_id' => 'integer',
         'screen_layout' => 'string',
+        'is_premium' => 'integer',
+        'order_by_upload' => 'integer',
+        'order_by_play' => 'integer',
+        'is_paid' => 'integer',
+        'is_title' => 'integer',
+        'is_category' => 'integer',
+        'is_artist_name' => 'integer',
         'no_of_content' => 'integer',
         'view_all' => 'integer',
-        'sort_order' => 'integer',
+        'sortable' => 'integer',
         'status' => 'integer',
-        'is_fixed' => 'integer',
     ];
 }

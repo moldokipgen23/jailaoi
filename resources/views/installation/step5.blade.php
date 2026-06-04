@@ -8,12 +8,12 @@
                 <!-- Alert MSG -->
                 @if(session()->has('error'))
                     <div class="alert alert-danger alert-block">
-                        <button type="button" class="close" data-dismiss="alert">X</button>
+                        <button type="button" class="close" data-dismiss="alert" >X</button>
                         <strong>{{ Session::get('error') }}</strong>
                     </div>
                 @elseif(session()->has('success'))
                     <div class="alert alert-danger alert-block">
-                        <button type="button" class="close" data-dismiss="alert">X</button>
+                        <button type="button" class="close" data-dismiss="alert" >X</button>
                         <strong>{{ Session::get('success') }}</strong>
                     </div>
                 @endif
@@ -48,7 +48,7 @@
             </div>
         </div>
         <div class="col-lg-6 install-bg-img d-none d-lg-block">
-            <img src="{{ asset('assets/imgs/install_bg.png') }}">
+            <img src="{{ asset('assets/imgs/install_bg.png') }}" >
         </div>
     </div>
 @endsection

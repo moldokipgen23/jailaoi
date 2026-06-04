@@ -15,7 +15,6 @@ class Language extends Model
     protected $casts = [
         'id' => 'integer',
         'name' => 'string',
-        'storage_type' => 'integer',
         'image' => 'string',
         'sort_order' => 'integer',
         'status' => 'integer',

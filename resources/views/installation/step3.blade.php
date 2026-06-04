@@ -8,7 +8,7 @@
                 <!-- Alert MSG -->
                 @if(session()->has('error'))
                     <div class="alert alert-danger alert-block">
-                        <button type="button" class="close" data-dismiss="alert">X</button>
+                        <button type="button" class="close" data-dismiss="alert" >X</button>
                         <strong>{{ Session::get('error') }}</strong>
                     </div>
                 @elseif(session()->has('success'))
@@ -20,6 +20,7 @@
 
                 <h1 class="primary-color install-title">{{__('label.configure_database')}}</h1>
                 <h1 class="install_sub_title">{{__('label.provide_database_information_correctly')}}</h1>
+
                 <div class="mt-3">
                     <form method="POST" action="{{ route('install.db',['token'=>bcrypt('step_4')]) }}" onsubmit="showLoder()">
                         @csrf
@@ -61,7 +62,7 @@
             </div>
         </div>
         <div class="col-lg-6 install-bg-img d-none d-lg-block">
-            <img src="{{ asset('assets/imgs/install_bg.png') }}">
+            <img src="{{ asset('assets/imgs/install_bg.png') }}" >
         </div>
     </div>
 @endsection

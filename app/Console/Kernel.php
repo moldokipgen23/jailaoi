@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Artisan;
 
 class Kernel extends ConsoleKernel
 {
@@ -16,6 +17,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('app:update-summary')->weeklyOn(1, '00:00')->then(function () {
+            Artisan::call('app:create-upload-batch-file');
+        });
+        $schedule->command('app:check-status')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('app:create-sections')->everyTenMinutes()->withoutOverlapping();
     }
 
     /**
@@ -25,7 +31,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

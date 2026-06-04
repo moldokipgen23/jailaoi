@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Common;
 use App\Models\General_Setting;
 use App\Models\Notification;
-use App\Models\Read_Notification;
+use App\Models\User_Notification_Tracking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -23,33 +23,27 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         try {
+
             $params['data'] = [];
             if ($request->ajax()) {
 
-                $query = Notification::where('type', 1);
-
                 $input_search = $request['input_search'];
-                if ($input_search != null) {
-                    $query->where('title', 'LIKE', "%{$input_search}%");
+                if ($input_search != null && isset($input_search)) {
+                    $data = Notification::where('title', 'LIKE', "%{$input_search}%")->orwhere('description', 'LIKE', "%{$input_search}%")->latest()->get();
+                } else {
+                    $data = Notification::latest()->get();
                 }
-                $data = $query->latest()->get();
 
                 $this->common->imageNameToUrl($data, 'image', $this->folder);
 
                 return DataTables()::of($data)
                     ->addIndexColumn()
                     ->addColumn('action', function ($row) {
-
-                        $notification_delete = __('label.delete_notification');
-
-                        $delete = '<form onsubmit="return confirm(\'' . $notification_delete . '\');" method="POST" action="' . route('admin.notification.destroy', [$row->id]) . '">
+                        $delete = '<form onsubmit="return confirm(\'' . __('label.delete_notification') . '\');" method="POST"  action="' . route('notification.destroy', [$row->id]) . '">
                             <input type="hidden" name="_token" value="' . csrf_token() . '">
                             <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="edit-delete-btn" style="outline: none;"><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
-
-                        $btn = '<div class="d-flex justify-content-around">';
-                        $btn .= $delete;
-                        $btn .= '</a></div>';
+                            <button type="submit" class="edit-delete-btn"  title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
+                        $btn = $delete;
                         return $btn;
                     })
                     ->rawColumns(['action'])
@@ -60,52 +54,60 @@ class NotificationController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function create()
+    {
+        try {
+
+            $params['data'] = [];
+            return view('admin.notification.add', $params);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
     public function store(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
-                'title' => 'required|min:2',
-                'message' => 'required|min:2',
-                'image' => 'image|mimes:jpeg,png,jpg|max:5120',
+                'title' => 'required',
+                'description' => 'required',
+                'image' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
             $requestData = $request->all();
 
-            $requestData['type'] = 1;
-            $requestData['storage_type'] = Storage_Type();
             $notificationImageURL = '';
-            if (isset($requestData['image']) && $requestData['image'] != null) {
+            if (isset($requestData['image'])) {
+                $files = $requestData['image'];
+                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'notification_');
 
-                $file = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($file, $this->folder, 'noti_', $requestData['storage_type']);
-                $notificationImageURL = $this->common->getImage($this->folder, $requestData['image'], $requestData['storage_type']);
+                // Image Name to URL
+                $notificationImageURL = $this->common->Get_Image($this->folder, $requestData['image']);
             } else {
                 $requestData['image'] = "";
             }
-            $requestData['user_id'] = 0;
-            $requestData['from_user_id'] = 0;
-            $requestData['content_id'] = 0;
-            $requestData['status'] = 1;
 
-            $data = Notification::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($data['id'])) {
+            $notification_data = Notification::updateOrCreate(['id' => $requestData['id']], $requestData);
+            if (isset($notification_data->id)) {
 
-                $settingData = Setting_Data();
-                $ONESIGNAL_APP_ID = $settingData['onesignal_app_id'];
-                $ONESIGNAL_REST_KEY = $settingData['onesignal_rest_key'];
+                // Notification Send App
+                $notification = Setting_Data();
+                $ONESIGNAL_APP_ID = $notification['onesignal_apid'];
+                $ONESIGNAL_REST_KEY = $notification['onesignal_rest_key'];
 
                 $fields = array(
                     'app_id' => $ONESIGNAL_APP_ID,
                     'included_segments' => array('All'),
                     'data' => array("foo" => "bar"),
-                    'headings' => array("en" => $request['title']),
-                    'contents' => array("en" => $request['message']),
+                    'headings' => array("en" => $request->title),
+                    'contents' => array("en" => $request->description),
                     'big_picture' => $notificationImageURL,
                 );
+
                 $fields = json_encode($fields);
 
                 $ch = curl_init();
@@ -119,12 +121,14 @@ class NotificationController extends Controller
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_exec($ch);
+
+                $response = curl_exec($ch);
+
                 curl_close($ch);
 
                 return response()->json(['status' => 200, 'success' => __('label.success_add_notification')]);
             } else {
-                return response()->json(['status' => 400, 'errors' => __('label.error_add_notification')]);
+                return response()->json(['status' => 400, 'errors' => __('label.notification_not_added')]);
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -136,33 +140,26 @@ class NotificationController extends Controller
 
             $data = Notification::where('id', $id)->first();
             if (isset($data)) {
-                $this->common->deleteImageToFolder($this->folder, $data['image'], $data['storage_type']);
+                $this->common->deleteImageToFolder($this->folder, $data['image']);
                 $data->delete();
 
-                Read_Notification::where('notification_id', $id)->delete();
+                User_Notification_Tracking::where('notification_id', $id)->delete();
             }
-            return redirect()->route('admin.notification.index')->with('success', __('label.notification_delete'));
+
+            return redirect()->route('notification.index')->with('success', __('label.success_delete_notification'));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
 
-    // Setting
+    // Notification Setting
     public function setting()
     {
         try {
 
             $data = Setting_Data();
             if ($data) {
-
-                if (Demo_Mode() == 0) {
-                    $data['onesignal_app_id'] = "xxxxxxxxxxxxxxxxxxxx";
-                    $data['onesignal_rest_key'] = "xxxxxxxxxxxxxxxxxxxx";
-                }
-
                 return view('admin.notification.setting', ['result' => $data]);
-            } else {
-                return view('errors.404');
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -173,17 +170,17 @@ class NotificationController extends Controller
         try {
 
             $data = $request->all();
-            $data["onesignal_app_id"] = $data['onesignal_app_id'] ?? '';
-            $data["onesignal_rest_key"] = $data['onesignal_rest_key'] ?? '';
+            $data["onesignal_apid"] = isset($data['onesignal_apid']) ? $data['onesignal_apid'] : '';
+            $data["onesignal_rest_key"] = isset($data['onesignal_rest_key']) ? $data['onesignal_rest_key'] : '';
 
             foreach ($data as $key => $value) {
                 $setting = General_Setting::where('key', $key)->first();
-                if (isset($setting['id'])) {
-                    $setting['value'] = $value;
+                if (isset($setting->id)) {
+                    $setting->value = $value;
                     $setting->save();
                 }
             }
-            return response()->json(['status' => 200, 'success' => __('label.setting_save_successfully')]);
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

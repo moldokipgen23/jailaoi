@@ -13,6 +13,7 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         try {
+
             $params['data'] = [];
             if ($request->ajax()) {
 
@@ -26,7 +27,7 @@ class PaymentController extends Controller
                 return DataTables()::of($data)
                     ->addIndexColumn()
                     ->addColumn('action', function ($row) {
-                        $btn = '<a href="' . route('admin.payment.edit', [$row->id]) . '" class="edit-delete-btn"><i class="fa-solid fa-pen-to-square fa-xl"></i></a>';
+                        $btn = '<a href="' . route('payment.edit', [$row->id]) . '" class="edit-delete-btn" title=' . __('label.edit') . '><i class="fa-solid fa-pen-to-square fa-xl"></i></a>';
                         return $btn;
                     })
                     ->rawColumns(['action'])
@@ -47,34 +48,34 @@ class PaymentController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
         try {
+
             $validator = Validator::make($request->all(), [
                 'visibility' => 'required',
                 'is_live' => 'required',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
-                return response()->json(['status' => 400, 'errors' => $errs]);
+                return response()->json(array('status' => 400, 'errors' => $errs));
             }
 
-            $payment_option = Payment_Option::where('id', $request->id)->first();
-            if (isset($payment_option['id'])) {
+            $payment_option = Payment_Option::where('id', $id)->first();
 
-                $data = $request->all();
+            $data = $request->all();
+            $payment_option->key_1 = isset($data['key_1']) ? $data['key_1'] : '';
+            $payment_option->key_2 = isset($data['key_2']) ? $data['key_2'] : '';
+            $payment_option->key_3 = isset($data['key_3']) ? $data['key_3'] : '';
+            if (isset($payment_option->id)) {
 
-                $payment_option['visibility'] = $request['visibility'];
-                $payment_option['is_live'] = $request['is_live'];
-                $payment_option['key_1'] = $data['key_1'] ?? '';
-                $payment_option['key_2'] = $data['key_2'] ?? '';
-                $payment_option['key_3'] = $data['key_3'] ?? '';
-                $payment_option['key_4'] = $data['key_4'] ?? '';
+                $payment_option->visibility = $request->visibility;
+                $payment_option->is_live = $request->is_live;
 
                 if ($payment_option->save()) {
                     return response()->json(['status' => 200, 'success' => __('label.success_edit_payment')]);
                 } else {
-                    return response()->json(['status' => 400, 'errors' => __('label.error_edit_payment')]);
+                    return response()->json(['status' => 400, 'errors' => __('label.payment_not_updated')]);
                 }
             }
         } catch (Exception $e) {

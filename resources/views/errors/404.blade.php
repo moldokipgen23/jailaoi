@@ -3,19 +3,13 @@
 
 <head>
 
-    <!-- Tab Icon -->
-    <link rel="shortcut icon" href="{{ Tab_Icon() }}">
-    <!-- Tab Title -->
-    <title>{{ App_Name() }}</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
     <style type="text/css">
         body {
             background-color: #f7f6ff;
-            font-family: 'Rubik', sans-serif;
         }
+
         svg {
             position: absolute;
             top: 50%;
@@ -23,6 +17,7 @@
             margin-top: -300px;
             margin-left: -600px;
         }
+
         .message-box {
             height: 200px;
             width: 380px;
@@ -32,16 +27,19 @@
             margin-top: -175px;
             margin-left: 10px;
             color: #FFF;
+            font-family: Roboto;
             font-weight: 300;
         }
+
         .message-box h1 {
-            color:#4e45b8;
+            color: #2d1944;
             font-size: 200px;
             line-height: 50px;
             margin-bottom: 40px;
         }
+
         .message-box p {
-            color:#4e45b8;
+            color: #2d1944;
             font-size: 50px;
             line-height: 50px;
             margin-bottom: 40px;
@@ -49,6 +47,7 @@
             margin-left: -16px;
             word-spacing: 5px;
         }
+
         #Polygon-1,
         #Polygon-2,
         #Polygon-3,
@@ -57,20 +56,25 @@
         #Polygon-5 {
             animation: float 1s infinite ease-in-out alternate;
         }
+
         #Polygon-2 {
             animation-delay: .2s;
         }
+
         #Polygon-3 {
             animation-delay: .4s;
         }
+
         #Polygon-4 {
             animation-delay: .6s;
         }
+
         #Polygon-5 {
             animation-delay: .8s;
         }
+
         .btn-default {
-            background: #4e45b8;
+            background: #2d1944;
             border-radius: 50px;
             font-size: 18px;
             font-weight: 600;
@@ -83,16 +87,19 @@
             margin-left: 80px;
             word-spacing: 5px;
         }
+
         .btn-default:hover {
-            color: #4e45b8;
+            color: #2d1944;
             background: transparent;
-            border-color: #4e45b8;
+            border-color: #2d1944;
         }
+
         @keyframes float {
             100% {
                 transform: translateY(20px);
             }
         }
+
         @media (max-width: 450px) {
             .message-box {
                 top: 50%;
@@ -123,10 +130,10 @@
     </svg>
 
     <div class="message-box">
-        <h1>404</h1>
-        <p>Page Not Found</p>
+        <h1 class="">404</h1>
+        <p class="">Page Not Found</p>
     </div>
-    
+
 </body>
 
 </html>
