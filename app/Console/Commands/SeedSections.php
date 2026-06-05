@@ -7,11 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class SeedSections extends Command
 {
-    protected $signature = 'seed:sections';
+    protected $signature = 'seed:sections {--delete : Delete the seeded sections}';
     protected $description = 'Insert default home page sections for music content';
 
     public function handle()
     {
+        if ($this->option('delete')) {
+            $deleted = DB::table('tbl_section')->whereIn('id', [12, 13, 14, 15])->delete();
+            $this->info("$deleted sections deleted!");
+            return;
+        }
+
         $sections = [
             [
                 'user_id' => 0,
