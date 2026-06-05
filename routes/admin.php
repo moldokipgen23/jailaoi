@@ -160,7 +160,7 @@ Route::group(['middleware' => 'installation'], function () {
         // Notification Configuration
         Route::resource('notification_configuration', NotificationConfigurationController::class)->only(['index', 'store']);
         // Artist Requests
-        Route::get('artist-requests', [ArtistRequestController::class, 'index'])->name('artist-requests.index');
+        Route::get('artist-requests', [ArtistRequestController::class, 'index'])->name('admin.artist-requests.index');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
@@ -211,8 +211,8 @@ Route::group(['middleware' => 'installation'], function () {
             // System Setting
             Route::get('systemsetting/downloadsqlfile', [SystemSettingController::class, 'DownloadSqlFile'])->name('system.setting.downloadsqlfile');
             // Artist Requests
-            Route::post('artist-requests/approve', [ArtistRequestController::class, 'approve'])->name('artist-requests.approve');
-            Route::post('artist-requests/reject', [ArtistRequestController::class, 'reject'])->name('artist-requests.reject');
+            Route::post('artist-requests/approve', [ArtistRequestController::class, 'approve'])->name('admin.artist-requests.approve');
+            Route::post('artist-requests/reject', [ArtistRequestController::class, 'reject'])->name('admin.artist-requests.reject');
         });
     });
 });
