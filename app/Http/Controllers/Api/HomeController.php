@@ -2210,11 +2210,10 @@ class HomeController extends Controller
                 }
                 $data = Music::where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
             }
-
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = $request->page_no ?? $request->pageno ?? 1;
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -2224,6 +2223,7 @@ class HomeController extends Controller
             $data = $data->get();
 
             if (count($data) > 0) {
+
                 $this->common->getAllIdByName($data);
                 if ($type == 1) {
 
@@ -2295,6 +2295,22 @@ class HomeController extends Controller
                 $data = Podcast::where('artist_id', $artist_id)->orderByDesc('total_play');
             } else if ($type == 3) {
                 $data = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->orderByDesc('total_play');
+            } else {
+                $songCount = Song::where('artist_id', $artist_id)->count();
+                $podcastCount = Podcast::where('artist_id', $artist_id)->count();
+                $musicCount = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->count();
+                if ($songCount > 0) {
+                    $type = 1;
+                    $data = Song::where('artist_id', $artist_id)->orderByDesc('total_play');
+                } else if ($podcastCount > 0) {
+                    $type = 2;
+                    $data = Podcast::where('artist_id', $artist_id)->orderByDesc('total_play');
+                } else if ($musicCount > 0) {
+                    $type = 3;
+                    $data = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->orderByDesc('total_play');
+                } else {
+                    return $this->common->API_Response(400, __('api_msg.data_not_found'));
+                }
             }
 
             $total_rows = $data->count();
@@ -2352,7 +2368,9 @@ class HomeController extends Controller
                     }
                 }
 
-                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                $response['content_type'] = $type;
+                return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
