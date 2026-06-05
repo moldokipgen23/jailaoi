@@ -88,14 +88,26 @@ class HomeController extends Controller
     {
         try {
 
+            $return = [];
             $Option_data = Payment_Option::get();
             foreach ($Option_data as $value) {
-                $return[][$value['name']] = $value;
+                $return[$value['name']] = $value;
             }
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $return);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
+    }
+    public function get_payment_token()
+    {
+        return response()->json([
+            'status' => 400,
+            'message' => 'PayTM payment token is not configured.',
+            'result' => [
+                'paytmChecksum' => '',
+                'verifySignature' => false,
+            ],
+        ]);
     }
     public function get_pages()
     {
@@ -1624,6 +1636,111 @@ class HomeController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+
+    public function get_podcast_section_list(Request $request)
+    {
+        try {
+            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $page_size = 0;
+            $current_page = 0;
+            $more_page = false;
+
+            // Podcast tab = section_type 4
+            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', 4)->where('status', 1)->where('type', 2)->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+
+            $total_rows = $data->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / $total_page);
+            $current_page = $request->page_no ?? 1;
+            $offset = $current_page * $total_page - $total_page;
+
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+
+            $data->take($total_page)->offset($offset);
+            $data = $data->get();
+
+            if (count($data) > 0) {
+                for ($i = 0; $i < count($data); $i++) {
+                    $data[$i]['data'] = [];
+                    if ($data[$i]['type'] == 2) {
+                        $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                        $data[$i]['data'] = $query;
+                    }
+                }
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function get_podcast_section_detail(Request $request)
+    {
+        try {
+            $validation = Validator::make(
+                $request->all(),
+                [
+                    'section_id' => 'required|numeric',
+                    'user_id' => 'numeric',
+                ],
+            );
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+
+            $section_id = $request['section_id'];
+            $user_id = isset($request['user_id']) ? $request['user_id'] : 0;
+            $page_no = $request['page_no'] ?? 1;
+            $page_size = 0;
+            $more_page = false;
+
+            $section = Section::where('id', $section_id)->first();
+            if ($section != null && isset($section)) {
+                if ($section['type'] == 2) {
+                    $content = $this->common->section_query_detail($section['type'], $section['artist_id'], $section['category_id'], $section['language_id'], $section['city_id'], $section['order_by_upload'], $section['order_by_play'], $section['is_premium']);
+                    $data = $content;
+                } else {
+                    return $this->common->API_Response(400, __('api_msg.data_not_found'));
+                }
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
+            $total_rows = $data->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / $total_page);
+            $offset = $page_no * $total_page - $total_page;
+
+            $more_page = $this->common->more_page($page_no, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $page_no, $more_page);
+
+            $data->take($total_page)->skip($offset);
+            $data = $data->get();
+
+            if (count($data) > 0) {
+                for ($i = 0; $i < count($data); $i++) {
+                    $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['portrait_img']);
+                    $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['landscape_img']);
+                    if ($data[$i]['trailer_upload_type'] == 1) {
+                        $data[$i]['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $data[$i]['trailer_audio']);
+                    }
+                    $data[$i]['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $data[$i]['is_favorite'] = $this->common->isFavorite(2, $data[$i]['id'], $user_id);
+                    $this->common->get_all_count_for_content(2, $data[$i]);
+                    $this->common->getAllIdByName(array($data[$i]));
+                }
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function get_banner(Request $request)
     {
         try {

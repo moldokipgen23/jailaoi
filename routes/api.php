@@ -35,6 +35,7 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_category', [HomeController::class, 'get_category']);
     Route::post('get_language', [HomeController::class, 'get_language']);
     Route::post('get_package', [HomeController::class, 'get_package']);
+    Route::post('get_payment_token', [HomeController::class, 'get_payment_token']);
     Route::post('add_transaction', [HomeController::class, 'add_transaction']);
     Route::post('transaction_list', [HomeController::class, 'transaction_list']);
     Route::post('get_radio_by_city', [HomeController::class, 'get_radio_by_city']);
@@ -49,6 +50,8 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('search_content', [HomeController::class, 'search_content']);
     Route::post('get_section_list', [HomeController::class, 'get_section_list']);
     Route::post('get_section_detail', [HomeController::class, 'get_section_detail']);
+    Route::post('get_podcast_section_list', [HomeController::class, 'get_podcast_section_list']);
+    Route::post('get_podcast_section_detail', [HomeController::class, 'get_podcast_section_detail']);
     Route::post('get_banner', [HomeController::class, 'get_banner']);
     Route::post('add_remove_favorite', [HomeController::class, 'add_remove_favorite']);
     Route::post('get_favorite_list', [HomeController::class, 'get_favorite_list']);
