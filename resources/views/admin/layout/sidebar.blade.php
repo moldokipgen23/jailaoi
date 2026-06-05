@@ -48,8 +48,8 @@
                         <span>{{__('label.artist_rj')}}</span>
                     </a>
                 </li>
-                <li class="side_line {{ request()->routeIs('artist-requests*') ? 'active' : '' }}">
-                    <a href="{{ route('artist-requests.index') }}" class="dropdown-item">
+                <li class="side_line {{ request()->routeIs('admin.artist-requests*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.artist-requests.index') }}" class="dropdown-item">
                         <i class="fa-solid fa-user-plus fa-2xl submenu-icon"></i>
                         <span>{{__('label.artist_requests')}}</span>
                     </a>
