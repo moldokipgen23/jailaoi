@@ -278,6 +278,46 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- JAILAOI: CDN / Audio Storage card --}}
+                <div class="form-row">
+                    <div class="col-12">
+                        <div class="card custom-border-card">
+                            <h5 class="card-header">🎵 Audio Storage / CDN</h5>
+                            <div class="card-body">
+                                <form id="cdn_storage_form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-4">
+                                            <label>Storage Driver <span class="text-danger">*</span></label>
+                                            <select name="audio_storage_driver" class="form-control" id="audio_storage_driver_select" onchange="toggleCdnFields()">
+                                                <option value="local"   {{ ($result['audio_storage_driver'] ?? 'local') == 'local'  ? 'selected' : '' }}>Local Server (default)</option>
+                                                <option value="bunny"   {{ ($result['audio_storage_driver'] ?? 'local') == 'bunny'  ? 'selected' : '' }}>🐰 Bunny CDN (recommended)</option>
+                                                <option value="r2"      {{ ($result['audio_storage_driver'] ?? 'local') == 'r2'     ? 'selected' : '' }}>☁️ Cloudflare R2</option>
+                                            </select>
+                                            <small class="text-muted">
+                                                <strong>local</strong> = files stored on this server.<br>
+                                                <strong>bunny</strong> = files uploaded to Bunny CDN (add BUNNY_* vars in .env first).<br>
+                                                <strong>r2</strong> = files uploaded to Cloudflare R2 (add R2_* vars in .env first).
+                                            </small>
+                                        </div>
+                                        <div class="form-group col-md-8" id="cdn_url_hint" style="display:none;">
+                                            <label>Current CDN URL</label>
+                                            <input type="text" class="form-control" readonly
+                                                value="{{ ($result['audio_storage_driver'] ?? 'local') == 'bunny' ? env('BUNNY_CDN_URL','(set BUNNY_CDN_URL in .env)') : (($result['audio_storage_driver'] ?? 'local') == 'r2' ? env('R2_PUBLIC_URL','(set R2_PUBLIC_URL in .env)') : 'n/a') }}"
+                                                placeholder="CDN URL from .env">
+                                            <small class="text-muted">Read-only — set the URL in your server .env file.</small>
+                                        </div>
+                                    </div>
+                                    <div class="border-top pt-3 text-right">
+                                        <button type="button" class="btn btn-default mw-120" onclick="cdn_storage_save()">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <!-- smtp settings  -->
             <div class="tab-pane fade" id="smtp" role="tabpanel" aria-labelledby="smtp-tab">
@@ -692,6 +732,45 @@
                     $("html, body").animate({
                         scrollTop: 0
                     }, "swing");
+                    get_responce_message(resp);
+                },
+                error: function(XMLHttpRequest, errorThrown, textStatus) {
+                    $('#dvloader').hide();
+                    toastr.error(textStatus, errorThrown);
+                }
+            });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+        }
+    }
+
+    // JAILAOI: CDN storage setting save
+    function toggleCdnFields() {
+        var driver = $('#audio_storage_driver_select').val();
+        if (driver === 'bunny' || driver === 'r2') {
+            $('#cdn_url_hint').show();
+        } else {
+            $('#cdn_url_hint').hide();
+        }
+    }
+    // Run on page load to set initial state
+    $(document).ready(function() { toggleCdnFields(); });
+
+    function cdn_storage_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin == 1) {
+            $('#dvloader').show();
+            var formData = new FormData($('#cdn_storage_form')[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{route("setting.save_key")}}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
                     get_responce_message(resp);
                 },
                 error: function(XMLHttpRequest, errorThrown, textStatus) {
