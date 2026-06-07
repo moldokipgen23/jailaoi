@@ -508,12 +508,48 @@ class Common extends Model
     {
         try {
 
+            // JAILAOI: Browse-style sections (lists of entities, not playable content)
+            if ($type == 4) {
+                $list = Artist::where('status', 1)->orderBy('id', 'desc')->take((int) $no_of_content)->get();
+                foreach ($list as &$row) {
+                    $row['image'] = $this->Get_Image($this->folder_artist, $row['image']);
+                }
+                return $list;
+            }
+            if ($type == 5) {
+                $list = Category::where('status', 1)->orderBy('id', 'desc')->take((int) $no_of_content)->get();
+                foreach ($list as &$row) {
+                    $row['image'] = $this->Get_Image('category', $row['image']);
+                }
+                return $list;
+            }
+            if ($type == 6) {
+                $list = Language::where('status', 1)->orderBy('id', 'desc')->take((int) $no_of_content)->get();
+                foreach ($list as &$row) {
+                    if (isset($row['image'])) {
+                        $row['image'] = $this->Get_Image('language', $row['image']);
+                    }
+                }
+                return $list;
+            }
+            if ($type == 7) {
+                $list = City::where('status', 1)->orderBy('id', 'desc')->take((int) $no_of_content)->get();
+                foreach ($list as &$row) {
+                    if (isset($row['image'])) {
+                        $row['image'] = $this->Get_Image('city', $row['image']);
+                    }
+                }
+                return $list;
+            }
+
             if ($type == 1) {
                 $content = Song::with('artist')->where('status', 1);
             } else if ($type == 2) {
                 $content = Podcast::where('status', 1);
             } else if ($type == 8) {
                 $content = Music::where('status', 1);
+            } else {
+                return collect();
             }
 
             if ($type == 1 || $type == 2) {
