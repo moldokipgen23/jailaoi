@@ -3,11 +3,106 @@
 @section('tab_title', __('label.artist_portal'))
 
 @section('content')
+<style>
+    body {
+        background: linear-gradient(135deg, #1a0a1f 0%, #2d0a1f 50%, #1a0a1f 100%);
+        min-height: 100vh;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .login-card {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(224, 30, 117, 0.25);
+        width: 100%;
+        max-width: 420px;
+        padding: 40px 35px;
+    }
+    .login-logo {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .login-logo h2 {
+        color: #E01E75;
+        font-weight: 700;
+        font-size: 32px;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.5px;
+    }
+    .login-logo p {
+        color: #6c757d;
+        font-size: 14px;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 500;
+    }
+    .login-form .form-group {
+        margin-bottom: 20px;
+    }
+    .login-form label {
+        color: #333;
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .login-form .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        border: 1.5px solid #e9ecef;
+        border-radius: 10px;
+        background: #f8f9fa;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+    .login-form .form-control:focus {
+        border-color: #E01E75;
+        background: #ffffff;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(224, 30, 117, 0.1);
+    }
+    .login-form .btn {
+        width: 100%;
+        padding: 13px 20px;
+        background: #E01E75;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s ease;
+        letter-spacing: 0.3px;
+    }
+    .login-form .btn:hover {
+        background: #c41a66;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(224, 30, 117, 0.3);
+    }
+    .login-footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 12px;
+        color: #adb5bd;
+    }
+    .text-danger { color: #E01E75; }
+</style>
+
 <div class="login-page">
     <div class="login-card">
         <div class="login-logo">
             <h2>{{ App_Name() }}</h2>
-            <p>{{__('label.welcome_back_artist')}}</p>
+            <p>{{__('label.artist_portal')}}</p>
         </div>
 
         <form class="login-form" id="login_form">
@@ -21,12 +116,12 @@
                 <input type="password" name="password" class="form-control" placeholder="{{__('label.password_here')}}">
             </div>
 
-            <button type="button" class="btn btn-default" onclick="save_login()">{{__('label.login')}}</button>
+            <button type="button" class="btn" onclick="save_login()">{{__('label.login')}}</button>
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
         </form>
 
         <div class="login-footer">
-            &copy; {{ date('Y') }} {{ App_Name() }}. {{__('label.all_right_reserved')}}.
+            &copy; {{ date('Y') }} {{ App_Name() }} &middot; {{__('label.all_right_reserved')}}
         </div>
     </div>
 </div>
