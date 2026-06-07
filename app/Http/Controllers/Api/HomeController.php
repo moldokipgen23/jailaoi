@@ -1644,8 +1644,8 @@ class HomeController extends Controller
             $current_page = 0;
             $more_page = false;
 
-            // Podcast tab = section_type 4
-            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', 4)->where('status', 1)->where('type', 2)->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+            // JAILAOI: Podcast tab (section_type=4). Any content type allowed.
+            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', 4)->where('status', 1)->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -1662,10 +1662,8 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    if ($data[$i]['type'] == 2) {
-                        $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
-                        $data[$i]['data'] = $query;
-                    }
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $data[$i]['data'] = $query;
                 }
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
             } else {
@@ -2463,13 +2461,13 @@ class HomeController extends Controller
         }
     }
 
-    // JAILAOI: Radio tab sections (section_type=3, content type=1 Song)
+    // JAILAOI: Radio tab sections (section_type=3). Any content type allowed.
     public function get_radio_section_list(Request $request)
     {
         try {
             $user_id = isset($request->user_id) ? $request->user_id : 0;
             $data = Section::whereIn('user_id', [0, $user_id])
-                ->where('section_type', 3)->where('status', 1)->where('type', 1)
+                ->where('section_type', 3)->where('status', 1)
                 ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
@@ -2497,13 +2495,13 @@ class HomeController extends Controller
         }
     }
 
-    // JAILAOI: Music tab sections (section_type=2, content type=8 Music)
+    // JAILAOI: Music tab sections (section_type=2). Any content type allowed.
     public function get_music_section_list(Request $request)
     {
         try {
             $user_id = isset($request->user_id) ? $request->user_id : 0;
             $data = Section::whereIn('user_id', [0, $user_id])
-                ->where('section_type', 2)->where('status', 1)->where('type', 8)
+                ->where('section_type', 2)->where('status', 1)
                 ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();

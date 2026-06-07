@@ -617,6 +617,8 @@ return [
     'back_to_login' => 'Back to Login',
     'confirm_password' => 'Confirm Password',
     'bio_placeholder' => 'Tell us about yourself, your music style, what you have released so far...',
+    'what_will_you_create' => 'What will you create?',
+    'artist_types_help' => 'Pick one or both. You can apply for the other type later if your focus changes.',
     'withdrawals' => 'Withdrawals',
     'withdrawal' => 'Withdrawal',
     'paid' => 'Paid',

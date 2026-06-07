@@ -28,6 +28,10 @@ class RegisterController extends Controller
                 'country_code' => 'nullable|string|max:6',
                 'password' => 'required|string|min:6|confirmed',
                 'bio' => 'required|string|min:20|max:2000',
+                'artist_types' => 'required|array|min:1',
+                'artist_types.*' => 'in:music,podcast',
+            ], [
+                'artist_types.required' => 'Please select at least one content type (Music or Podcast).',
             ]);
             if ($validator->fails()) {
                 return response()->json([
@@ -52,6 +56,7 @@ class RegisterController extends Controller
                 'user_id' => $user->id,
                 'artist_name' => $request->artist_name,
                 'bio' => $request->bio,
+                'artist_types' => implode(',', $request->artist_types),
                 'status' => 'pending',
             ]);
 

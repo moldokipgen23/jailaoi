@@ -45,6 +45,7 @@
                                 <th> {{__('label.#')}} </th>
                                 <th> {{__('label.user')}} </th>
                                 <th> {{__('label.artist_name')}} </th>
+                                <th> {{__('label.type')}} </th>
                                 <th> {{__('label.bio')}} </th>
                                 <th> {{__('label.status')}} </th>
                                 <th> {{__('label.action')}} </th>
@@ -111,6 +112,7 @@
                 { data: 'DT_RowIndex', name: 'DT_RowIndex' },
                 { data: 'user_info', name: 'user_info' },
                 { data: 'artist_name', name: 'artist_name' },
+                { data: 'artist_types_badge', name: 'artist_types_badge', orderable: false, searchable: false },
                 { data: 'bio', name: 'bio' },
                 { data: 'status_badge', name: 'status_badge', orderable: false, searchable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false },

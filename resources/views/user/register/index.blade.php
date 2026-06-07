@@ -195,6 +195,21 @@
                 </div>
 
                 <div class="form-group">
+                    <label>{{__('label.what_will_you_create')}} <span class="text-danger">*</span></label>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
+                        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #e9ecef;border-radius:10px;background:#f8f9fa;cursor:pointer;flex:1;min-width:180px;font-weight:500;">
+                            <input type="checkbox" name="artist_types[]" value="music" checked style="accent-color:#E01E75;width:18px;height:18px;">
+                            <span>🎵 {{__('label.music')}}</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #e9ecef;border-radius:10px;background:#f8f9fa;cursor:pointer;flex:1;min-width:180px;font-weight:500;">
+                            <input type="checkbox" name="artist_types[]" value="podcast" style="accent-color:#E01E75;width:18px;height:18px;">
+                            <span>🎙️ {{__('label.podcast')}}</span>
+                        </label>
+                    </div>
+                    <small style="color:#6c757d;font-size:12px;display:block;margin-top:6px;">{{__('label.artist_types_help')}}</small>
+                </div>
+
+                <div class="form-group">
                     <label>{{__('label.bio')}} <span class="text-danger">*</span></label>
                     <textarea name="bio" rows="4" placeholder="{{__('label.bio_placeholder')}}" required minlength="20"></textarea>
                 </div>

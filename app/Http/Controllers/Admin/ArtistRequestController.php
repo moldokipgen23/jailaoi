@@ -48,6 +48,18 @@ class ArtistRequestController extends Controller
                         }
                         return 'N/A';
                     })
+                    ->addColumn('artist_types_badge', function ($row) {
+                        $types = trim((string) ($row->artist_types ?? 'music'));
+                        if ($types === '') $types = 'music';
+                        $badges = '';
+                        foreach (explode(',', $types) as $t) {
+                            $t = trim($t);
+                            $label = ucfirst($t);
+                            $color = $t === 'podcast' ? 'badge-info' : 'badge-primary';
+                            $badges .= '<span class="badge ' . $color . '" style="margin:1px;">' . $label . '</span> ';
+                        }
+                        return $badges;
+                    })
                     ->addColumn('status_badge', function ($row) {
                         if ($row->status == 'pending') {
                             return '<span class="badge badge-warning">Pending</span>';
@@ -71,7 +83,7 @@ class ArtistRequestController extends Controller
                         }
                         return '-';
                     })
-                    ->rawColumns(['status_badge', 'action', 'user_info'])
+                    ->rawColumns(['status_badge', 'action', 'user_info', 'artist_types_badge'])
                     ->make(true);
             }
             return view('admin.artist_request.index', $params);
