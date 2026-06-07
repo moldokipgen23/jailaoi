@@ -2452,6 +2452,11 @@ class HomeController extends Controller
                 'status' => 1,
             ]);
 
+            // JAILAOI: Credit per-stream artist earnings on play action for Song/Music
+            if ((int) $action === 1 && in_array((int) $content_type, [1, 8])) {
+                $this->creditArtistEarning((int) $content_type, (int) $content_id, (int) $user_id);
+            }
+
             return $this->common->API_Response(200, __('api_msg.history_add'), [$history]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -2527,18 +2532,29 @@ class HomeController extends Controller
     }
 
     // JAILAOI: Credit per-stream earnings to artist(s)
+    // Called from add_play (type 1=Song, 3=Music legacy) and add_user_action (type 1=Song, 8=Music).
+    // Dedupes per user+content+type so a single listener can only earn an artist credit once per song.
     private function creditArtistEarning($type, $content_id, $user_id)
     {
         try {
+            if ($user_id <= 0 || $content_id <= 0) return;
+
             $rateSetting = General_Setting::where('key', 'payout_rate_per_stream')->first();
             $rate = $rateSetting ? (float) $rateSetting->value : 0.0;
             if ($rate <= 0) return;
+
+            // Already credited this user for this content? skip.
+            $exists = ArtistEarning::where('user_id', $user_id)
+                ->where('content_id', $content_id)
+                ->where('content_type', $type)
+                ->exists();
+            if ($exists) return;
 
             $artistIds = [];
             if ($type == 1) {
                 $song = Song::where('id', $content_id)->first();
                 if ($song && $song->artist_id) $artistIds[] = (int) $song->artist_id;
-            } elseif ($type == 3) {
+            } elseif ($type == 3 || $type == 8) {
                 $music = Music::where('id', $content_id)->first();
                 if ($music && $music->artist_id) {
                     foreach (explode(',', (string) $music->artist_id) as $aid) {
