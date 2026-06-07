@@ -600,6 +600,9 @@ return [
 
     // JAILAOI: Earnings & Withdrawals
     'artists' => 'Artists',
+    'artist_portal' => 'Artist Portal',
+    'welcome_back_artist' => 'Welcome back, artist',
+    'all_right_reserved' => 'All rights reserved',
     'artist_withdrawals' => 'Artist Withdrawals',
     'withdrawals' => 'Withdrawals',
     'withdrawal' => 'Withdrawal',
