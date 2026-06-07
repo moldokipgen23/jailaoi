@@ -40,6 +40,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\ArtistRequestController;
+use App\Http\Controllers\Admin\WithdrawalController;
 
 // Artisan
 Route::get('artisan', function () {
@@ -158,6 +159,8 @@ Route::group(['middleware' => 'installation'], function () {
         Route::resource('notification_configuration', NotificationConfigurationController::class)->only(['index', 'store']);
         // Artist Requests
         Route::get('artist-requests', [ArtistRequestController::class, 'index'])->name('admin.artist-requests.index');
+        // JAILAOI: Withdrawals
+        Route::get('withdrawals', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
@@ -210,6 +213,10 @@ Route::group(['middleware' => 'installation'], function () {
             // Artist Requests
             Route::post('artist-requests/approve', [ArtistRequestController::class, 'approve'])->name('admin.artist-requests.approve');
             Route::post('artist-requests/reject', [ArtistRequestController::class, 'reject'])->name('admin.artist-requests.reject');
+            // JAILAOI: Withdrawals
+            Route::post('withdrawals/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
+            Route::post('withdrawals/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
+            Route::post('withdrawals/mark-paid', [WithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
         });
     });
 });

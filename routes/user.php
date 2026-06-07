@@ -13,6 +13,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AdsController;
+use App\Http\Controllers\User\EarningsController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\MusicController;
@@ -49,6 +50,10 @@ Route::group(['middleware' => 'installation'], function () {
         Route::resource('radio', RadioController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         // Custom Ads
         Route::resource('ads', AdsController::class)->only(['index', 'create', 'store', 'edit', 'show']);
+
+        // JAILAOI: Earnings + Withdrawal
+        Route::get('earnings', [EarningsController::class, 'index'])->name('earnings.index');
+        Route::post('earnings/withdraw', [EarningsController::class, 'requestWithdrawal'])->name('earnings.withdraw');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 

@@ -41,6 +41,14 @@
             </a>
         </li>
 
+        <p class="partition"><span>{{__('label.earnings')}}</span></p>
+        <li class="side_line {{ request()->routeIs('user.earnings*') ? 'active' : '' }}">
+            <a href="{{ route('user.earnings.index') }}">
+                <i class="fa-solid fa-wallet fa-2xl menu-icon"></i>
+                <span>{{__('label.earnings')}}</span>
+            </a>
+        </li>
+
         <p class="partition"><span>{{__('label.ads')}}</span></p>
         <li class="side_line {{ request()->routeIs('user.ads*') ? 'active' : '' }}">
             <a href="{{ route('user.ads.index') }}">

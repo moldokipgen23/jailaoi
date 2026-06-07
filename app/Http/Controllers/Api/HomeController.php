@@ -20,6 +20,7 @@ use App\Models\Episode;
 use App\Models\Event_Join_User;
 use App\Models\Follow;
 use App\Models\Subscriber;
+use App\Models\ArtistEarning;
 use App\Models\General_Setting;
 use App\Models\Music;
 use App\Models\Notification;
@@ -1943,6 +1944,7 @@ class HomeController extends Controller
                     if ($type == 1) {
 
                         Song::where('id', $content_id)->increment('total_play');
+                        $this->creditArtistEarning($type, $content_id, $user_id);
                     } else if ($type == 2) {
 
                         Podcast::where('id', $content_id)->increment('total_play');
@@ -1950,6 +1952,7 @@ class HomeController extends Controller
                     } else  if ($type == 3) {
 
                         Music::where('id', $content_id)->increment('total_play');
+                        $this->creditArtistEarning($type, $content_id, $user_id);
                     }
                     return $this->common->API_Response(200, __('api_msg.play_added'));
                 }
@@ -2520,6 +2523,46 @@ class HomeController extends Controller
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Credit per-stream earnings to artist(s)
+    private function creditArtistEarning($type, $content_id, $user_id)
+    {
+        try {
+            $rateSetting = General_Setting::where('key', 'payout_rate_per_stream')->first();
+            $rate = $rateSetting ? (float) $rateSetting->value : 0.0;
+            if ($rate <= 0) return;
+
+            $artistIds = [];
+            if ($type == 1) {
+                $song = Song::where('id', $content_id)->first();
+                if ($song && $song->artist_id) $artistIds[] = (int) $song->artist_id;
+            } elseif ($type == 3) {
+                $music = Music::where('id', $content_id)->first();
+                if ($music && $music->artist_id) {
+                    foreach (explode(',', (string) $music->artist_id) as $aid) {
+                        $aid = (int) trim($aid);
+                        if ($aid > 0) $artistIds[] = $aid;
+                    }
+                }
+            }
+
+            $artistIds = array_unique(array_filter($artistIds));
+            if (empty($artistIds)) return;
+
+            $share = $rate / count($artistIds);
+            foreach ($artistIds as $aid) {
+                ArtistEarning::create([
+                    'artist_id' => $aid,
+                    'user_id' => $user_id,
+                    'content_id' => $content_id,
+                    'content_type' => $type,
+                    'amount' => $share,
+                ]);
+            }
+        } catch (Exception $e) {
+            // silent — don't break play if earnings credit fails
         }
     }
 }

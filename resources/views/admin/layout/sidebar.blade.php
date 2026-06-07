@@ -54,6 +54,12 @@
                         <span>{{__('label.artist_requests')}}</span>
                     </a>
                 </li>
+                <li class="side_line {{ request()->routeIs('admin.withdrawals*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.withdrawals.index') }}" class="dropdown-item">
+                        <i class="fa-solid fa-money-bill-transfer fa-2xl submenu-icon"></i>
+                        <span>{{__('label.artist_withdrawals')}}</span>
+                    </a>
+                </li>
             </ul>
         </li>
         <li class="side_line {{ request()->routeIs('user*') ? 'active' : '' }}">
