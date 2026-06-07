@@ -116,6 +116,10 @@
                 <input type="password" name="password" class="form-control" placeholder="{{__('label.password_here')}}">
             </div>
 
+            <div style="text-align:right;margin:-10px 0 12px;">
+                <a href="{{ route('user.password.forgot') }}" style="color:#E01E75;font-size:13px;font-weight:500;text-decoration:none;">{{__('label.forgot_password')}}?</a>
+            </div>
+
             <button type="button" class="btn" onclick="save_login()">{{__('label.login')}}</button>
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
         </form>

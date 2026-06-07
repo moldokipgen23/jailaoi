@@ -14,6 +14,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AdsController;
 use App\Http\Controllers\User\EarningsController;
+use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\RegisterController;
 use App\Http\Controllers\User\DashboardController;
@@ -33,6 +34,12 @@ Route::group(['middleware' => 'installation'], function () {
     // JAILAOI: Public artist registration
     Route::get('register', [RegisterController::class, 'index'])->name('user.register');
     Route::post('register', [RegisterController::class, 'store'])->name('user.register.store');
+
+    // JAILAOI: Password reset
+    Route::get('password/forgot', [ForgotPasswordController::class, 'showForgot'])->name('user.password.forgot');
+    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('user.password.email');
+    Route::get('password/reset', [ForgotPasswordController::class, 'showReset'])->name('user.password.reset');
+    Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
 
     Route::group(['middleware' => 'authuser', 'as' => 'user.'], function () {
 
