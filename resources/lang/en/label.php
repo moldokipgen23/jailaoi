@@ -599,6 +599,7 @@ return [
     'artist_request' => 'Artist Request',
 
     // JAILAOI: Earnings & Withdrawals
+    'artists' => 'Artists',
     'artist_withdrawals' => 'Artist Withdrawals',
     'withdrawals' => 'Withdrawals',
     'withdrawal' => 'Withdrawal',

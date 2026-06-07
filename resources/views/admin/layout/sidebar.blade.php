@@ -18,12 +18,12 @@
             </a>
         </li>
         <p class="partition"><span>{{__('label.basic_element')}}</span></p>
-        <li class="dropdown {{ request()->routeIs('category*') ? 'active' : '' }}{{ request()->routeIs('language*') ? 'active' : '' }}{{ request()->routeIs('city*') ? 'active' : '' }} {{ request()->routeIs('artist*') ? 'active' : '' }}">
+        <li class="dropdown {{ request()->routeIs('category*') ? 'active' : '' }}{{ request()->routeIs('language*') ? 'active' : '' }}{{ request()->routeIs('city*') ? 'active' : '' }}">
             <a class="dropdown-toggle" id="dropdownMenuClickable" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa-solid fa-sliders fa-2xl menu-icon"></i>
                 <span>{{__('label.basic_items')}}</span>
             </a>
-            <ul class="dropdown-menu side-submenu {{ request()->routeIs('category*') ? 'show' : '' }}{{ request()->routeIs('language*') ? 'show' : '' }}{{ request()->routeIs('city*') ? 'show' : '' }}{{ request()->routeIs('artist*') ? 'show' : '' }}" aria-labelledby="dropdownMenuClickable">
+            <ul class="dropdown-menu side-submenu {{ request()->routeIs('category*') ? 'show' : '' }}{{ request()->routeIs('language*') ? 'show' : '' }}{{ request()->routeIs('city*') ? 'show' : '' }}" aria-labelledby="dropdownMenuClickable">
                 <li class="side_line {{ request()->routeIs('category*') ? 'active' : '' }}">
                     <a href="{{ route('category.index') }}" class="dropdown-item">
                         <i class="fa-solid fa-list fa-2xl submenu-icon"></i>
@@ -42,30 +42,31 @@
                         <span>{{__('label.city')}}</span>
                     </a>
                 </li>
-                <li class="side_line {{ request()->routeIs('artist*') && !request()->routeIs('artist-requests*') ? 'active' : '' }}">
-                    <a href="{{ route('artist.index') }}" class="dropdown-item">
-                        <i class="fa-solid fa-user-tie fa-2xl submenu-icon"></i>
-                        <span>{{__('label.artist_rj')}}</span>
-                    </a>
-                </li>
-                <li class="side_line {{ request()->routeIs('admin.artist-requests*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.artist-requests.index') }}" class="dropdown-item">
-                        <i class="fa-solid fa-user-plus fa-2xl submenu-icon"></i>
-                        <span>{{__('label.artist_requests')}}</span>
-                    </a>
-                </li>
-                <li class="side_line {{ request()->routeIs('admin.withdrawals*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.withdrawals.index') }}" class="dropdown-item">
-                        <i class="fa-solid fa-money-bill-transfer fa-2xl submenu-icon"></i>
-                        <span>{{__('label.artist_withdrawals')}}</span>
-                    </a>
-                </li>
             </ul>
         </li>
         <li class="side_line {{ request()->routeIs('user*') ? 'active' : '' }}">
             <a href="{{ route('user.index') }}">
                 <i class="fa-solid fa-users fa-2xl menu-icon"></i>
                 <span>{{__('label.users')}}</span>
+            </a>
+        </li>
+        <p class="partition"><span>{{__('label.artists')}}</span></p>
+        <li class="side_line {{ request()->routeIs('artist*') && !request()->routeIs('artist-requests*') ? 'active' : '' }}">
+            <a href="{{ route('artist.index') }}">
+                <i class="fa-solid fa-user-tie fa-2xl menu-icon"></i>
+                <span>{{__('label.artist_rj')}}</span>
+            </a>
+        </li>
+        <li class="side_line {{ request()->routeIs('admin.artist-requests*') ? 'active' : '' }}">
+            <a href="{{ route('admin.artist-requests.index') }}">
+                <i class="fa-solid fa-user-plus fa-2xl menu-icon"></i>
+                <span>{{__('label.artist_requests')}}</span>
+            </a>
+        </li>
+        <li class="side_line {{ request()->routeIs('admin.withdrawals*') ? 'active' : '' }}">
+            <a href="{{ route('admin.withdrawals.index') }}">
+                <i class="fa-solid fa-money-bill-transfer fa-2xl menu-icon"></i>
+                <span>{{__('label.artist_withdrawals')}}</span>
             </a>
         </li>
         <p class="partition"><span>{{__('label.configuration')}}</span></p>
