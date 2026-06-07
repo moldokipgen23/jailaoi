@@ -148,11 +148,17 @@ Host: localhost
 - [x] git pull + media verified on live
 
 ### ❌ PENDING
-- [ ] Deploy: composer install → config:clear → chmod on live
+- [ ] Deploy: `git pull` + `config:clear` + `chmod` on live (backend fix already pushed)
+- [ ] Rebuild Flutter APK after latest fixes (`flutter build apk --release`)
 - [ ] Delete old `~/public_html/upload/` to free ~14GB (optional)
 - [ ] SSL for m.jailaoi.com
 - [ ] High-priority features: Albums, Lyrics, Download Toggle, Bulk Upload, Waveform
 - [ ] Monetization: Pro subscriptions, Earnings/Withdrawals, Referral program
+- [ ] Fix `pageno` vs `page_no` param mismatch in other API endpoints
+- [ ] Fix `update_profile` response field mismatch (`name` vs `full_name`, etc.)
+- [ ] Fix artist follow (`Follow` model vs `Subscriber` model mismatch)
+- [ ] Fix section type 6/7 city dead code in `homemusic.dart`
+- [ ] Add explicit `type==8` handling in `viewall.dart`
 
 ## ✅ DESIGN RESTORED — dttube original look applied to jailaoi-app (May 31)
 ### Reverted from Spotify clone back to original dttube design:
@@ -177,3 +183,47 @@ Host: localhost
 - Working directory: `~/Projects/JAILAOI/jailaoi-app/`
 - Design reference: `~/Projects/JAILAOI/dttube/` (for visual reference only)
 - Radio reference: `~/Projects/JAILAOI/dtradio/` (not used)
+
+## ✅ SESSION 2 — June 6: Artist page empty + type system fixes
+
+### Problem
+Clicking any artist on home page → `Radiobyartist` page showed "No songs found" (empty).
+
+### Root Cause
+All 75 artists in `tbl_artist` have `type=0` (unset — never populated during DeepSound migration). When Flutter passed `type=0` to `get_content_by_artist`, the backend only handled types 1,2,3 → `$data` was never initialized → PHP crash on `$data->count()` → 400 error → empty page.
+
+### Changes Made
+
+#### Backend (`HomeController.php`)
+1. **`get_content_by_artist`**: Added fallback for `type=0` — queries `tbl_song` (type=1), `tbl_podcast` (type=2), `tbl_music` (type=3) sequentially, uses first one with data. Also returns `content_type` in response.
+2. **`get_content_by_artist`**: Fixed `pageno` vs `page_no` parameter mismatch — backend now reads both: `$request->page_no ?? $request->pageno ?? 1`.
+
+#### Flutter (`radiobyartist.dart`)
+3. Added `_resolveType(int? type)` method — infers content type from first API result's field structure (`songUrl` → type 1, `musicUrl` → type 3, `trailerAudio`/`description` → type 2).
+4. Replaced all `widget.type` in UI methods with `_resolvedType()` so layouts render correctly even when `widget.type=0`.
+
+#### Build fixes
+5. Added `ndkVersion = "28.2.13676358"` to `android/app/build.gradle` (NDK mismatch error).
+6. Fixed null safety: `return type` → `return type!` in `_resolveType`.
+
+### Deploy Status
+- Backend: Pushed to GitHub (`ceeabaf`). User needs to run `git pull` + `config:clear` on cPanel.
+- Flutter: Not yet rebuilt after latest fix. User needs to run `flutter build apk --release`.
+
+### Remaining Issues
+- `pageno` vs `page_no` mismatch also exists in other API endpoints — only fixed in `get_content_by_artist` so far.
+- `update_profile` response format mismatch: Flutter expects `name`, `mobile`, `coin_balance`; backend returns `full_name`, `mobile_number`.
+- Artist follow: Flutter uses `Follow` model (`artist_id`), backend uses `Subscriber` model (`user_id`) — may break follow feature.
+- Artist profile page (`Radiobyartist`) receives `bio` param but never displays it.
+- Section type 6/7 rendering dead code in homemusic.dart (city is unreachable).
+- `viewall.dart` doesn't have explicit `type==8` handling (Music falls through to else/default — works accidentally).
+
+### Type System Reference (consistent between backend & Flutter)
+
+| Context | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---------|---|---|---|---|---|---|---|---|
+| `section_type` (API param) | Home/All | Music | Radio | Podcast | — | — | — | — |
+| `section.type` (Result) | Radio | Podcast | LiveEvent | Artist | Category | Language | City | Music |
+| `artist.type` (Role) | RJ | Podcaster | Singer | — | — | — | — | — |
+| Content type (fav/play/comment) | Song | Podcast | — | — | — | — | — | Music |
+| `get_content_by_artist.type` | Song | Podcast | Music | — | — | — | — | — |

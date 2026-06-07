@@ -19,16 +19,14 @@ use App\Models\Common;
 use App\Models\Episode;
 use App\Models\Event_Join_User;
 use App\Models\Follow;
+use App\Models\Subscriber;
 use App\Models\General_Setting;
 use App\Models\Music;
-use App\Models\Music_Section;
 use App\Models\Notification;
 use App\Models\Onboarding_Screen;
 use App\Models\Page;
 use App\Models\Play;
 use App\Models\Podcast;
-use App\Models\Podcast_Section;
-use App\Models\Radio_Section;
 use App\Models\Section;
 use App\Models\Social_Link;
 use App\Models\User;
@@ -2392,17 +2390,16 @@ class HomeController extends Controller
             $user_id = $request['user_id'];
             $artist_id = $request['artist_id'];
 
-            $follow = Follow::where('user_id', $user_id)->where('artist_id', $artist_id)->where('status', 1)->first();
+            $follow = Subscriber::where('user_id', $user_id)->where('to_user_id', $artist_id)->first();
             if ($follow) {
 
-                Follow::where('id', $follow['id'])->delete();
+                Subscriber::where('id', $follow['id'])->delete();
                 return $this->common->API_Response(200, __('api_msg.unfollow_successfully'));
             } else {
 
                 $insert['user_id'] = $user_id;
-                $insert['artist_id'] = $artist_id;
-                $insert['status'] = 1;
-                Follow::insertGetId($insert);
+                $insert['to_user_id'] = $artist_id;
+                Subscriber::insertGetId($insert);
 
                 return $this->common->API_Response(200, __('api_msg.follow_successfully'));
             }
@@ -2453,6 +2450,74 @@ class HomeController extends Controller
             ]);
 
             return $this->common->API_Response(200, __('api_msg.history_add'), [$history]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Radio tab sections (section_type=3, content type=1 Song)
+    public function get_radio_section_list(Request $request)
+    {
+        try {
+            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $data = Section::whereIn('user_id', [0, $user_id])
+                ->where('section_type', 3)->where('status', 1)->where('type', 1)
+                ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+
+            $total_rows = $data->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / max($total_page, 1));
+            $current_page = $request->page_no ?? 1;
+            $offset = $current_page * $total_page - $total_page;
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+
+            $data = $data->take($total_page)->offset($offset)->get();
+
+            if (count($data) > 0) {
+                for ($i = 0; $i < count($data); $i++) {
+                    $data[$i]['data'] = [];
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $data[$i]['data'] = $query;
+                }
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Music tab sections (section_type=2, content type=8 Music)
+    public function get_music_section_list(Request $request)
+    {
+        try {
+            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $data = Section::whereIn('user_id', [0, $user_id])
+                ->where('section_type', 2)->where('status', 1)->where('type', 8)
+                ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+
+            $total_rows = $data->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / max($total_page, 1));
+            $current_page = $request->page_no ?? 1;
+            $offset = $current_page * $total_page - $total_page;
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+
+            $data = $data->take($total_page)->offset($offset)->get();
+
+            if (count($data) > 0) {
+                for ($i = 0; $i < count($data); $i++) {
+                    $data[$i]['data'] = [];
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $data[$i]['data'] = $query;
+                }
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
