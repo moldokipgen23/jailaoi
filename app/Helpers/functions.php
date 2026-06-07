@@ -5,6 +5,20 @@ use App\Models\General_Setting;
 use Illuminate\Support\Facades\Config;
 
 // Setting
+function getAudioStorageDriver()
+{
+    static $driver = null;
+    if ($driver !== null) {
+        return $driver;
+    }
+    try {
+        $setting = General_Setting::where('key', 'audio_storage_driver')->first();
+        $driver = $setting ? $setting->value : 'local';
+    } catch (Exception $e) {
+        $driver = 'local';
+    }
+    return $driver;
+}
 function App_Name()
 {
     $setting = General_Setting::get();

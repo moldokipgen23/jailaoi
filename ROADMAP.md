@@ -852,7 +852,7 @@ Claude will verify by:
 
 | Batch | Task | Status | Done by | Date | Commit |
 |-------|------|--------|---------|------|--------|
-| 1.1 | Audio CDN | ⬜ Todo | — | — | — |
+| 1.1 | Audio CDN | ✅ Done | moldokipgen | 2026-06-08 | — |
 | 1.2 | Job Queue | ⬜ Todo | — | — | — |
 | 1.3 | Email Verification | ⬜ Todo | — | — | — |
 | 1.4 | Approval/Withdrawal Emails | ⬜ Todo | — | — | — |

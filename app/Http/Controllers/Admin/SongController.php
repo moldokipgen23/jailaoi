@@ -366,6 +366,18 @@ class SongController extends Controller
             // Rename the uploaded file to the new filename
             rename($filePath, $newFilePath);
 
+            // JAILAOI: Upload to R2 if audio storage driver is r2
+            if (getAudioStorageDriver() == 'r2') {
+                try {
+                    \Illuminate\Support\Facades\Storage::disk('r2')->put(
+                        'song/' . $newFileName,
+                        file_get_contents($newFilePath)
+                    );
+                } catch (Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('R2 upload failed for song: ' . $e->getMessage());
+                }
+            }
+
             // Send the new file name back to the client
             die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
         }

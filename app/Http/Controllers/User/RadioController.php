@@ -119,7 +119,7 @@ class RadioController extends Controller
                 if ($requestData['content_storage_type'] == 1) {
                     $requestData['content'] = $requestData['radio'];
                 } else {
-                    $requestData['content'] = $this->common->saveImage($requestData['radio'], $this->folder, 'radio_', $requestData['content_storage_type']);
+                    $requestData['content'] = $this->common->saveAudioFile($requestData['radio'], $this->folder, 'radio_');
                 }
             } else {
                 $requestData['content'] = $requestData['url'];
@@ -227,7 +227,7 @@ class RadioController extends Controller
                         if ($storage_type == 1) {
                             $requestData['content'] = $requestData['radio'];
                         } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['radio'], $this->folder, 'radio_', $storage_type);
+                            $requestData['content'] = $this->common->saveAudioFile($requestData['radio'], $this->folder, 'radio_');
                         }
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     }
@@ -239,7 +239,7 @@ class RadioController extends Controller
                         if ($storage_type == 1) {
                             $requestData['content'] = $requestData['radio'];
                         } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['radio'], $this->folder, 'radio_', $storage_type);
+                            $requestData['content'] = $this->common->saveAudioFile($requestData['radio'], $this->folder, 'radio_');
                         }
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     } else {

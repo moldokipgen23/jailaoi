@@ -57,6 +57,7 @@ return [
     'asset_url' => env('ASSET_URL', null),
 
     'image_url' => env('APP_URL', null) . "/storage/",
+    'r2_public_url' => env('R2_PUBLIC_URL', ''),
 
     /*
     |--------------------------------------------------------------------------

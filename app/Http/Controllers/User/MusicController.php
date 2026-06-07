@@ -142,7 +142,7 @@ class MusicController extends Controller
                     $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
                     if ($wf) $requestData['waveform_data'] = $wf;
                 } else {
-                    $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $requestData['content_storage_type']);
+                    $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_');
                 }
             } else {
                 $requestData['content'] = $requestData['url'];
@@ -262,7 +262,7 @@ class MusicController extends Controller
                             $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
                             if ($wf) $requestData['waveform_data'] = $wf;
                         } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
+                            $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_');
                         }
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     }
@@ -280,7 +280,7 @@ class MusicController extends Controller
                             $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
                             if ($wf) $requestData['waveform_data'] = $wf;
                         } else {
-                            $requestData['content'] = $this->common->saveImage($requestData['music'], $this->folder, 'music_', $storage_type);
+                            $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_');
                         }
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     } else {

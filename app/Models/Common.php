@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class Common extends Model
@@ -105,6 +106,16 @@ class Common extends Model
     {
         if ($name != "" && $folder != "") {
 
+            if (getAudioStorageDriver() == 'r2') {
+                $url = Config::get('app.r2_public_url');
+                if (!$url) {
+                    $url = env('R2_PUBLIC_URL', '');
+                }
+                if ($url) {
+                    return rtrim($url, '/') . '/' . $folder . '/' . $name;
+                }
+            }
+
             $appName = Config::get('app.image_url');
 
             if (Storage::disk('public')->exists($folder . '/' . $name)) {
@@ -117,11 +128,43 @@ class Common extends Model
         }
         return ($data);
     }
+
+    public function saveAudioFile($file, $folder, $prefix = '')
+    {
+        try {
+            if (getAudioStorageDriver() == 'r2') {
+                $img_ext = $file->getClientOriginalExtension();
+                $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
+                $path = $folder . '/' . $filename;
+                Storage::disk('r2')->put($path, file_get_contents($file->getRealPath()));
+                return $filename;
+            } else {
+                $img_ext = $file->getClientOriginalExtension();
+                $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
+                $file->move(base_path('storage/app/public/' . $folder), $filename);
+                return $filename;
+            }
+        } catch (Exception $e) {
+            Log::error('saveAudioFile failed: ' . $e->getMessage());
+            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
+        }
+    }
     public function videoNameToUrl($array, $column, $folder)
     {
         try {
 
             foreach ($array as $key => $value) {
+
+                if (getAudioStorageDriver() == 'r2') {
+                    $url = Config::get('app.r2_public_url');
+                    if (!$url) {
+                        $url = env('R2_PUBLIC_URL', '');
+                    }
+                    if ($url && isset($value[$column]) && $value[$column] != "") {
+                        $value[$column] = rtrim($url, '/') . '/' . $folder . '/' . $value[$column];
+                        continue;
+                    }
+                }
 
                 $appName = Config::get('app.image_url');
 
@@ -149,6 +192,18 @@ class Common extends Model
             foreach ($array as $key => $value) {
 
                 if ($value['upload_type'] == 1) {
+
+                    if (getAudioStorageDriver() == 'r2') {
+                        $url = Config::get('app.r2_public_url');
+                        if (!$url) {
+                            $url = env('R2_PUBLIC_URL', '');
+                        }
+                        if ($url && isset($value[$column]) && $value[$column] != "") {
+                            $value[$column] = rtrim($url, '/') . '/' . $folder . '/' . $value[$column];
+                            continue;
+                        }
+                    }
+
                     $appName = Config::get('app.image_url');
                     if (isset($value[$column]) && $value[$column] != "") {
 
