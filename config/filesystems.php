@@ -65,6 +65,28 @@ return [
             'visibility' => 'public',
         ],
 
+        // JAILAOI: Bunny CDN Storage — cheaper than R2 for audio streaming.
+        // Uses Bunny's native HTTP API (not S3-compatible), no extra package needed.
+        // Set audio_storage_driver = 'bunny' in admin General Settings to activate.
+        //
+        // Setup steps:
+        //   1. Create a Storage Zone in bunny.net dashboard
+        //   2. Create a Pull Zone linked to that Storage Zone
+        //   3. Fill in the 4 env vars below in your .env
+        //
+        // BUNNY_STORAGE_ZONE     = storage zone name (e.g. "jailaoi-audio")
+        // BUNNY_STORAGE_API_KEY  = storage zone password (API key in Storage → FTP & API Access)
+        // BUNNY_STORAGE_ENDPOINT = regional hostname (default: https://storage.bunnycdn.com)
+        //                          Other regions: ny / la / sg / se / uk / br / jh
+        //                          Example for NY: https://ny.storage.bunnycdn.com
+        // BUNNY_CDN_URL          = your pull zone URL (e.g. https://jailaoi.b-cdn.net)
+        'bunny' => [
+            'storage_zone' => env('BUNNY_STORAGE_ZONE'),
+            'api_key'      => env('BUNNY_STORAGE_API_KEY'),
+            'endpoint'     => env('BUNNY_STORAGE_ENDPOINT', 'https://storage.bunnycdn.com'),
+            'cdn_url'      => env('BUNNY_CDN_URL'),
+        ],
+
     ],
 
     /*

@@ -102,15 +102,50 @@ class Common extends Model
         }
         return $name;
     }
+    // JAILAOI: Helper — returns Bunny CDN URL prefix, or null if not configured.
+    private function getBunnyCdnUrl(): ?string
+    {
+        $url = config('filesystems.disks.bunny.cdn_url', env('BUNNY_CDN_URL', ''));
+        return $url ? rtrim($url, '/') : null;
+    }
+
+    // JAILAOI: Helper — uploads a file (by path string) to Bunny Storage Zone.
+    // Uses Bunny's native HTTP API — no extra package required.
+    // Public so admin chunk-upload controllers can call it directly.
+    public function uploadFileToBunny(string $localPath, string $remotePath): void
+    {
+        $storageZone = config('filesystems.disks.bunny.storage_zone', env('BUNNY_STORAGE_ZONE', ''));
+        $apiKey      = config('filesystems.disks.bunny.api_key', env('BUNNY_STORAGE_API_KEY', ''));
+        $endpoint    = config('filesystems.disks.bunny.endpoint', env('BUNNY_STORAGE_ENDPOINT', 'https://storage.bunnycdn.com'));
+
+        $url = rtrim($endpoint, '/') . '/' . $storageZone . '/' . ltrim($remotePath, '/');
+
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'AccessKey'    => $apiKey,
+            'Content-Type' => 'application/octet-stream',
+        ])->withBody(file_get_contents($localPath), 'application/octet-stream')
+          ->put($url);
+
+        if (!$response->successful()) {
+            throw new Exception('Bunny CDN upload failed (HTTP ' . $response->status() . '): ' . $response->body());
+        }
+    }
+
     public function Get_Song($folder = "", $name = "")
     {
         if ($name != "" && $folder != "") {
 
-            if (getAudioStorageDriver() == 'r2') {
-                $url = Config::get('app.r2_public_url');
-                if (!$url) {
-                    $url = env('R2_PUBLIC_URL', '');
+            // JAILAOI: Bunny CDN — return CDN URL directly, no local file check needed.
+            if (getAudioStorageDriver() == 'bunny') {
+                $cdnUrl = $this->getBunnyCdnUrl();
+                if ($cdnUrl) {
+                    return $cdnUrl . '/' . $folder . '/' . $name;
                 }
+            }
+
+            // JAILAOI: Cloudflare R2 — return R2 public URL.
+            if (getAudioStorageDriver() == 'r2') {
+                $url = Config::get('app.r2_public_url', env('R2_PUBLIC_URL', ''));
                 if ($url) {
                     return rtrim($url, '/') . '/' . $folder . '/' . $name;
                 }
@@ -132,81 +167,97 @@ class Common extends Model
     public function saveAudioFile($file, $folder, $prefix = '')
     {
         try {
-            if (getAudioStorageDriver() == 'r2') {
-                $img_ext = $file->getClientOriginalExtension();
-                $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
-                $path = $folder . '/' . $filename;
-                Storage::disk('r2')->put($path, file_get_contents($file->getRealPath()));
-                return $filename;
-            } else {
-                $img_ext = $file->getClientOriginalExtension();
-                $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
-                $file->move(base_path('storage/app/public/' . $folder), $filename);
+            $img_ext  = $file->getClientOriginalExtension();
+            $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
+
+            // JAILAOI: Bunny CDN — upload via Bunny HTTP API.
+            if (getAudioStorageDriver() == 'bunny') {
+                $tmpPath = $file->getRealPath();
+                $this->uploadFileToBunny($tmpPath, $folder . '/' . $filename);
                 return $filename;
             }
+
+            // JAILAOI: Cloudflare R2 — upload via S3-compatible disk.
+            if (getAudioStorageDriver() == 'r2') {
+                Storage::disk('r2')->put($folder . '/' . $filename, file_get_contents($file->getRealPath()));
+                return $filename;
+            }
+
+            // Default: local storage.
+            $file->move(base_path('storage/app/public/' . $folder), $filename);
+            return $filename;
+
         } catch (Exception $e) {
             Log::error('saveAudioFile failed: ' . $e->getMessage());
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
     public function videoNameToUrl($array, $column, $folder)
     {
         try {
+            $driver = getAudioStorageDriver();
+
+            // JAILAOI: Pre-resolve CDN prefix once outside the loop for performance.
+            $cdnPrefix = null;
+            if ($driver == 'bunny') {
+                $cdnPrefix = $this->getBunnyCdnUrl();
+            } elseif ($driver == 'r2') {
+                $cdnPrefix = rtrim(Config::get('app.r2_public_url', env('R2_PUBLIC_URL', '')), '/') ?: null;
+            }
 
             foreach ($array as $key => $value) {
 
-                if (getAudioStorageDriver() == 'r2') {
-                    $url = Config::get('app.r2_public_url');
-                    if (!$url) {
-                        $url = env('R2_PUBLIC_URL', '');
-                    }
-                    if ($url && isset($value[$column]) && $value[$column] != "") {
-                        $value[$column] = rtrim($url, '/') . '/' . $folder . '/' . $value[$column];
-                        continue;
-                    }
+                if ($cdnPrefix && isset($value[$column]) && $value[$column] != "") {
+                    $value[$column] = $cdnPrefix . '/' . $folder . '/' . $value[$column];
+                    $array[$key] = $value;
+                    continue;
                 }
 
                 $appName = Config::get('app.image_url');
 
                 if (isset($value[$column]) && $value[$column] != "") {
-
                     if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
                         $value[$column] = $appName . $folder . '/' . $value[$column];
                     } else {
                         $value[$column] = "";
                     }
                 } else {
-
                     $value[$column] = "";
                 }
+                $array[$key] = $value;
             }
             return $array;
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
     public function songNameToUrl($array, $column, $folder)
     {
         try {
+            $driver = getAudioStorageDriver();
+
+            // JAILAOI: Pre-resolve CDN prefix once outside the loop.
+            $cdnPrefix = null;
+            if ($driver == 'bunny') {
+                $cdnPrefix = $this->getBunnyCdnUrl();
+            } elseif ($driver == 'r2') {
+                $cdnPrefix = rtrim(Config::get('app.r2_public_url', env('R2_PUBLIC_URL', '')), '/') ?: null;
+            }
 
             foreach ($array as $key => $value) {
 
                 if ($value['upload_type'] == 1) {
 
-                    if (getAudioStorageDriver() == 'r2') {
-                        $url = Config::get('app.r2_public_url');
-                        if (!$url) {
-                            $url = env('R2_PUBLIC_URL', '');
-                        }
-                        if ($url && isset($value[$column]) && $value[$column] != "") {
-                            $value[$column] = rtrim($url, '/') . '/' . $folder . '/' . $value[$column];
-                            continue;
-                        }
+                    if ($cdnPrefix && isset($value[$column]) && $value[$column] != "") {
+                        $value[$column] = $cdnPrefix . '/' . $folder . '/' . $value[$column];
+                        $array[$key] = $value;
+                        continue;
                     }
 
                     $appName = Config::get('app.image_url');
                     if (isset($value[$column]) && $value[$column] != "") {
-
                         if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
                             $value[$column] = $appName . $folder . '/' . $value[$column];
                         } else {
@@ -218,6 +269,7 @@ class Common extends Model
                 } else {
                     $value[$column] = $value['song_url'];
                 }
+                $array[$key] = $value;
             }
             return $array;
         } catch (Exception $e) {

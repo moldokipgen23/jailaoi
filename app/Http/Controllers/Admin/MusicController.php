@@ -445,8 +445,15 @@ class MusicController extends Controller
             // Rename the uploaded file to the new filename
             rename($filePath, $newFilePath);
 
-            // JAILAOI: Upload to R2 if audio storage driver is r2
-            if (getAudioStorageDriver() == 'r2') {
+            // JAILAOI: Upload assembled chunk file to CDN if driver is bunny or r2.
+            $audioDriver = getAudioStorageDriver();
+            if ($audioDriver == 'bunny') {
+                try {
+                    (new \App\Models\Common)->uploadFileToBunny($newFilePath, 'music/' . $newFileName);
+                } catch (Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Bunny upload failed for music: ' . $e->getMessage());
+                }
+            } elseif ($audioDriver == 'r2') {
                 try {
                     \Illuminate\Support\Facades\Storage::disk('r2')->put(
                         'music/' . $newFileName,
