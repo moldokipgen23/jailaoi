@@ -22,6 +22,7 @@ use App\Models\Follow;
 use App\Models\Subscriber;
 use App\Models\ArtistEarning;
 use App\Models\General_Setting;
+use App\Models\PlayError;
 use App\Models\Music;
 use App\Models\Notification;
 use App\Models\Onboarding_Screen;
@@ -38,6 +39,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -2532,6 +2534,37 @@ class HomeController extends Controller
     // JAILAOI: Credit per-stream earnings to artist(s)
     // Called from add_play (type 1=Song, 3=Music legacy) and add_user_action (type 1=Song, 8=Music).
     // Dedupes per user+content+type so a single listener can only earn an artist credit once per song.
+    // JAILAOI: Log a playback error reported by the Flutter app
+    public function logPlayError(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'content_id' => 'nullable|integer',
+                'content_type' => 'nullable|integer',
+                'url' => 'nullable|string',
+                'error_message' => 'nullable|string',
+                'http_status' => 'nullable|integer',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+
+            PlayError::create([
+                'user_id' => $request->user_id ?? 0,
+                'content_id' => $request->content_id,
+                'content_type' => $request->content_type,
+                'url' => $request->url,
+                'error_message' => $request->error_message,
+                'http_status' => $request->http_status,
+            ]);
+
+            return $this->common->API_Response(200, __('api_msg.logged_successfully'));
+        } catch (Exception $e) {
+            Log::error('logPlayError failed: ' . $e->getMessage());
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     private function creditArtistEarning($type, $content_id, $user_id)
     {
         try {

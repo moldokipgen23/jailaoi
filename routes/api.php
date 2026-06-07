@@ -62,6 +62,7 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_notification', [HomeController::class, 'get_notification']);
     Route::post('read_notification', [HomeController::class, 'read_notification']);
     Route::post('add_play', [HomeController::class, 'add_play']);
+    Route::post('log_play_error', [HomeController::class, 'logPlayError']);
     Route::post('add_comment', [HomeController::class, 'add_comment']);
     Route::post('get_comment', [HomeController::class, 'get_comment']);
     Route::post('edit_comment', [HomeController::class, 'edit_comment']);

@@ -32,5 +32,8 @@ class User extends Authenticatable
         'status' => 'integer',
         'role' => 'string',
         'bio' => 'string',
+        'email_verified_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'email_blast_sent_at' => 'datetime',
     ];
 }

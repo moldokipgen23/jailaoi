@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ArtistRequestController extends Controller
 {
@@ -136,6 +138,16 @@ class ArtistRequestController extends Controller
             $artistReq->status = 'approved';
             $artistReq->save();
 
+            // Send approval email
+            try {
+                $this->common->SetSmtpConfig();
+                Mail::to($user->email)->send(
+                    new \App\Mail\ArtistApprovedMail($user->full_name ?? 'there', $artistReq->artist_name)
+                );
+            } catch (Exception $e) {
+                Log::error('Artist approval email failed: ' . $e->getMessage());
+            }
+
             return response()->json(array('status' => 200, 'success' => 'Artist request approved successfully'));
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
@@ -161,6 +173,23 @@ class ArtistRequestController extends Controller
             $artistReq->status = 'rejected';
             $artistReq->admin_note = $request->admin_note ?? '';
             $artistReq->save();
+
+            // Send rejection email
+            try {
+                $user = User::find($artistReq->user_id);
+                if ($user) {
+                    $this->common->SetSmtpConfig();
+                    Mail::to($user->email)->send(
+                        new \App\Mail\ArtistRejectedMail(
+                            $user->full_name ?? 'there',
+                            $artistReq->artist_name,
+                            $artistReq->admin_note
+                        )
+                    );
+                }
+            } catch (Exception $e) {
+                Log::error('Artist rejection email failed: ' . $e->getMessage());
+            }
 
             return response()->json(array('status' => 200, 'success' => 'Artist request rejected'));
         } catch (Exception $e) {

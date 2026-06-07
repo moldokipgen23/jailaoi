@@ -41,6 +41,7 @@ use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\ArtistRequestController;
 use App\Http\Controllers\Admin\WithdrawalController;
+use App\Http\Controllers\Admin\PlayErrorController;
 
 // Artisan
 Route::get('artisan', function () {
@@ -217,6 +218,8 @@ Route::group(['middleware' => 'installation'], function () {
             Route::post('withdrawals/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
             Route::post('withdrawals/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
             Route::post('withdrawals/mark-paid', [WithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
+            // JAILAOI: Play Errors
+            Route::get('play-errors', [PlayErrorController::class, 'index'])->name('admin.play-errors');
         });
     });
 });

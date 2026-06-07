@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Common;
 use App\Models\WithdrawalRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class WithdrawalController extends Controller
@@ -95,6 +98,27 @@ class WithdrawalController extends Controller
             if ($request->filled('admin_note')) $wr->admin_note = $request->admin_note;
             $wr->processed_at = now();
             $wr->save();
+
+            // Send email when marked as paid
+            if ($status === 'paid') {
+                try {
+                    $user = $wr->user;
+                    if ($user) {
+                        $common = new Common;
+                        $common->SetSmtpConfig();
+                        Mail::to($user->email)->send(
+                            new \App\Mail\WithdrawalPaidMail(
+                                $user->full_name ?? 'there',
+                                $wr->amount,
+                                $wr->payment_method ?? 'bank',
+                                $wr->id
+                            )
+                        );
+                    }
+                } catch (Exception $e) {
+                    Log::error('Withdrawal paid email failed: ' . $e->getMessage());
+                }
+            }
 
             return response()->json(['status' => 200, 'success' => 'Withdrawal ' . $status]);
         } catch (Exception $e) {

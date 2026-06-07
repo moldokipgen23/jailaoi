@@ -853,11 +853,11 @@ Claude will verify by:
 | Batch | Task | Status | Done by | Date | Commit |
 |-------|------|--------|---------|------|--------|
 | 1.1 | Audio CDN | ✅ Done | moldokipgen | 2026-06-08 | 6add718 |
-| 1.2 | Job Queue | ⬜ Todo | — | — | — |
-| 1.3 | Email Verification | ⬜ Todo | — | — | — |
-| 1.4 | Approval/Withdrawal Emails | ⬜ Todo | — | — | — |
-| 1.5 | Migrated Artist Blast | ⬜ Todo | — | — | — |
-| 1.6 | Playback Error Handling | ⬜ Todo | — | — | — |
+| 1.2 | Job Queue | ✅ Done | moldokipgen | 2026-06-08 | — |
+| 1.3 | Email Verification | ✅ Done | moldokipgen | 2026-06-08 | — |
+| 1.4 | Approval/Withdrawal Emails | ✅ Done | moldokipgen | 2026-06-08 | — |
+| 1.5 | Migrated Artist Blast | ✅ Done | moldokipgen | 2026-06-08 | — |
+| 1.6 | Playback Error Handling | ✅ Done | moldokipgen | 2026-06-08 | — |
 | 2.1 | Album/EP Grouping | ⬜ Todo | — | — | — |
 | 2.2 | Lyrics | ⬜ Todo | — | — | — |
 | 2.3 | Liked Songs Library | ⬜ Todo | — | — | — |

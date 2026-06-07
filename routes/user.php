@@ -23,6 +23,7 @@ use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\PasswordController;
 use App\Http\Controllers\User\PlaylistController;
 use App\Http\Controllers\User\RadioController;
+use App\Http\Controllers\User\VerifyController;
 
 Route::group(['middleware' => 'installation'], function () {
 
@@ -34,6 +35,11 @@ Route::group(['middleware' => 'installation'], function () {
     // JAILAOI: Public artist registration
     Route::get('register', [RegisterController::class, 'index'])->name('user.register');
     Route::post('register', [RegisterController::class, 'store'])->name('user.register.store');
+
+    // JAILAOI: Email verification
+    Route::get('verify-email', [VerifyController::class, 'index'])->name('user.verify.index');
+    Route::get('verify-email/{user}', [VerifyController::class, 'verify'])->name('user.verify.email')->middleware('signed');
+    Route::post('verify-email/resend', [VerifyController::class, 'resend'])->name('user.verify.resend');
 
     // JAILAOI: Password reset
     Route::get('password/forgot', [ForgotPasswordController::class, 'showForgot'])->name('user.password.forgot');

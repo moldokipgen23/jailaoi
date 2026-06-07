@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Common;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -53,7 +54,24 @@ class LoginController extends Controller
             }
 
             $requestData = $request->all();
+
+            $user = User::where('email', $requestData['email'])->where('role', 'artist')->first();
+            if ($user && !$user->email_verified_at) {
+                $verifyUrl = route('user.verify.index');
+                return response()->json([
+                    'status' => 400,
+                    'errors' => 'Please verify your email before logging in.',
+                    'verify_url' => $verifyUrl,
+                ]);
+            }
+
             if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'role' => 'artist', 'user_penal_status' => 1])) {
+                // Update last login
+                $user = Auth()->guard('user')->user();
+                if ($user) {
+                    $user->last_login_at = now();
+                    $user->save();
+                }
                 return response()->json(['status' => 200, 'success' => __('label.success_login')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_login')]);

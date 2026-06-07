@@ -4,10 +4,14 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ArtistRequest;
+use App\Models\Common;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
@@ -60,9 +64,25 @@ class RegisterController extends Controller
                 'status' => 'pending',
             ]);
 
+            // Send verification email
+            try {
+                $this->common = new Common;
+                $this->common->SetSmtpConfig();
+                $verifyUrl = URL::temporarySignedRoute(
+                    'user.verify.email',
+                    now()->addHours(24),
+                    ['user' => $user->id]
+                );
+                Mail::to($user->email)->send(
+                    new \App\Mail\VerifyEmail($user->full_name ?? 'there', $verifyUrl)
+                );
+            } catch (Exception $e) {
+                Log::error('Verification email failed: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'status' => 200,
-                'success' => 'Application submitted. We will review and notify you by email.',
+                'success' => 'Application submitted. Please check your email to verify your account.',
             ]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
