@@ -1377,7 +1377,7 @@ class HomeController extends Controller
                     $data[$i]['data'] = [];
                     if ($data[$i]['type'] == 1 || $data[$i]['type'] == 2 || $data[$i]['type'] == 8) {
 
-                        $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                        $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
 
                         $data[$i]['data'] = $query;
                     } else if ($data[$i]['type'] == 3) {
@@ -1662,7 +1662,7 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                     $data[$i]['data'] = $query;
                 }
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
@@ -2483,7 +2483,7 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                     $data[$i]['data'] = $query;
                 }
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
@@ -2517,7 +2517,7 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content']);
+                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                     $data[$i]['data'] = $query;
                 }
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);

@@ -227,6 +227,18 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-3 time_window">
+                            <div class="form-group">
+                                <label>{{__('label.time_window')}}</label>
+                                <select name="time_window_days" class="form-control">
+                                    <option value="0">{{__('label.all_time')}}</option>
+                                    <option value="7">{{__('label.last_7_days')}}</option>
+                                    <option value="30">{{__('label.last_30_days')}}</option>
+                                    <option value="90">{{__('label.last_90_days')}}</option>
+                                </select>
+                                <small style="color:#888;font-size:11px;display:block;margin-top:3px;">{{__('label.time_window_help')}}</small>
+                            </div>
+                        </div>
                         <div class="col-md-2 is_paid">
                             <div class="form-group  ml-4">
                                 <label>{{__('label.is_paid')}}<span class="text-danger">*</span></label>

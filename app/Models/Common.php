@@ -504,7 +504,7 @@ class Common extends Model
         }
     }
     // type = 1-Song, 2-Podcat, 3-Live Event, 4-Artist, 5-Category, 6-Language, 7-City, 8-Music
-    public function section_query($user_id, $type, $artist_id, $category_id, $language_id, $city_id, $order_by_upload, $order_by_play, $is_premium, $no_of_content)
+    public function section_query($user_id, $type, $artist_id, $category_id, $language_id, $city_id, $order_by_upload, $order_by_play, $is_premium, $no_of_content, $time_window_days = 0)
     {
         try {
 
@@ -544,22 +544,46 @@ class Common extends Model
                 $content->where('language_id', $language_id);
             }
 
-            if ($order_by_play == 1) {
-                $content->orderBy('total_play', 'desc');
-            } else if ($order_by_play == 0) {
-                $content->orderBy('total_play', 'asc');
+            if ($is_premium == 0) {
+                $content->where('is_premium', 0);
+            } else if ($is_premium == 1) {
+                $content->where('is_premium', 1);
+            }
+
+            // JAILAOI: Time-windowed top played — counts rows in tbl_user_action by content_id in date window
+            $usedTimeWindow = false;
+            if ($order_by_play == 1 && (int) $time_window_days > 0 && in_array((int) $type, [1, 2, 8])) {
+                $tableMap = [1 => 'tbl_song', 2 => 'tbl_podcast', 8 => 'tbl_music'];
+                $tbl = $tableMap[$type];
+                $sinceDate = now()->subDays((int) $time_window_days)->toDateTimeString();
+
+                $sub = \Illuminate\Support\Facades\DB::table('tbl_user_action')
+                    ->select('content_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as window_play_count'))
+                    ->where('action', 1)
+                    ->where('content_type', $type)
+                    ->where('created_at', '>=', $sinceDate)
+                    ->groupBy('content_id');
+
+                $content->leftJoinSub($sub, 'play_window', function ($join) use ($tbl) {
+                    $join->on($tbl . '.id', '=', 'play_window.content_id');
+                })
+                    ->orderByDesc(\Illuminate\Support\Facades\DB::raw('COALESCE(play_window.window_play_count, 0)'))
+                    ->select($tbl . '.*');
+                $usedTimeWindow = true;
+            }
+
+            if (!$usedTimeWindow) {
+                if ($order_by_play == 1) {
+                    $content->orderBy('total_play', 'desc');
+                } else if ($order_by_play == 0) {
+                    $content->orderBy('total_play', 'asc');
+                }
             }
 
             if ($order_by_upload == 1) {
                 $content->orderBy('id', 'desc');
             } else if ($order_by_upload == 0) {
                 $content->orderBy('id', 'asc');
-            }
-
-            if ($is_premium == 0) {
-                $content->where('is_premium', 0);
-            } else if ($is_premium == 1) {
-                $content->where('is_premium', 1);
             }
 
             $query = $content->take($no_of_content)->get();

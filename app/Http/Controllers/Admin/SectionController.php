@@ -133,6 +133,7 @@ class SectionController extends Controller
             $requestData['view_all'] = 0;
             $requestData['order_by_upload'] = 1;
             $requestData['order_by_play'] = 1;
+            $requestData['time_window_days'] = isset($request['time_window_days']) ? (int) $request['time_window_days'] : 0;
             $requestData['is_paid'] = 0;
             $requestData['is_premium'] = 0;
             $requestData['user_id'] = isset($request['user_id'])  ? $request['user_id'] : 0;
@@ -332,6 +333,7 @@ class SectionController extends Controller
             $requestData['view_all'] = 0;
             $requestData['order_by_upload'] = 1;
             $requestData['order_by_play'] = 1;
+            $requestData['time_window_days'] = isset($request['time_window_days']) ? (int) $request['time_window_days'] : 0;
             $requestData['is_paid'] = 0;
             $requestData['is_premium'] = 0;
             $requestData['user_id'] = isset($request['user_id'])  ? $request['user_id'] : 0;
