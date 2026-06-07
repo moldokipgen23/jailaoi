@@ -140,7 +140,7 @@ return [
     'reward_ad_click_here' => "Reward Ad Click here...",
     'save' => "Save",
     'dashboard' => "Dashboard",
-    'artist_rj' => "Artist / Rj",
+    'artist_rj' => "Artist",
     'add_artist' => "Add Artist",
     'edit_artist' => "Edit Artist",
     'name' => "Name",
