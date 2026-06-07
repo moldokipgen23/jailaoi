@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AdsController;
 use App\Http\Controllers\User\EarningsController;
 use App\Http\Controllers\User\LoginController;
+use App\Http\Controllers\User\RegisterController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\MusicController;
 use App\Http\Controllers\User\ProfileController;
@@ -28,6 +29,10 @@ Route::group(['middleware' => 'installation'], function () {
     Route::get('login', [LoginController::class, 'login'])->name('user.login');
     Route::post('login', [LoginController::class, 'save_login'])->name('user.save.login');
     Route::get('logout', [LoginController::class, 'logout'])->name('user.logout');
+
+    // JAILAOI: Public artist registration
+    Route::get('register', [RegisterController::class, 'index'])->name('user.register');
+    Route::post('register', [RegisterController::class, 'store'])->name('user.register.store');
 
     Route::group(['middleware' => 'authuser', 'as' => 'user.'], function () {
 

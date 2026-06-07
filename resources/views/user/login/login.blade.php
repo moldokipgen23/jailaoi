@@ -120,6 +120,10 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
         </form>
 
+        <div style="text-align:center;margin-top:18px;font-size:13px;color:#6c757d;">
+            {{__('label.new_artist_question')}} <a href="{{ route('user.register') }}" style="color:#E01E75;font-weight:600;text-decoration:none;">{{__('label.apply_as_artist')}}</a>
+        </div>
+
         <div class="login-footer">
             &copy; {{ date('Y') }} {{ App_Name() }} &middot; {{__('label.all_right_reserved')}}
         </div>
