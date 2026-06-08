@@ -27,4 +27,10 @@ class Artist extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    // JAILAOI: Link to the original registration request
+    public function artistRequest()
+    {
+        return $this->hasOne(\App\Models\ArtistRequest::class, 'user_id', 'user_id');
+    }
 }

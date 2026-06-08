@@ -27,10 +27,11 @@ class ArtistController extends Controller
             if ($request->ajax()) {
 
                 $input_search = $request['input_search'];
+                // JAILAOI: eager-load user + registration request for admin detail view
                 if ($input_search != null && isset($input_search)) {
-                    $data = Artist::where('name', 'LIKE', "%{$input_search}%")->orderBy('sort_order', 'asc')->get();
+                    $data = Artist::with(['user', 'artistRequest'])->where('name', 'LIKE', "%{$input_search}%")->orderBy('sort_order', 'asc')->get();
                 } else {
-                    $data = Artist::orderBy('sort_order', 'asc')->get();
+                    $data = Artist::with(['user', 'artistRequest'])->orderBy('sort_order', 'asc')->get();
                 }
 
                 $this->common->imageNameToUrl($data, 'image', $this->folder);
@@ -48,17 +49,38 @@ class ArtistController extends Controller
                                     </div>';
                     })
                     ->addColumn('action', function ($row) {
+                        // JAILAOI: include user email + registration fields for admin detail modal
+                        $email       = $row->user->email ?? '';
+                        $fullName    = $row->user->full_name ?? '';
+                        $phone       = $row->user->mobile_number ?? '';
+                        $artistTypes = $row->artistRequest->artist_types ?? '';
+                        $regDate     = $row->artistRequest?->created_at?->format('Y-m-d') ?? ($row->created_at?->format('Y-m-d') ?? '');
+                        $adminNote   = $row->artistRequest->admin_note ?? '';
+
                         $delete = '<form onsubmit="return confirm(\'' . __('label.delete_artist') . '\');" method="POST"  action="' . route('artist.destroy', [$row->id]) . '">
                                 <input type="hidden" name="_token" value="' . csrf_token() . '">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="edit-delete-btn" title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
 
                         $btn = '<div class="d-flex justify-content-center" >';
-                        $btn .= '<a class="edit-delete-btn edit_artist mr-4" title=' . __('label.edit') . ' data-toggle="modal" href="#EditModel" data-id="' . $row->id . '" data-name="' . $row->name . '" data-image="' . $row->image . '" data-bio="' . $row->bio . '" data-type="' . $row->type . '">';
+                        $btn .= '<a class="edit-delete-btn edit_artist mr-4" title="' . __('label.edit') . '"'
+                            . ' data-toggle="modal" href="#EditModel"'
+                            . ' data-id="' . $row->id . '"'
+                            . ' data-name="' . htmlspecialchars($row->name, ENT_QUOTES) . '"'
+                            . ' data-image="' . $row->image . '"'
+                            . ' data-bio="' . htmlspecialchars($row->bio ?? '', ENT_QUOTES) . '"'
+                            . ' data-type="' . $row->type . '"'
+                            . ' data-email="' . htmlspecialchars($email, ENT_QUOTES) . '"'
+                            . ' data-fullname="' . htmlspecialchars($fullName, ENT_QUOTES) . '"'
+                            . ' data-phone="' . htmlspecialchars($phone, ENT_QUOTES) . '"'
+                            . ' data-artist-types="' . htmlspecialchars($artistTypes, ENT_QUOTES) . '"'
+                            . ' data-reg-date="' . $regDate . '"'
+                            . ' data-admin-note="' . htmlspecialchars($adminNote, ENT_QUOTES) . '"'
+                            . '>';
                         $btn .= '<i class="fa-solid fa-pen-to-square fa-xl"></i>';
                         $btn .= '</a>';
                         $btn .= $delete;
-                        $btn .= '</a></div>';
+                        $btn .= '</div>';
                         return $btn;
                     })
                     ->rawColumns(['action', 'status'])

@@ -170,6 +170,44 @@
                             </div>
                             <input type="hidden" name="id" id="edit_id">
                             <input type="hidden" name="old_image" id="edit_old_image">
+
+                            {{-- JAILAOI: Read-only registration info for admin --}}
+                            <div id="artist_reg_info" style="display:none;">
+                                <hr>
+                                <div style="background:#f9faff;border-radius:8px;padding:14px 16px;border:1px solid #e5e7eb;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fa-solid fa-circle-info me-2" style="color:#6c63ff;"></i>
+                                        <strong style="font-size:13px;color:#374151;">Account & Registration Info</strong>
+                                        <span class="ml-auto" style="font-size:11px;color:#9ca3af;">Admin view only</span>
+                                    </div>
+                                    <div class="row" style="font-size:13px;">
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Full Name</div>
+                                            <div id="view_fullname" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Email</div>
+                                            <div id="view_email" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Phone</div>
+                                            <div id="view_phone" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Artist Types</div>
+                                            <div id="view_artist_types" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Registered On</div>
+                                            <div id="view_reg_date" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Admin Note</div>
+                                            <div id="view_admin_note" style="color:#111827;font-weight:500;">—</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default mw-120" onclick="update_artist()">{{__('label.update')}}</button>
@@ -327,19 +365,49 @@
 
     $(document).on("click", ".edit_artist", function() {
 
-        var id = $(this).data('id');
-        var name = $(this).data('name');
-        var bio = $(this).data('bio');
-        var image = $(this).data('image');
-        var type = $(this).data('type');
+        var id          = $(this).data('id');
+        var name        = $(this).data('name');
+        var bio         = $(this).data('bio');
+        var image       = $(this).data('image');
+        var type        = $(this).data('type');
+        // JAILAOI: registration info fields
+        var email       = $(this).data('email') || '—';
+        var fullname    = $(this).data('fullname') || '—';
+        var phone       = $(this).data('phone') || '—';
+        var artTypes    = $(this).data('artist-types') || '—';
+        var regDate     = $(this).data('reg-date') || '—';
+        var adminNote   = $(this).data('admin-note') || '—';
 
         $(".modal-body #edit_id").val(id);
         $(".modal-body #edit_name").val(name);
         $(".modal-body #edit_bio").val(bio);
         $(".modal-body #edit_type").val(type);
-
         $(".modal-body #imagePreviewModel").attr("src", image);
         $(".modal-body #edit_old_image").val(image);
+
+        // JAILAOI: populate read-only registration section
+        $("#view_fullname").text(fullname);
+        $("#view_email").html(email !== '—' ? '<a href="mailto:' + email + '">' + email + '</a>' : '—');
+        $("#view_phone").text(phone);
+        // format artist_types: "music,podcast" → badges
+        if (artTypes && artTypes !== '—') {
+            var badges = artTypes.split(',').map(function(t) {
+                t = t.trim();
+                var col = t === 'music' ? '#6c63ff' : '#10b981';
+                return '<span style="background:' + col + '22;color:' + col + ';padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-right:4px;">' + t + '</span>';
+            }).join('');
+            $("#view_artist_types").html(badges);
+        } else {
+            $("#view_artist_types").text('—');
+        }
+        $("#view_reg_date").text(regDate);
+        $("#view_admin_note").text(adminNote);
+        // Show the info section only for linked artists (have email)
+        if (email && email !== '—') {
+            $("#artist_reg_info").show();
+        } else {
+            $("#artist_reg_info").hide();
+        }
     });
 
     function update_artist() {
