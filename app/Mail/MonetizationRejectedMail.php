@@ -6,22 +6,24 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class KycApprovedMail extends Mailable
+class MonetizationRejectedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $name;
+    public $reason;
     public $appName;
 
-    public function __construct($name)
+    public function __construct($name, $reason)
     {
         $this->name = $name;
+        $this->reason = $reason;
         $this->appName = function_exists('App_Name') ? App_Name() : 'JailaOi';
     }
 
     public function build()
     {
-        return $this->subject($this->appName . ' — Your KYC verification is approved!')
-            ->view('emails.kyc-approved');
+        return $this->subject($this->appName . ' — Monetization application update')
+            ->view('emails.monetization-rejected');
     }
 }

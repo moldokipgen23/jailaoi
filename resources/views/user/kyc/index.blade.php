@@ -346,7 +346,7 @@ function submitKyc() {
     const formData = new FormData(document.getElementById('kycForm'));
     $.ajax({
         type: 'POST',
-        url: '{{ route("kyc.store") }}',
+        url: '{{ route("user.kyc.store") }}',
         data: formData,
         processData: false,
         contentType: false,

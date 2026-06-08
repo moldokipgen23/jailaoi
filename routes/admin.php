@@ -41,6 +41,7 @@ use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\ArtistRequestController;
 use App\Http\Controllers\Admin\KycController;
+use App\Http\Controllers\Admin\MonetizationController;
 use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Admin\PlayErrorController;
 
@@ -161,6 +162,9 @@ Route::group(['middleware' => 'installation'], function () {
         Route::resource('notification_configuration', NotificationConfigurationController::class)->only(['index', 'store']);
         // Artist Requests
         Route::get('artist-requests', [ArtistRequestController::class, 'index'])->name('admin.artist-requests.index');
+        // JAILAOI: Monetization Applications
+        Route::get('monetization', [MonetizationController::class, 'index'])->name('admin.monetization.index');
+
         // JAILAOI: KYC
         Route::get('kyc', [KycController::class, 'index'])->name('admin.kyc.index');
         Route::get('kyc/view/{id}', [KycController::class, 'view'])->name('admin.kyc.view');
@@ -220,6 +224,10 @@ Route::group(['middleware' => 'installation'], function () {
             // Artist Requests
             Route::post('artist-requests/approve', [ArtistRequestController::class, 'approve'])->name('admin.artist-requests.approve');
             Route::post('artist-requests/reject', [ArtistRequestController::class, 'reject'])->name('admin.artist-requests.reject');
+            // JAILAOI: Monetization Applications
+            Route::post('monetization/approve', [MonetizationController::class, 'approve'])->name('admin.monetization.approve');
+            Route::post('monetization/reject', [MonetizationController::class, 'reject'])->name('admin.monetization.reject');
+
             // JAILAOI: KYC
             Route::post('kyc/approve', [KycController::class, 'approve'])->name('admin.kyc.approve');
             Route::post('kyc/reject', [KycController::class, 'reject'])->name('admin.kyc.reject');

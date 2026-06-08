@@ -94,8 +94,8 @@ class KycController extends Controller
             $kyc->id_front_img_url = $this->common->getImage($this->folder_kyc, $kyc->id_front_img);
             $kyc->id_back_img_url  = $this->common->getImage($this->folder_kyc, $kyc->id_back_img);
 
-            $details = json_decode($kyc->payment_details, true);
-            $kyc->payment_details_display = $details ?: ['raw' => $kyc->payment_details];
+            // payment_details is cast to array by the model
+            $kyc->payment_details_display = $kyc->payment_details ?: [];
 
             return response()->json(['status' => 200, 'data' => $kyc]);
         } catch (Exception $e) {

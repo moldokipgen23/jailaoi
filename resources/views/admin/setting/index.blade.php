@@ -442,6 +442,58 @@
                                     <small class="text-muted">Minimum days since registration before eligible for payout.</small>
                                 </div>
                             </div>
+                            <hr>
+                            <h6 class="mb-3">Monetization Eligibility Rules</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Min Total Plays</label>
+                                    <input type="number" min="0" name="eligibility_min_plays" class="form-control"
+                                        value="{{ $result['eligibility_min_plays'] ?? '100' }}"
+                                        placeholder="100">
+                                    <small class="text-muted">Minimum total plays to qualify for monetization.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Min Followers</label>
+                                    <input type="number" min="0" name="eligibility_min_followers" class="form-control"
+                                        value="{{ $result['eligibility_min_followers'] ?? '50' }}"
+                                        placeholder="50">
+                                    <small class="text-muted">Minimum followers to qualify for monetization.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Min Plays This Month</label>
+                                    <input type="number" min="0" name="eligibility_min_monthly_plays" class="form-control"
+                                        value="{{ $result['eligibility_min_monthly_plays'] ?? '30' }}"
+                                        placeholder="30">
+                                    <small class="text-muted">Minimum plays in the current month.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Min Tracks Uploaded</label>
+                                    <input type="number" min="0" name="eligibility_min_tracks" class="form-control"
+                                        value="{{ $result['eligibility_min_tracks'] ?? '1' }}"
+                                        placeholder="1">
+                                    <small class="text-muted">Minimum published tracks.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Min Account Age (Days)</label>
+                                    <input type="number" min="0" name="eligibility_min_account_days" class="form-control"
+                                        value="{{ $result['eligibility_min_account_days'] ?? '30' }}"
+                                        placeholder="30">
+                                    <small class="text-muted">Minimum days since registration.</small>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <div class="form-check">
+                                        <input type="hidden" name="monetization_strict_eligibility" value="0">
+                                        <input type="checkbox" name="monetization_strict_eligibility" class="form-check-input" id="strictEligibility" value="1"
+                                            {{ isset($result['monetization_strict_eligibility']) && $result['monetization_strict_eligibility'] == '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="strictEligibility">
+                                            <strong>Strict Eligibility Enforcement</strong>
+                                        </label>
+                                        <small class="text-muted d-block">When enabled, artists must meet all eligibility rules before they can apply. Disable to allow any artist to apply (admin still reviews).</small>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="alert alert-info py-2 mt-2">
                                 <strong>How it works:</strong>
                                 Every time a listener plays a song, the artist earns <strong>Rate Per Stream</strong> amount.

@@ -157,53 +157,25 @@
                             <h5 class="mb-3" style="font-weight:700;">Request Withdrawal</h5>
                             @if (!$artist)
                                 <div class="alert alert-warning small">No artist profile found.</div>
-                            @elseif ($eligibility && !$eligibility['eligible'])
-                                {{-- JAILAOI: Eligibility gate --}}
+                            @elseif (!$monetizationApproved)
+                                {{-- JAILAOI: Monetization not approved --}}
                                 <div class="alert alert-warning">
                                     <i class="fa-solid fa-lock me-2"></i>
                                     <strong>Payout Locked</strong>
-                                    <p class="mb-2 mt-2">Complete the following requirements to unlock withdrawals:</p>
-                                    <ul style="list-style:none;padding-left:0;margin-bottom:0;">
-                                        @php
-                                            $kycApproved = $eligibility['kyc_approved'];
-                                        @endphp
-                                        <li style="margin-bottom:6px;">
-                                            {!! $kycApproved
-                                                ? '<span style="color:#10b981;">✅</span> KYC Verified'
-                                                : '<span style="color:#ef4444;">❌</span> KYC not verified — <a href="' . route('user.kyc.index') . '" style="color:#E01E75;font-weight:600;">Verify Now &rarr;</a>'
-                                            !!}
-                                        </li>
-                                        @php
-                                            $minPlays = (int) (\App\Models\General_Setting::where('key', 'min_streams_for_payout')->value('value') ?? 50);
-                                            $totalPlays = $stats['total_plays'];
-                                        @endphp
-                                        <li style="margin-bottom:6px;">
-                                            {!! $totalPlays >= $minPlays
-                                                ? '<span style="color:#10b981;">✅</span> ' . number_format($totalPlays) . ' plays (min ' . number_format($minPlays) . ')'
-                                                : '<span style="color:#ef4444;">❌</span> ' . number_format($totalPlays) . ' plays (need ' . number_format($minPlays) . ')'
-                                            !!}
-                                        </li>
-                                        @php
-                                            $minEarn = (float) (\App\Models\General_Setting::where('key', 'min_earnings_for_payout')->value('value') ?? 5);
-                                            $totalEarned = $stats['total_earned'];
-                                        @endphp
-                                        <li style="margin-bottom:6px;">
-                                            {!! $totalEarned >= $minEarn
-                                                ? '<span style="color:#10b981;">✅</span> ' . $stats['currency'] . ' ' . number_format($totalEarned, 2) . ' earned (min ' . $stats['currency'] . ' ' . number_format($minEarn, 2) . ')'
-                                                : '<span style="color:#ef4444;">❌</span> ' . $stats['currency'] . ' ' . number_format($totalEarned, 2) . ' earned (need ' . $stats['currency'] . ' ' . number_format($minEarn, 2) . ')'
-                                            !!}
-                                        </li>
-                                        @php
-                                            $minDays = (int) (\App\Models\General_Setting::where('key', 'min_account_days_for_payout')->value('value') ?? 30);
-                                            $accountAge = $user->created_at ? $user->created_at->diffInDays(now()) : 0;
-                                        @endphp
-                                        <li style="margin-bottom:6px;">
-                                            {!! $accountAge >= $minDays
-                                                ? '<span style="color:#10b981;">✅</span> Account ' . $accountAge . ' days old (min ' . $minDays . ')'
-                                                : '<span style="color:#ef4444;">❌</span> Account ' . $accountAge . ' days old (need ' . $minDays . ')'
-                                            !!}
-                                        </li>
-                                    </ul>
+                                    <p class="mb-2 mt-2">Monetization approval is required before you can withdraw earnings.</p>
+                                    <a href="{{ route('user.monetization.index') }}" class="btn btn-sm btn-primary mt-1">
+                                        View Monetization Status &rarr;
+                                    </a>
+                                </div>
+                            @elseif (!$kycApproved)
+                                {{-- JAILAOI: KYC not approved --}}
+                                <div class="alert alert-warning">
+                                    <i class="fa-solid fa-lock me-2"></i>
+                                    <strong>Payout Locked</strong>
+                                    <p class="mb-2 mt-2">KYC verification is required before you can withdraw earnings.</p>
+                                    <a href="{{ route('user.kyc.index') }}" class="btn btn-sm btn-primary mt-1">
+                                        Complete KYC &rarr;
+                                    </a>
                                 </div>
                             @elseif ($stats['available'] < $stats['min_withdrawal'])
                                 <div class="alert alert-info small">
@@ -382,7 +354,7 @@ document.getElementById('withdrawalForm')?.addEventListener('submit', async func
     btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting…';
     try {
-        const res  = await fetch('{{ route('earnings.withdraw') }}', {
+        const res  = await fetch('{{ route('user.earnings.withdraw') }}', {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body:   new FormData(form),

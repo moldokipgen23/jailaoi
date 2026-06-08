@@ -16,6 +16,7 @@ use App\Http\Controllers\User\AdsController;
 use App\Http\Controllers\User\BecomeArtistController;
 use App\Http\Controllers\User\EarningsController;
 use App\Http\Controllers\User\KycController;
+use App\Http\Controllers\User\MonetizationController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\RegisterController;
@@ -79,6 +80,10 @@ Route::group(['middleware' => 'installation'], function () {
         // JAILAOI: Earnings + Withdrawal
         Route::get('earnings', [EarningsController::class, 'index'])->name('earnings.index');
         Route::post('earnings/withdraw', [EarningsController::class, 'requestWithdrawal'])->name('earnings.withdraw');
+
+        // JAILAOI: Monetization Application
+        Route::get('monetization', [MonetizationController::class, 'index'])->name('monetization.index');
+        Route::post('monetization/apply', [MonetizationController::class, 'apply'])->name('monetization.apply');
 
         // JAILAOI: KYC Verification
         Route::get('kyc', [KycController::class, 'index'])->name('kyc.index');

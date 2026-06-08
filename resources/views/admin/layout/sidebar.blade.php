@@ -63,6 +63,12 @@
                 <span>{{__('label.artist_requests')}}</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('admin.monetization*') ? 'active' : '' }}">
+            <a href="{{ route('admin.monetization.index') }}">
+                <i class="fa-solid fa-rocket fa-2xl menu-icon"></i>
+                <span>Monetization Apps</span>
+            </a>
+        </li>
         <li class="side_line {{ request()->routeIs('admin.kyc*') ? 'active' : '' }}">
             <a href="{{ route('admin.kyc.index') }}">
                 <i class="fa-solid fa-shield-halved fa-2xl menu-icon"></i>
