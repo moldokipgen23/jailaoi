@@ -327,7 +327,11 @@ class MusicController extends Controller
             $data = Music::where('id', $id)->first();
             if (isset($data)) {
                 $this->common->deleteImageToFolder($this->folder, $data['image']);
-                $this->common->deleteImageToFolder($this->folder, $data['music_url']);
+                // JAILAOI: delete audio from Bunny/R2 before removing DB record
+                if ($data['music'] && getAudioStorageDriver() == 'bunny') {
+                    $this->common->deleteFileFromBunny('music/' . $data['music']);
+                }
+                $this->common->deleteImageToFolder($this->folder, $data['music']);
                 $data->delete();
 
                 Favorite::where('content_id', $id)->delete();

@@ -248,6 +248,10 @@ class SongController extends Controller
             $data = Song::where('id', $id)->first();
             if (isset($data)) {
                 $this->common->deleteImageToFolder($this->folder, $data['image']);
+                // JAILAOI: delete audio from Bunny before removing DB record
+                if ($data['song_url'] && getAudioStorageDriver() == 'bunny') {
+                    $this->common->deleteFileFromBunny('song/' . $data['song_url']);
+                }
                 $this->common->deleteImageToFolder($this->folder, $data['song_url']);
                 $data->delete();
 

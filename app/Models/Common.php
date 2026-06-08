@@ -167,6 +167,30 @@ class Common extends Model
         }
     }
 
+    // JAILAOI: Delete a file from Bunny Storage Zone.
+    // Called when admin deletes a music/song/podcast record.
+    // Silently logs on failure — never throws, so DB delete still proceeds.
+    public function deleteFileFromBunny(string $remotePath): void
+    {
+        try {
+            $cfg      = $this->getBunnyConfig();
+            $zone     = $cfg['storage_zone'];
+            $apiKey   = $cfg['api_key'];
+            $endpoint = rtrim($cfg['endpoint'] ?: 'https://storage.bunnycdn.com', '/');
+
+            if (!$zone || !$apiKey) return;
+
+            $url = $endpoint . '/' . $zone . '/' . ltrim($remotePath, '/');
+
+            \Illuminate\Support\Facades\Http::withHeaders([
+                'AccessKey' => $apiKey,
+            ])->delete($url);
+        } catch (Exception $e) {
+            Log::error('deleteFileFromBunny failed for ' . $remotePath . ': ' . $e->getMessage());
+        }
+    }
+
+
     public function Get_Song($folder = "", $name = "")
     {
         if ($name != "" && $folder != "") {
@@ -200,28 +224,37 @@ class Common extends Model
         return ($data);
     }
 
-    public function saveAudioFile($file, $folder, $prefix = '')
+    // JAILAOI: $artistSlug — optional subfolder e.g. 'minlun-hangmi'.
+    // Stored value returned is 'artist-slug/filename.mp3' so URL generation works:
+    //   CDN URL + '/' + folder + '/' + stored_value = full playback URL
+    public function saveAudioFile($file, $folder, $prefix = '', $artistSlug = '')
     {
         try {
             $img_ext  = $file->getClientOriginalExtension();
             $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
 
+            // Build stored value — includes artist subfolder if provided
+            $storedName = $artistSlug ? ($artistSlug . '/' . $filename) : $filename;
+
             // JAILAOI: Bunny CDN — upload via Bunny HTTP API.
             if (getAudioStorageDriver() == 'bunny') {
-                $tmpPath = $file->getRealPath();
-                $this->uploadFileToBunny($tmpPath, $folder . '/' . $filename);
-                return $filename;
+                $this->uploadFileToBunny($file->getRealPath(), $folder . '/' . $storedName);
+                return $storedName;
             }
 
             // JAILAOI: Cloudflare R2 — upload via S3-compatible disk.
             if (getAudioStorageDriver() == 'r2') {
-                Storage::disk('r2')->put($folder . '/' . $filename, file_get_contents($file->getRealPath()));
-                return $filename;
+                Storage::disk('r2')->put($folder . '/' . $storedName, file_get_contents($file->getRealPath()));
+                return $storedName;
             }
 
-            // Default: local storage.
-            $file->move(base_path('storage/app/public/' . $folder), $filename);
-            return $filename;
+            // Default: local storage — create artist subfolder if needed.
+            $localDir = base_path('storage/app/public/' . $folder . ($artistSlug ? '/' . $artistSlug : ''));
+            if (!is_dir($localDir)) {
+                @mkdir($localDir, 0755, true);
+            }
+            $file->move($localDir, $filename);
+            return $storedName;
 
         } catch (Exception $e) {
             Log::error('saveAudioFile failed: ' . $e->getMessage());

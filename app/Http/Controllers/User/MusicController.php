@@ -142,7 +142,9 @@ class MusicController extends Controller
                     $wf = $this->common->generateWaveform($requestData['music'], $this->folder_ffmpeg);
                     if ($wf) $requestData['waveform_data'] = $wf;
                 } else {
-                    $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_');
+                    // JAILAOI: Pass artist slug so file is stored in artist subfolder on CDN
+                    $artistSlug = \Illuminate\Support\Str::slug(User_Data()['name'] ?? 'various', '-');
+                    $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_', $artistSlug);
                 }
             } else {
                 $requestData['content'] = $requestData['url'];

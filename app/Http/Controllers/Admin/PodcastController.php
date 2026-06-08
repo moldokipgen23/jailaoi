@@ -253,6 +253,10 @@ class PodcastController extends Controller
                 for ($i = 0; $i < count($episode); $i++) {
                     $this->common->deleteImageToFolder($this->folder, $episode[$i]['portrait_img']);
                     $this->common->deleteImageToFolder($this->folder, $episode[$i]['landscape_img']);
+                    // JAILAOI: delete episode audio from Bunny before removing DB record
+                    if ($episode[$i]['episode_audio'] && getAudioStorageDriver() == 'bunny') {
+                        $this->common->deleteFileFromBunny('podcast/' . $episode[$i]['episode_audio']);
+                    }
                     $this->common->deleteImageToFolder($this->folder, $episode[$i]['episode_audio']);
                     $episode[$i]->delete();
                 }
