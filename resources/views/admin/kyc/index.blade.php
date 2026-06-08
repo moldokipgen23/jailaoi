@@ -1,4 +1,4 @@
-@extends('admin.layout.app')
+@extends('admin.layout.page-app')
 @section('page_title', 'KYC Requests')
 @section('tab_title', 'KYC Requests')
 
