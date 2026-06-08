@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Artist;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Common;
@@ -13,10 +14,13 @@ use App\Models\Content_Like;
 use App\Models\Content_Report;
 use App\Models\Content_View;
 use App\Models\History;
+use App\Models\Music;
 use App\Models\Notification;
 use App\Models\Watch_later;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Exception;
 
 class MusicController extends Controller
@@ -164,6 +168,8 @@ class MusicController extends Controller
 
             $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($data->id)) {
+                // JAILAOI: Mirror to tbl_music so the Flutter app can play it immediately
+                $this->mirrorToMusic($data, $requestData);
                 return response()->json(['status' => 200, 'success' => __('label.success_add_music')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_add_music')]);
@@ -304,6 +310,8 @@ class MusicController extends Controller
 
             $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($data->id)) {
+                // JAILAOI: Keep tbl_music mirror in sync
+                $this->mirrorToMusic($data, $requestData);
                 return response()->json(['status' => 200, 'success' => __('label.success_edit_music')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_edit_music')]);
@@ -325,6 +333,8 @@ class MusicController extends Controller
                 $this->common->deleteImageToFolder($this->folder, $data['portrait_img'], $data['portrait_img_storage_type']);
                 $this->common->deleteImageToFolder($this->folder, $data['landscape_img'], $data['landscape_img_storage_type']);
                 $this->common->deleteImageToFolder($this->folder, $data['content'], $data['content_storage_type']);
+                // JAILAOI: Also remove the tbl_music mirror
+                $this->deleteMusicMirror($data);
                 $data->delete();
 
                 // Content Releted Data Delete
@@ -339,6 +349,76 @@ class MusicController extends Controller
             return redirect()->route('user.music.index')->with('success', __('label.music_delete'));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Mirror a Content (artist portal) record into tbl_music so the Flutter app can play it.
+    // Writes to tbl_music with status=1 (auto-live) — no admin approval needed for audio uploads.
+    // Uses content_id as the stable key so edit/re-upload stays in sync.
+    private function mirrorToMusic(Content $content, array $req): void
+    {
+        try {
+            $user   = User_Data();
+            $artist = Artist::where('user_id', $user['id'])->first();
+            if (!$artist) return; // Not a registered artist — skip
+
+            $artistId  = (string) $artist->id;
+            $uploadType = (($req['content_upload_type'] ?? '') === 'server_video') ? 1 : 2;
+            $musicFile  = $content->content ?? '';
+            $duration   = $content->content_duration ?? 0;
+
+            // Copy portrait to music/ folder so Get_Image('music', ...) works in the app
+            $portraitImg = '';
+            $srcFile = basename($content->portrait_img ?? '');
+            if ($srcFile) {
+                $src = storage_path('app/public/content/' . $srcFile);
+                $dst = storage_path('app/public/music/' . $srcFile);
+                if (file_exists($src) && !file_exists($dst)) {
+                    @mkdir(storage_path('app/public/music'), 0755, true);
+                    @copy($src, $dst);
+                }
+                $portraitImg = $srcFile;
+            }
+
+            Music::updateOrCreate(
+                ['jailaoi_content_id' => $content->id],  // stable link key
+                [
+                    'title'        => $content->title ?? '',
+                    'artist_id'    => $artistId,
+                    'album_name'   => '',
+                    'categroy_id'  => $content->category_id ?? 0,  // note: typo is in original Music model
+                    'language_id'  => $content->language_id ?? 0,
+                    'is_premium'   => 0,
+                    'duration'     => $duration,
+                    'upload_type'  => $uploadType,
+                    'music'        => $musicFile,
+                    'description'  => $content->description ?? '',
+                    'portrait_img' => $portraitImg,
+                    'landscape_img'=> '',
+                    'ogtag_img'    => '',
+                    'total_play'   => 0,
+                    'status'       => 1,
+                ]
+            );
+        } catch (Exception $e) {
+            Log::error('mirrorToMusic failed for content#' . $content->id . ': ' . $e->getMessage());
+            // Never throw — don't let mirror failure break the artist portal
+        }
+    }
+
+    // JAILAOI: Remove the tbl_music mirror when artist deletes from their portal.
+    private function deleteMusicMirror(Content $content): void
+    {
+        try {
+            $mirror = Music::where('jailaoi_content_id', $content->id)->first();
+            if ($mirror) {
+                if ($mirror->music && getAudioStorageDriver() == 'bunny') {
+                    $this->common->deleteFileFromBunny('music/' . $mirror->music);
+                }
+                $mirror->delete();
+            }
+        } catch (Exception $e) {
+            Log::error('deleteMusicMirror failed for content#' . $content->id . ': ' . $e->getMessage());
         }
     }
 }
