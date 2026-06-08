@@ -65,9 +65,9 @@
                                     <div class="form-group col-md-4">
                                         <label>ID Type <span class="text-danger">*</span></label>
                                         <select name="id_type" class="form-control" required>
-                                            <option value="passport">Passport</option>
-                                            <option value="national_id">National ID</option>
-                                            <option value="drivers_license">Driver's License</option>
+                                            @foreach ($settings['allowed_id_types'] as $idType)
+                                                <option value="{{ $idType }}">{{ ucwords(str_replace('_', ' ', $idType)) }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group col-md-6">
@@ -116,15 +116,15 @@
                                     <div class="form-group col-md-6">
                                         <label>Payment Method <span class="text-danger">*</span></label>
                                         <select name="payment_method" class="form-control" id="paymentMethod" onchange="togglePaymentFields()" required>
-                                            <option value="paypal">PayPal</option>
-                                            <option value="bank">Bank Transfer</option>
-                                            <option value="mobile_money">Mobile Money</option>
+                                            @foreach ($settings['allowed_payment_methods'] as $pm)
+                                                <option value="{{ $pm }}">{{ ucwords(str_replace('_', ' ', $pm)) }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
 
                                 {{-- PayPal --}}
-                                <div class="payment-fields" id="paypalFields">
+                                <div class="payment-fields d-none" id="paypalFields">
                                     <div class="row">
                                         <div class="form-group col-md-6">
                                             <label>PayPal Email <span class="text-danger">*</span></label>
@@ -307,7 +307,9 @@ function togglePaymentFields() {
     const method = document.getElementById('paymentMethod').value;
     const map = { paypal: 'paypal', bank: 'bank', mobile_money: 'mobileMoney' };
     document.querySelectorAll('.payment-fields').forEach(el => el.classList.add('d-none'));
-    document.getElementById(map[method] + 'Fields').classList.remove('d-none');
+    if (map[method]) {
+        document.getElementById(map[method] + 'Fields').classList.remove('d-none');
+    }
 }
 
 function buildPaymentJson() {
@@ -334,6 +336,11 @@ function buildPaymentJson() {
 
     document.getElementById('paymentDetailsJson').value = JSON.stringify(details);
 }
+
+$(document).ready(function() {
+    // Show fields for initial payment method on load
+    togglePaymentFields();
+});
 
 function submitKyc() {
     const btn = document.getElementById('kycSubmitBtn');

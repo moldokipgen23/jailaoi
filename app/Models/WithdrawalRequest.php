@@ -18,6 +18,7 @@ class WithdrawalRequest extends Model
         'user_id' => 'integer',
         'amount' => 'float',
         'processed_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function artist()

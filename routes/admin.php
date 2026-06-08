@@ -96,6 +96,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('page/save_setting', [PageController::class, 'save_setting'])->name('page.save_setting');
         // Artist/RJ
         Route::resource('artist', ArtistController::class)->only(['index', 'show']);
+        Route::get('artist/detail/{id}', [ArtistController::class, 'detail'])->name('artist.detail');
         Route::post('artist/sortable/save', [ArtistController::class, 'ArtistSortableSave'])->name('artist.sortable.save');
         // User
         Route::resource('user', UserController::class)->only(['index', 'create', 'edit']);
@@ -170,6 +171,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('kyc/view/{id}', [KycController::class, 'view'])->name('admin.kyc.view');
         // JAILAOI: Withdrawals
         Route::get('withdrawals', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
+        Route::get('withdrawals/show/{id}', [WithdrawalController::class, 'show'])->name('admin.withdrawals.show');
         // JAILAOI: Monetization / Earnings Overview
         Route::get('earnings', [WithdrawalController::class, 'earningsOverview'])->name('admin.earnings.index');
 

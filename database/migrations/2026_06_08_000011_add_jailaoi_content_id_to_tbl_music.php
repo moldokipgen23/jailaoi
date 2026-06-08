@@ -12,6 +12,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('tbl_music')) {
+            return;
+        }
         Schema::table('tbl_music', function (Blueprint $table) {
             if (!Schema::hasColumn('tbl_music', 'jailaoi_content_id')) {
                 $table->unsignedBigInteger('jailaoi_content_id')->nullable()->default(null)->after('id');
@@ -22,6 +25,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasTable('tbl_music')) {
+            return;
+        }
         Schema::table('tbl_music', function (Blueprint $table) {
             if (Schema::hasColumn('tbl_music', 'jailaoi_content_id')) {
                 $table->dropIndex('idx_music_content_id');

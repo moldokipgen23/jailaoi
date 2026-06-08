@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\ArtistEarning;
+use App\Models\ArtistKyc;
 use App\Models\Common;
 use App\Models\General_Setting;
+use App\Models\MonetizationApplication;
 use App\Models\WithdrawalRequest;
 use Exception;
 use Illuminate\Http\Request;
@@ -50,13 +52,15 @@ class WithdrawalController extends Controller
                     ->addColumn('amount_fmt', fn($row) => number_format($row->amount, 2))
                     ->addColumn('action', function ($row) {
                         $btn = '<div class="d-flex justify-content-around">';
+                        // JAILAOI: View detail button
+                        $btn .= '<a class="edit-delete-btn view_withdrawal" title="View Detail" data-id="' . $row->id . '" style="color:#3b82f6;cursor:pointer;"><i class="fa-solid fa-eye fa-xl"></i></a>';
                         if ($row->status === 'pending') {
                             $btn .= '<a class="edit-delete-btn approve_withdrawal" title="Approve" data-id="' . $row->id . '" style="color:green;cursor:pointer;"><i class="fa-solid fa-check fa-xl"></i></a>';
                             $btn .= '<a class="edit-delete-btn reject_withdrawal" title="Reject" data-id="' . $row->id . '" style="color:red;cursor:pointer;"><i class="fa-solid fa-xmark fa-xl"></i></a>';
                         } elseif ($row->status === 'approved') {
                             $btn .= '<a class="edit-delete-btn mark_paid" title="Mark Paid" data-id="' . $row->id . '" style="color:green;cursor:pointer;"><i class="fa-solid fa-dollar-sign fa-xl"></i></a>';
                         } else {
-                            $btn .= '-';
+                            $btn .= '<span class="text-muted">—</span>';
                         }
                         $btn .= '</div>';
                         return $btn;
@@ -65,6 +69,52 @@ class WithdrawalController extends Controller
                     ->make(true);
             }
             return view('admin.artist_withdrawals.index');
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Withdrawal detail view
+    public function show($id)
+    {
+        try {
+            $wr = WithdrawalRequest::with(['artist', 'user'])->findOrFail($id);
+
+            // Get KYC record for this user
+            $kyc = ArtistKyc::with('artist')
+                ->where('user_id', $wr->user_id)
+                ->where('status', 'approved')
+                ->latest()
+                ->first();
+
+            // Get artist earnings stats
+            $totalEarned = (float) ArtistEarning::where('artist_id', $wr->artist_id)->sum('amount');
+            $paidOut = (float) WithdrawalRequest::where('artist_id', $wr->artist_id)
+                ->where('status', 'paid')->sum('amount');
+            $pendingWds = (float) WithdrawalRequest::where('artist_id', $wr->artist_id)
+                ->whereIn('status', ['pending', 'approved'])->sum('amount');
+            $available = round(max(0, $totalEarned - $paidOut - $pendingWds), 4);
+
+            // KYC payment details are already cast as array by the model
+            $paymentDetails = $kyc ? $kyc->payment_details : null;
+
+            $common = new Common;
+            $idFrontUrl = $kyc ? $common->getImage('kyc', $kyc->id_front_img) : null;
+            $idBackUrl  = $kyc ? $common->getImage('kyc', $kyc->id_back_img) : null;
+
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'withdrawal' => $wr,
+                    'kyc' => $kyc,
+                    'payment_details' => $paymentDetails,
+                    'id_front_img_url' => $idFrontUrl,
+                    'id_back_img_url' => $idBackUrl,
+                    'total_earned' => $totalEarned,
+                    'paid_out' => $paidOut,
+                    'available' => $available,
+                ]
+            ]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -99,7 +149,16 @@ class WithdrawalController extends Controller
             if (!$wr) return response()->json(['status' => 400, 'errors' => 'Request not found']);
 
             $wr->status = $status;
-            if ($request->filled('admin_note')) $wr->admin_note = $request->admin_note;
+            if ($request->filled('admin_note')) {
+                if ($status === 'paid') {
+                    $wr->payment_note = $request->admin_note;
+                } else {
+                    $wr->admin_note = $request->admin_note;
+                }
+            }
+            if ($status === 'paid') {
+                $wr->paid_at = now();
+            }
             $wr->processed_at = now();
             $wr->save();
 

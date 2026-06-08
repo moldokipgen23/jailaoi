@@ -50,19 +50,21 @@ class ArtistController extends Controller
                     })
                     ->addColumn('action', function ($row) {
                         // JAILAOI: include user email + registration fields for admin detail modal
-                        $email       = $row->user->email ?? '';
-                        $fullName    = $row->user->full_name ?? '';
-                        $phone       = $row->user->mobile_number ?? '';
-                        $artistTypes = $row->artistRequest->artist_types ?? '';
+                        $email       = $row->user?->email ?? '';
+                        $fullName    = $row->user?->full_name ?? '';
+                        $phone       = $row->user?->mobile_number ?? '';
+                        $artistTypes = $row->artistRequest?->artist_types ?? '';
                         $regDate     = $row->artistRequest?->created_at?->format('Y-m-d') ?? ($row->created_at?->format('Y-m-d') ?? '');
-                        $adminNote   = $row->artistRequest->admin_note ?? '';
+                        $adminNote   = $row->artistRequest?->admin_note ?? '';
 
                         $delete = '<form onsubmit="return confirm(\'' . __('label.delete_artist') . '\');" method="POST"  action="' . route('artist.destroy', [$row->id]) . '">
                                 <input type="hidden" name="_token" value="' . csrf_token() . '">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="edit-delete-btn" title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
 
-                        $btn = '<div class="d-flex justify-content-center" >';
+                        $btn = '<div class="d-flex justify-content-center" style="gap:6px;">';
+                        $btn .= '<a class="edit-delete-btn" title="View Detail" href="' . route('artist.detail', [$row->id]) . '" style="color:#3b82f6;">';
+                        $btn .= '<i class="fa-solid fa-eye fa-xl"></i></a>';
                         $btn .= '<a class="edit-delete-btn edit_artist mr-4" title="' . __('label.edit') . '"'
                             . ' data-toggle="modal" href="#EditModel"'
                             . ' data-id="' . $row->id . '"'
@@ -202,6 +204,50 @@ class ArtistController extends Controller
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
             }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function detail($id)
+    {
+        try {
+            $artist = Artist::with(['artistRequest', 'user'])->findOrFail($id);
+
+            $earnings = \App\Models\ArtistEarning::where('artist_id', $id)->get();
+            $totalPlays = $earnings->count();
+            $totalEarned = round((float) $earnings->sum('amount'), 2);
+
+            $withdrawals = \App\Models\WithdrawalRequest::where('artist_id', $id)
+                ->selectRaw('status, SUM(amount) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status');
+
+            $paidOut = round((float) ($withdrawals['paid'] ?? 0), 2);
+            $pending = round((float) (($withdrawals['pending'] ?? 0) + ($withdrawals['approved'] ?? 0)), 2);
+            $available = round(max(0, $totalEarned - $paidOut - $pending), 2);
+
+            $songs = \App\Models\Song::where('artist_id', $id)->count();
+            $podcasts = \App\Models\Podcast::where('artist_id', $id)->count();
+            $music = \App\Models\Music::where('artist_id', $id)->count();
+            $totalTracks = $songs + $podcasts + $music;
+
+            $kyc = \App\Models\ArtistKyc::where('user_id', $artist->user_id)
+                ->where('status', 'approved')
+                ->latest()
+                ->first();
+
+            // JAILAOI: followers are in tbl_subscriber, not a User column
+            $followers = \App\Models\Subscriber::where('to_user_id', $artist->user_id)
+                ->where('status', 1)
+                ->count();
+
+            $common = new Common;
+
+            return view('admin.artist.show', compact(
+                'artist', 'totalPlays', 'totalEarned', 'paidOut', 'pending',
+                'available', 'totalTracks', 'kyc', 'common', 'followers'
+            ));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

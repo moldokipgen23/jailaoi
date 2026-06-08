@@ -494,6 +494,71 @@
                                     </div>
                                 </div>
                             </div>
+                            <hr>
+                            <h6 class="mb-3">Payment Methods &amp; KYC Configuration</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Allowed Payment Methods</label>
+                                    <div class="mt-2">
+                                        @php
+                                            $allowedMethods = explode(',', $result['allowed_payment_methods'] ?? 'paypal,bank,mobile_money');
+                                        @endphp
+                                        <div class="form-check form-check-inline">
+                                            <input type="hidden" name="allowed_payment_methods_hidden" value="0">
+                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="paypal" id="pm_paypal"
+                                                {{ in_array('paypal', $allowedMethods) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="pm_paypal">PayPal</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="bank" id="pm_bank"
+                                                {{ in_array('bank', $allowedMethods) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="pm_bank">Bank Transfer</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="mobile_money" id="pm_mobile_money"
+                                                {{ in_array('mobile_money', $allowedMethods) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="pm_mobile_money">Mobile Money</label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Select which payment methods artists can use for withdrawals.</small>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>KYC Required for Withdrawal</label>
+                                    <div class="mt-2">
+                                        <div class="custom-control custom-switch">
+                                            <input type="hidden" name="kyc_required_for_withdrawal" value="0">
+                                            <input type="checkbox" name="kyc_required_for_withdrawal" class="custom-control-input" id="kycRequiredToggle" value="1"
+                                                {{ ($result['kyc_required_for_withdrawal'] ?? '1') == '1' ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="kycRequiredToggle">{{ __('label.enable') }}</label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Require artists to complete KYC before withdrawing.</small>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Allowed ID Types</label>
+                                    <div class="mt-2">
+                                        @php
+                                            $allowedIds = explode(',', $result['allowed_id_types'] ?? 'passport,national_id,drivers_license');
+                                        @endphp
+                                        <div class="form-check">
+                                            <input class="form-check-input id-type-checkbox" type="checkbox" name="allowed_id_types[]" value="passport" id="id_passport"
+                                                {{ in_array('passport', $allowedIds) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="id_passport">Passport</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input id-type-checkbox" type="checkbox" name="allowed_id_types[]" value="national_id" id="id_national_id"
+                                                {{ in_array('national_id', $allowedIds) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="id_national_id">National ID</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input id-type-checkbox" type="checkbox" name="allowed_id_types[]" value="drivers_license" id="id_drivers_license"
+                                                {{ in_array('drivers_license', $allowedIds) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="id_drivers_license">Driver's License</label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Select which ID types are accepted for KYC.</small>
+                                </div>
+                            </div>
                             <div class="alert alert-info py-2 mt-2">
                                 <strong>How it works:</strong>
                                 Every time a listener plays a song, the artist earns <strong>Rate Per Stream</strong> amount.
@@ -1215,8 +1280,20 @@
             toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
             return;
         }
+        // Serialize checkbox arrays into comma-separated strings
+        var pm = [];
+        $('.payment-method-checkbox:checked').each(function() { pm.push($(this).val()); });
+        var idt = [];
+        $('.id-type-checkbox:checked').each(function() { idt.push($(this).val()); });
+
         $('#dvloader').show();
         var formData = new FormData($('#payout_settings_form')[0]);
+        // Remove array fields and add serialized string versions
+        formData.delete('allowed_payment_methods[]');
+        formData.delete('allowed_payment_methods_hidden');
+        formData.delete('allowed_id_types[]');
+        formData.append('allowed_payment_methods', pm.join(','));
+        formData.append('allowed_id_types', idt.join(','));
         $.ajax({
             type: 'POST',
             url: '{{route("setting.save_key")}}',

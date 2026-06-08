@@ -54,6 +54,20 @@
         </div>
     </div>
 
+    {{-- JAILAOI: Withdrawal Detail View Modal --}}
+    <div class="modal fade" id="withdrawalDetailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Withdrawal Detail</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body" id="withdrawalDetailBody">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="NoteModal" tabindex="-1" data-backdrop="static" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -133,6 +147,87 @@ $(document).on('click', '.mark_paid', function() {
     $('#modal_action').val('mark-paid');
     $('#NoteModalTitle').text("{{ __('label.mark_paid') }}");
     $('#NoteModal').modal('show');
+});
+
+// JAILAOI: Withdrawal detail view
+$(document).on('click', '.view_withdrawal', function() {
+    var id = $(this).data('id');
+    $.ajax({
+        url: "{{ route('admin.withdrawals.show', ':id') }}".replace(':id', id),
+        type: 'GET',
+        success: function(resp) {
+            if (resp.status == 200) {
+                var d = resp.data;
+                var w = d.withdrawal;
+                var kyc = d.kyc;
+                var pd = d.payment_details;
+
+                // Payment details formatting
+                var pdHtml = '-';
+                if (pd && typeof pd === 'object') {
+                    var rows = Object.entries(pd).map(function(e) {
+                        return '<strong>' + e[0].replace(/_/g, ' ') + ':</strong> ' + e[1];
+                    }).join('<br>');
+                    pdHtml = rows;
+                }
+
+                // KYC info
+                var kycHtml = kyc ? '<p><strong>Name:</strong> ' + (kyc.legal_first_name || '') + ' ' + (kyc.legal_last_name || '') + '</p><p><strong>ID Type:</strong> ' + (kyc.id_type || '-') + '</p><p><strong>ID Number:</strong> ' + (kyc.id_number || '-') + '</p>' : '<p class="text-muted">No approved KYC record found for this user.</p>';
+
+                // ID images
+                var idImgHtml = '';
+                if (d.id_front_img_url && d.id_front_img_url.indexOf('placeholder') === -1) {
+                    idImgHtml += '<div class="col-md-6 text-center"><h6>ID Front</h6><a href="' + d.id_front_img_url + '" target="_blank"><img src="' + d.id_front_img_url + '" style="max-width:100%;max-height:180px;border:1px solid #ddd;border-radius:8px;"></a></div>';
+                }
+                if (d.id_back_img_url && d.id_back_img_url.indexOf('placeholder') === -1) {
+                    idImgHtml += '<div class="col-md-6 text-center"><h6>ID Back</h6><a href="' + d.id_back_img_url + '" target="_blank"><img src="' + d.id_back_img_url + '" style="max-width:100%;max-height:180px;border:1px solid #ddd;border-radius:8px;"></a></div>';
+                }
+
+                var html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Request Info</h6>
+                            <p><strong>ID:</strong> ${w.id}</p>
+                            <p><strong>Artist:</strong> ${w.artist ? w.artist.name : '-'}</p>
+                            <p><strong>Amount:</strong> ${parseFloat(w.amount).toFixed(2)}</p>
+                            <p><strong>Payment Method:</strong> ${w.payment_method || '-'}</p>
+                            <p><strong>Payment Details:</strong> ${w.payment_details || '-'}</p>
+                            <p><strong>Status:</strong> ${w.status}</p>
+                            <p><strong>Created:</strong> ${w.created_at ? new Date(w.created_at).toLocaleString() : '-'}</p>
+                            ${w.processed_at ? '<p><strong>Processed:</strong> ' + new Date(w.processed_at).toLocaleString() + '</p>' : ''}
+                            ${w.paid_at ? '<p><strong>Paid At:</strong> ' + new Date(w.paid_at).toLocaleString() + '</p>' : ''}
+                            ${w.admin_note ? '<p><strong>Admin Note:</strong> ' + w.admin_note + '</p>' : ''}
+                            ${w.payment_note ? '<p><strong>Payment Note:</strong> ' + w.payment_note + '</p>' : ''}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>User</h6>
+                            <p><strong>Name:</strong> ${w.user ? (w.user.full_name || w.user.name || '-') : '-'}</p>
+                            <p><strong>Email:</strong> ${w.user ? (w.user.email || '-') : '-'}</p>
+                            <hr>
+                            <h6>Payment Details (from KYC)</h6>
+                            <p>${pdHtml}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>KYC Info</h6>
+                            ${kycHtml}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Artist Earnings Stats</h6>
+                            <p><strong>Total Earned:</strong> ${parseFloat(d.total_earned).toFixed(2)}</p>
+                            <p><strong>Paid Out:</strong> ${parseFloat(d.paid_out).toFixed(2)}</p>
+                            <p><strong>Available Balance:</strong> ${parseFloat(d.available).toFixed(2)}</p>
+                        </div>
+                    </div>
+                    ${idImgHtml ? '<hr><div class="row">' + idImgHtml + '</div>' : ''}
+                `;
+                $('#withdrawalDetailBody').html(html);
+                $('#withdrawalDetailModal').modal('show');
+            }
+        }
+    });
 });
 
 function submitWithdrawalAction() {
