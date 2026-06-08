@@ -47,7 +47,7 @@
                             </div>
                         </div>
                         <div class="col-auto">
-                            <a href="{{ route('setting.index') }}#payout-settings"
+                            <a href="{{ route('setting') }}#payout-settings"
                                class="btn btn-sm"
                                style="background:#6c63ff;color:#fff;border:none;padding:8px 18px;border-radius:8px;">
                                 <i class="fa-solid fa-pen me-2"></i> Edit Rules
