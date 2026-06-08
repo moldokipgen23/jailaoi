@@ -608,6 +608,8 @@ return [
     // JAILAOI: Artist registration
     'artist_application' => 'Artist Application',
     'artist_application_intro' => 'Apply to upload your music to JailaOi. After you submit, our team will review your application. You will be notified by email once approved.',
+    'become_an_artist' => 'Become an Artist',
+    'dont_have_account' => "Don't have an account?",
     'apply_as_artist' => 'Apply as Artist',
     'new_artist_question' => 'New here?',
     'already_have_account' => 'Already have an account?',

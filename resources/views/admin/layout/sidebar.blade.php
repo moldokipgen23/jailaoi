@@ -63,6 +63,12 @@
                 <span>{{__('label.artist_requests')}}</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('admin.kyc*') ? 'active' : '' }}">
+            <a href="{{ route('admin.kyc.index') }}">
+                <i class="fa-solid fa-shield-halved fa-2xl menu-icon"></i>
+                <span>KYC Requests</span>
+            </a>
+        </li>
         {{-- JAILAOI: Monetization overview --}}
         <li class="side_line {{ request()->routeIs('admin.earnings*') ? 'active' : '' }}">
             <a href="{{ route('admin.earnings.index') }}">

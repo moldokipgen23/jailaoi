@@ -417,6 +417,31 @@
                                     <small class="text-muted">Daily DB backup will be emailed here.</small>
                                 </div>
                             </div>
+                            <hr>
+                            <h6 class="mb-3">Withdrawal Eligibility Requirements</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Minimum Streams for Payout</label>
+                                    <input type="number" min="0" name="min_streams_for_payout" class="form-control"
+                                        value="{{ $result['min_streams_for_payout'] ?? '50' }}"
+                                        placeholder="50">
+                                    <small class="text-muted">Minimum total plays an artist needs before eligible for payout.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Minimum Earnings for Payout ({{ $result['payout_currency'] ?? 'USD' }})</label>
+                                    <input type="number" step="0.01" min="0" name="min_earnings_for_payout" class="form-control"
+                                        value="{{ $result['min_earnings_for_payout'] ?? '5.00' }}"
+                                        placeholder="5.00">
+                                    <small class="text-muted">Minimum earnings balance before eligible for payout.</small>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Minimum Account Age (Days)</label>
+                                    <input type="number" min="0" name="min_account_days_for_payout" class="form-control"
+                                        value="{{ $result['min_account_days_for_payout'] ?? '30' }}"
+                                        placeholder="30">
+                                    <small class="text-muted">Minimum days since registration before eligible for payout.</small>
+                                </div>
+                            </div>
                             <div class="alert alert-info py-2 mt-2">
                                 <strong>How it works:</strong>
                                 Every time a listener plays a song, the artist earns <strong>Rate Per Stream</strong> amount.

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\ArtistEarning;
+use App\Models\ArtistKyc;
 use App\Models\General_Setting;
 use App\Models\Music;
 use App\Models\WithdrawalRequest;
@@ -24,6 +25,7 @@ class EarningsController extends Controller
 
             $artist = Artist::where('user_id', $user->id)->first();
             $stats  = $this->getStats($artist);
+            $eligibility = $artist ? $this->isEligibleForWithdrawal($artist) : null;
 
             // JAILAOI: Per-song earnings breakdown
             $songBreakdown = [];
@@ -95,6 +97,8 @@ class EarningsController extends Controller
                 'withdrawals'   => $withdrawals,
                 'songBreakdown' => $songBreakdown,
                 'monthlyTrend'  => $monthlyTrend,
+                'eligibility'   => $eligibility,
+                'user'          => $user,
             ]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -119,6 +123,12 @@ class EarningsController extends Controller
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+
+            // JAILAOI: Check monetization eligibility
+            $eligibility = $this->isEligibleForWithdrawal($artist);
+            if (!$eligibility['eligible']) {
+                return response()->json(['status' => 400, 'errors' => implode(' ', $eligibility['reasons'])]);
             }
 
             $stats = $this->getStats($artist);
@@ -173,6 +183,54 @@ class EarningsController extends Controller
         $stats['available'] = round(max(0, $stats['total_earned'] - $stats['paid_out'] - $stats['pending']), 4);
 
         return $stats;
+    }
+
+    private function isEligibleForWithdrawal($artist)
+    {
+        $result = [
+            'eligible' => true,
+            'kyc_approved' => false,
+            'reasons' => [],
+        ];
+
+        // 1. KYC must be approved
+        $kyc = ArtistKyc::where('artist_id', $artist->id)->where('status', 'approved')->first();
+        if ($kyc) {
+            $result['kyc_approved'] = true;
+        } else {
+            $result['eligible'] = false;
+            $result['reasons'][] = 'KYC not approved. Please complete KYC verification first.';
+        }
+
+        $user = $artist->user;
+
+        // 2. Total plays >= min_streams_for_payout
+        $minPlays = (int) $this->setting('min_streams_for_payout', 50);
+        $totalPlays = ArtistEarning::where('artist_id', $artist->id)->count();
+        if ($totalPlays < $minPlays) {
+            $result['eligible'] = false;
+            $result['reasons'][] = "Minimum {$minPlays} plays required (you have {$totalPlays}).";
+        }
+
+        // 3. Total earned >= min_earnings_for_payout
+        $minEarnings = (float) $this->setting('min_earnings_for_payout', 5.00);
+        $totalEarned = (float) ArtistEarning::where('artist_id', $artist->id)->sum('amount');
+        if ($totalEarned < $minEarnings) {
+            $result['eligible'] = false;
+            $result['reasons'][] = "Minimum {$minEarnings} earned required (you have {$totalEarned}).";
+        }
+
+        // 4. Account age >= min_account_days_for_payout days
+        if ($user && $user->created_at) {
+            $minDays = (int) $this->setting('min_account_days_for_payout', 30);
+            $accountAge = $user->created_at->diffInDays(now());
+            if ($accountAge < $minDays) {
+                $result['eligible'] = false;
+                $result['reasons'][] = "Account must be at least {$minDays} days old (currently {$accountAge} days).";
+            }
+        }
+
+        return $result;
     }
 
     private function setting($key, $default = null)

@@ -48,6 +48,12 @@
                 <span>{{__('label.earnings')}}</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('user.kyc*') ? 'active' : '' }}">
+            <a href="{{ route('user.kyc.index') }}">
+                <i class="fa-solid fa-shield-halved fa-2xl menu-icon"></i>
+                <span>KYC Verification</span>
+            </a>
+        </li>
 
         <p class="partition"><span>{{__('label.ads')}}</span></p>
         <li class="side_line {{ request()->routeIs('user.ads*') ? 'active' : '' }}">

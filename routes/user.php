@@ -13,7 +13,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\AdsController;
+use App\Http\Controllers\User\BecomeArtistController;
 use App\Http\Controllers\User\EarningsController;
+use App\Http\Controllers\User\KycController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\User\RegisterController;
@@ -47,6 +49,11 @@ Route::group(['middleware' => 'installation'], function () {
     Route::get('password/reset', [ForgotPasswordController::class, 'showReset'])->name('user.password.reset');
     Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
 
+    // JAILAOI: Become an artist (outside authuser middleware — non-artists need access)
+    Route::get('become-artist', [BecomeArtistController::class, 'index'])->name('user.become.artist');
+    Route::post('become-artist/login', [BecomeArtistController::class, 'login'])->name('user.become.artist.login');
+    Route::post('become-artist/apply', [BecomeArtistController::class, 'store'])->name('user.become.artist.store');
+
     Route::group(['middleware' => 'authuser', 'as' => 'user.'], function () {
 
         // Dashboard
@@ -72,6 +79,10 @@ Route::group(['middleware' => 'installation'], function () {
         // JAILAOI: Earnings + Withdrawal
         Route::get('earnings', [EarningsController::class, 'index'])->name('earnings.index');
         Route::post('earnings/withdraw', [EarningsController::class, 'requestWithdrawal'])->name('earnings.withdraw');
+
+        // JAILAOI: KYC Verification
+        Route::get('kyc', [KycController::class, 'index'])->name('kyc.index');
+        Route::post('kyc', [KycController::class, 'store'])->name('kyc.store');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
