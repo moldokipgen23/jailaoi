@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -1350,6 +1351,25 @@ class HomeController extends Controller
                 return $this->common->API_Response(400, $validation->errors()->first());
             }
 
+            // JAILAOI: Cache section list for 5 minutes per section_type.
+            // Reduces 25+ DB queries per app-open to a single cache read.
+            // Cache is per section_type only (not per user) since global sections
+            // are the same for all users. Cleared when admin saves a section.
+            $section_type = $request->section_type;
+            $user_id      = isset($request->user_id) ? (int) $request->user_id : 0;
+            $page_no      = $request->page_no ?? 1;
+            $cacheKey     = "section_list_{$section_type}_{$page_no}";
+            $cacheTtl     = 300; // 5 minutes
+
+            // Only cache anonymous/global requests (user_id=0).
+            // User-personalised sections bypass cache so custom sections show instantly.
+            if ($user_id === 0) {
+                $cached = Cache::get($cacheKey);
+                if ($cached !== null) {
+                    return response()->json($cached);
+                }
+            }
+
             $this->common->update_liveevent_status();
 
             $page_size = 0;
@@ -1469,7 +1489,12 @@ class HomeController extends Controller
                         $this->common->imageNameToUrl($data[$i]['data'], 'image', $this->folder_city);
                     }
                 }
-                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                // JAILAOI: Store in cache for anonymous (user_id=0) requests only.
+                if ($user_id === 0) {
+                    Cache::put($cacheKey, $response->getData(true), $cacheTtl);
+                }
+                return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
@@ -2467,7 +2492,13 @@ class HomeController extends Controller
     public function get_radio_section_list(Request $request)
     {
         try {
-            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $user_id     = isset($request->user_id) ? (int) $request->user_id : 0;
+            $page_no     = $request->page_no ?? 1;
+            $cacheKey    = "section_list_radio_{$page_no}";
+            if ($user_id === 0 && ($cached = Cache::get($cacheKey)) !== null) {
+                return response()->json($cached);
+            }
+
             $data = Section::whereIn('user_id', [0, $user_id])
                 ->where('section_type', 3)->where('status', 1)
                 ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
@@ -2475,7 +2506,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / max($total_page, 1));
-            $current_page = $request->page_no ?? 1;
+            $current_page = $page_no;
             $offset = $current_page * $total_page - $total_page;
             $more_page = $this->common->more_page($current_page, $page_size);
             $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
@@ -2485,10 +2516,11 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
-                    $data[$i]['data'] = $query;
+                    $data[$i]['data'] = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                 }
-                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                if ($user_id === 0) Cache::put($cacheKey, $response->getData(true), 300);
+                return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
@@ -2501,7 +2533,13 @@ class HomeController extends Controller
     public function get_music_section_list(Request $request)
     {
         try {
-            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $user_id     = isset($request->user_id) ? (int) $request->user_id : 0;
+            $page_no     = $request->page_no ?? 1;
+            $cacheKey    = "section_list_music_{$page_no}";
+            if ($user_id === 0 && ($cached = Cache::get($cacheKey)) !== null) {
+                return response()->json($cached);
+            }
+
             $data = Section::whereIn('user_id', [0, $user_id])
                 ->where('section_type', 2)->where('status', 1)
                 ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
@@ -2509,7 +2547,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / max($total_page, 1));
-            $current_page = $request->page_no ?? 1;
+            $current_page = $page_no;
             $offset = $current_page * $total_page - $total_page;
             $more_page = $this->common->more_page($current_page, $page_size);
             $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
@@ -2519,10 +2557,11 @@ class HomeController extends Controller
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
                     $data[$i]['data'] = [];
-                    $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
-                    $data[$i]['data'] = $query;
+                    $data[$i]['data'] = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                 }
-                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+                if ($user_id === 0) Cache::put($cacheKey, $response->getData(true), 300);
+                return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
