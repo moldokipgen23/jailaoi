@@ -7,7 +7,7 @@
 <style>
 /* === JailaOi Artist Sidebar — overrides style.css === */
 .sidebar {
-    background: #0f0f1a !important;
+    background: #1a1a2e !important;
     width: 250px !important;
     padding: 0 !important;
     border-right: 1px solid rgba(255,255,255,0.07) !important;
@@ -18,7 +18,7 @@
     justify-content: space-between !important;
     padding: 20px 18px 16px !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-    background: #0f0f1a !important;
+    background: #1a1a2e !important;
     margin: 0 !important;
 }
 .side-logo {
@@ -83,7 +83,7 @@
     font-weight: 700 !important;
     letter-spacing: 1.5px !important;
     text-transform: uppercase !important;
-    color: #3d3d5c !important;
+    color: rgba(255,255,255,0.3) !important;
     padding: 16px 8px 5px !important;
     display: block !important;
 }
