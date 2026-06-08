@@ -121,6 +121,14 @@ function TimeToMilliseconds($str)
 }
 
 // Demo Mode
+function Demo_Mode()
+{
+    if (env('DEMO_MODE') == 'ON') {
+        return 0;
+    } else {
+        return 1;
+    }
+}
 function Check_Admin_Access()
 {
     if (env('DEMO_MODE') == 'ON') {
