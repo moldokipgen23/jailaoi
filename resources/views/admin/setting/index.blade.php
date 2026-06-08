@@ -35,6 +35,10 @@
             <li class="nav-item">
                 <a class="nav-link" id="onboarding-tab" data-toggle="tab" href="#onboarding" role="tab" aria-controls="onboarding" aria-selected="false">{{__('label.onboarding_screen')}}</a>
             </li>
+            {{-- JAILAOI: Payout settings tab --}}
+            <li class="nav-item">
+                <a class="nav-link" id="payout-settings-tab" data-toggle="tab" href="#payout-settings" role="tab" aria-controls="payout-settings" aria-selected="false">💰 Payouts</a>
+            </li>
         </ul>
         <!-- custom tab panels  -->
         <div class="tab-content" id="pills-tabContent">
@@ -373,6 +377,60 @@
                 </div>
 
             </div>
+
+            {{-- JAILAOI: Artist Payout Settings --}}
+            <div class="tab-pane fade" id="payout-settings" role="tabpanel" aria-labelledby="payout-settings-tab">
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">💰 Artist Payout Settings</h5>
+                    <div class="card-body">
+                        <form id="payout_settings_form">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label>Rate Per Stream <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.0001" min="0" name="payout_rate_per_stream"
+                                        class="form-control"
+                                        value="{{ $result['payout_rate_per_stream'] ?? '0.001' }}"
+                                        placeholder="e.g. 0.001">
+                                    <small class="text-muted">Amount paid to artist per 1 play. Default: $0.001</small>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Currency</label>
+                                    <input type="text" name="payout_currency" class="form-control"
+                                        value="{{ $result['payout_currency'] ?? 'USD' }}"
+                                        placeholder="USD">
+                                    <small class="text-muted">Currency code shown to artists. e.g. USD, INR, MYR</small>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Minimum Withdrawal</label>
+                                    <input type="number" step="0.01" min="0" name="min_withdrawal_amount"
+                                        class="form-control"
+                                        value="{{ $result['min_withdrawal_amount'] ?? '10' }}"
+                                        placeholder="e.g. 10">
+                                    <small class="text-muted">Minimum balance artist must have before requesting payout.</small>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Backup Email</label>
+                                    <input type="email" name="backup_email" class="form-control"
+                                        value="{{ $result['backup_email'] ?? '' }}"
+                                        placeholder="admin@jailaoi.com">
+                                    <small class="text-muted">Daily DB backup will be emailed here.</small>
+                                </div>
+                            </div>
+                            <div class="alert alert-info py-2 mt-2">
+                                <strong>How it works:</strong>
+                                Every time a listener plays a song, the artist earns <strong>Rate Per Stream</strong> amount.
+                                If a song has multiple artists, the rate is split equally.
+                                Artists can request withdrawal once their balance reaches the minimum.
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="payout_settings_save()">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- smtp settings  -->
             <div class="tab-pane fade" id="smtp" role="tabpanel" aria-labelledby="smtp-tab">
                 <div class="card custom-border-card">
@@ -1072,5 +1130,32 @@
     $(document).on('click', '.remove_step', function() {
         $(this).closest('.step, .main_step').remove();
     });
+
+    // JAILAOI: Payout settings save
+    function payout_settings_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin != 1) {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+            return;
+        }
+        $('#dvloader').show();
+        var formData = new FormData($('#payout_settings_form')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '{{route("setting.save_key")}}',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(resp) {
+                $('#dvloader').hide();
+                get_responce_message(resp);
+            },
+            error: function(XMLHttpRequest, errorThrown, textStatus) {
+                $('#dvloader').hide();
+                toastr.error(textStatus, errorThrown);
+            }
+        });
+    }
 </script>
 @endsection
