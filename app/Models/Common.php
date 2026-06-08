@@ -950,4 +950,56 @@ class Common extends Model
     {
         return Follow::where('user_id', $user_id)->where('artist_id', $artist_id)->exists() ? 1 : 0;
     }
+
+    // -------------------------------------------------------------------------
+    // JAILAOI: dtradio backwards-compat stubs — methods called by portal controllers
+    // that don't exist in this installation. Safe no-ops / simple implementations.
+    // -------------------------------------------------------------------------
+
+    // Returns a public URL for a content/video file (mirrors Get_Song behaviour)
+    public function getVideo($folder = "", $name = "", $storage_type = 0)
+    {
+        return $this->Get_Song($folder, $name);
+    }
+
+    // Parses #hashtags from text, upserts rows in tbl_hashtag, returns array of IDs.
+    // Stub returns [] — hashtag feature not used in JailaOi.
+    public function checkHashTag($description = '')
+    {
+        return [];
+    }
+
+    // Extracts audio duration (seconds) from a server-uploaded file via FFmpeg.
+    // Stub returns 0 — caller already validates duration from the form input.
+    public function ExtractDuration($filename = '', $folder = '')
+    {
+        return 0;
+    }
+
+    // Generates waveform JSON data for an audio file via FFmpeg.
+    // Stub returns null — waveform feature not used in JailaOi.
+    public function generateWaveform($filename = '', $folder = '')
+    {
+        return null;
+    }
+
+    // Converts HH:MM:SS duration string to milliseconds integer.
+    public function time_to_milliseconds($str = '00:00:00')
+    {
+        if (empty($str) || $str === '00:00:00') return 0;
+        $parts = explode(':', $str);
+        if (count($parts) === 3) {
+            return ((int)$parts[0] * 3600 + (int)$parts[1] * 60 + (int)$parts[2]) * 1000;
+        } elseif (count($parts) === 2) {
+            return ((int)$parts[0] * 60 + (int)$parts[1]) * 1000;
+        }
+        return (int)$str * 1000;
+    }
+
+    // Returns the user's wallet/coin balance.
+    // Stub returns 0 — ads wallet feature not used in JailaOi.
+    public function get_user_budget($user_id)
+    {
+        return 0;
+    }
 }

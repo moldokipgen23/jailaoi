@@ -4,6 +4,21 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\General_Setting;
 use Illuminate\Support\Facades\Config;
 
+// JAILAOI: Returns the currently authenticated artist-portal user as an array.
+// All dtradio user-portal controllers call User_Data() instead of Auth::user().
+function User_Data()
+{
+    $user = \Illuminate\Support\Facades\Auth::guard('user')->user();
+    return $user ? $user->toArray() : [];
+}
+
+// JAILAOI: Returns storage type integer used by dtradio controllers.
+// 0 = local disk, 1 = Bunny CDN — mirrors the audio_storage_driver setting.
+function Storage_Type()
+{
+    return getAudioStorageDriver() === 'bunny' ? 1 : 0;
+}
+
 // Setting
 function getAudioStorageDriver()
 {
