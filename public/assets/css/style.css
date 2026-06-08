@@ -1,7 +1,7 @@
 @charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
-{{-- JAILAOI: Design tokens --}}
+/* JAILAOI: Design tokens */
 :root {
     --primary-color: #6c47ff;
     --primary-dark:  #4a2fd4;
@@ -337,7 +337,7 @@ a {
 .custom-control.custom-radio .custom-control-label:after {
     border-radius: 50% !important;
 }
-{{-- JAILAOI: Dark sidebar --}}
+/* JAILAOI: Dark sidebar */
 .sidebar {
     background: var(--sidebar-bg);
     padding: 30px 15px;
@@ -416,7 +416,7 @@ a {
         margin: 14px 0 5px -3px;
     }
 }
-{{-- JAILAOI: Sidebar header --}}
+/* JAILAOI: Sidebar header */
 .sidebar .side-head {
     display: -webkit-box;
     display: -ms-flexbox;
@@ -429,7 +429,7 @@ a {
     align-items: center;
     margin-bottom: 10px;
 }
-{{-- JAILAOI: Sidebar logo --}}
+/* JAILAOI: Sidebar logo */
 .sidebar .side-logo {
     width: 150px;
     text-decoration: none;
@@ -445,7 +445,7 @@ a {
     list-style: none;
     margin: 40px 0 0;
 }
-{{-- JAILAOI: Sidebar menu items --}}
+/* JAILAOI: Sidebar menu items */
 .sidebar .side-menu a {
     color: var(--sidebar-a-color);
     display: block;
@@ -465,14 +465,14 @@ a {
     -webkit-transition: all 0.2s;
     transition: all 0.2s;
 }
-{{-- JAILAOI: No ::after indicator -- use bg highlight instead --}}
+/* JAILAOI: No ::after indicator -- use bg highlight instead */
 .sidebar .side-menu a .menu-icon {
     margin-right: 12px;
 }
 .sidebar .side-menu .dropdown-menu a .submenu-icon {
     margin-right: 12px;
 }
-{{-- JAILAOI: Menu icon --}}
+/* JAILAOI: Menu icon */
 .sidebar .side-menu a svg,
 .sidebar .side-menu a i {
     width: 18px;
@@ -481,7 +481,7 @@ a {
     font-size: 14px;
     text-align: center;
 }
-{{-- JAILAOI: Hover & active states --}}
+/* JAILAOI: Hover & active states */
 .sidebar .side-menu a:hover {
     color: #fff;
     background: rgba(255,255,255,0.06);
@@ -499,8 +499,8 @@ a {
     filter: none;
 }
 
-{{-- JAILAOI: Active submenu icon inherits color from parent a --}}
-{{-- JAILAOI: Dropdown arrow centered --}}
+/* JAILAOI: Active submenu icon inherits color from parent a */
+/* JAILAOI: Dropdown arrow centered */
 .sidebar .side-menu .dropdown-toggle::after {
     position: absolute;
     right: 10px;
@@ -528,7 +528,7 @@ a {
     -webkit-transition: all 0.3s;
     transition: all 0.3s;
 }
-{{-- JAILAOI: Submenu dark --}}
+/* JAILAOI: Submenu dark */
 .sidebar .side-menu .side-submenu a {
     color: var(--sidebar-a-color);
     display: block;
@@ -2312,8 +2312,8 @@ div.table-responsive
 
 /* # sourceMappingURL=style.css.map */
 
-{{-- JAILAOI: ====== Artist Portal Styles ====== --}}
-{{-- Profile Card (Dashboard) --}}
+/* JAILAOI: ====== Artist Portal Styles ====== */
+/* Profile Card (Dashboard) */
 .profile-card {
     background: var(--card-bg);
     border-radius: 16px;
@@ -2335,7 +2335,7 @@ div.table-responsive
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
-{{-- Stat Cards --}}
+/* Stat Cards */
 .stat-card-row {
     margin-bottom: 16px;
 }
@@ -2383,7 +2383,7 @@ div.table-responsive
     line-height: 1.2;
 }
 
-{{-- Card form sections (Profile page) --}}
+/* Card form sections (Profile page) */
 .custom-border-card {
     border: none;
     border-radius: 16px;
@@ -2423,7 +2423,7 @@ div.table-responsive
     background: var(--card-bg);
 }
 
-{{-- Radio group toggle style --}}
+/* Radio group toggle style */
 .radio-group {
     display: flex;
     gap: 0;
@@ -2457,7 +2457,7 @@ div.table-responsive
 .radio-group .custom-control-label::before,
 .radio-group .custom-control-label::after { display: none; }
 
-{{-- Avatar upload boxes --}}
+/* Avatar upload boxes */
 .avatar-upload {
     max-width: 180px;
 }
@@ -2506,7 +2506,7 @@ div.table-responsive
     object-fit: cover;
 }
 
-{{-- Buttons --}}
+/* Buttons */
 .btn-default {
     background: var(--primary-color);
     border-radius: 12px;
@@ -2525,7 +2525,7 @@ div.table-responsive
     box-shadow: 0 4px 14px rgba(108,71,255,0.35);
 }
 
-{{-- Breadcrumbs --}}
+/* Breadcrumbs */
 .breadcrumb {
     background: transparent;
     padding: 0;
@@ -2540,7 +2540,7 @@ div.table-responsive
 }
 .breadcrumb-item a { color: var(--primary-color); font-weight: 500; }
 
-{{-- Page title --}}
+/* Page title */
 .page-title-sm {
     font-size: 22px;
     font-weight: 700;
@@ -2549,7 +2549,7 @@ div.table-responsive
     display: none;
 }
 
-{{-- Pagination --}}
+/* Pagination */
 .pagination {
     padding: 0;
     border: none;
@@ -2574,7 +2574,7 @@ div.table-responsive
     box-shadow: 0 2px 8px rgba(108,71,255,0.25);
 }
 
-{{-- Tables --}}
+/* Tables */
 .table {
     color: var(--body-color);
     min-width: 650px;
@@ -2595,7 +2595,7 @@ div.table-responsive
     vertical-align: middle;
 }
 
-{{-- Custom tabs --}}
+/* Custom tabs */
 .custom-tabs {
     border-radius: 12px;
     background: #f3f4f6;
@@ -2617,7 +2617,7 @@ div.table-responsive
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-{{-- Alerts --}}
+/* Alerts */
 .alert-warning {
     background: rgba(245,158,11,0.1);
     border: 1px solid rgba(245,158,11,0.25);
@@ -2627,7 +2627,7 @@ div.table-responsive
     font-size: 14px;
 }
 
-{{-- Page search bar --}}
+/* Page search bar */
 .page-search {
     background: var(--card-bg);
     border-radius: 12px;

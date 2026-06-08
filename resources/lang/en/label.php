@@ -728,9 +728,6 @@ return [
     'package_purchase' => "Package Purchased",
     'package_buy_msg' => "Congratulation !! Package Purchased Successfully",
 
-    // JAILAOI: Artist portal
-    'artist_portal'          => 'Artist Portal',
-
     // JAILAOI: Artist portal sidebar labels
     'my_content'    => 'My Content',
     'my_music'      => 'My Music',
@@ -738,40 +735,23 @@ return [
     'my_radio'      => 'My Radio',
     'my_ads'        => 'My Ads',
 
-    // JAILAOI: Profile page
+    // JAILAOI: Profile page (keys that don't exist above)
     'channel_info'              => 'Channel Info',
     'channel_name'              => 'Channel Name',
     'channel_name_here'         => 'Channel Name here...',
-    'personal_info'             => 'Personal Info',
-    'full_name'                 => 'Full Name',
-    'full_name_here'            => 'Full Name here...',
-    'email'                     => 'Email',
-    'email_here'                => 'Email here...',
-    'country_code'              => 'Country Code',
-    'mobile_number'             => 'Mobile Number',
-    'mobile_number_here'        => 'Mobile Number here...',
-    'country_name'              => 'Country Name',
     'push_notification_status'  => 'Push Notification Status',
     'send_mail_status'          => 'Send Mail Status',
     'on'                        => 'On',
     'off'                       => 'Off',
-    'thumbnail_image'           => 'Thumbnail Image',
     'cover_image'               => 'Cover Image',
     'max_size_5mb'              => 'Max size 5MB',
     'address_info'              => 'Address Info',
-    'address'                   => 'Address',
     'address_here'              => 'Address here...',
-    'city'                      => 'City',
-    'city_here'                 => 'City here...',
-    'state'                     => 'State',
     'state_here'                => 'State here...',
-    'country'                   => 'Country',
     'country_here'              => 'Country here...',
     'pincode'                   => 'Pincode',
     'pincode_here'              => 'Pincode here...',
     'social_info'               => 'Social Info',
-    'website'                   => 'Website',
-    'website_here'              => 'Website here...',
     'facebook_url'              => 'Facebook URL',
     'facebook_url_here'         => 'Facebook URL here...',
     'instagram_url'             => 'Instagram URL',
@@ -871,9 +851,6 @@ return [
     'banner_ads'               => 'Banner Ads',
     'interstital_ads'          => 'Interstitial Ads',
     'reward_ads'               => 'Reward Ads',
-
-    // JAILAOI: Monetization / KYC
-    'demo_mode'                => 'Demo Mode',
 
     // JAILAOI: Misc
     'in'                       => 'IN',
