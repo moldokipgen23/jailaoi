@@ -501,23 +501,18 @@
                                     <label>Allowed Payment Methods</label>
                                     <div class="mt-2">
                                         @php
-                                            $allowedMethods = explode(',', $result['allowed_payment_methods'] ?? 'paypal,bank,mobile_money');
+                                            $allowedMethods = explode(',', $result['allowed_payment_methods'] ?? 'bank,upi');
                                         @endphp
-                                        <div class="form-check form-check-inline">
-                                            <input type="hidden" name="allowed_payment_methods_hidden" value="0">
-                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="paypal" id="pm_paypal"
-                                                {{ in_array('paypal', $allowedMethods) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="pm_paypal">PayPal</label>
-                                        </div>
+                                        <input type="hidden" name="allowed_payment_methods_hidden" value="0">
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="bank" id="pm_bank"
                                                 {{ in_array('bank', $allowedMethods) ? 'checked' : '' }}>
                                             <label class="form-check-label" for="pm_bank">Bank Transfer</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="mobile_money" id="pm_mobile_money"
-                                                {{ in_array('mobile_money', $allowedMethods) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="pm_mobile_money">Mobile Money</label>
+                                            <input class="form-check-input payment-method-checkbox" type="checkbox" name="allowed_payment_methods[]" value="upi" id="pm_upi"
+                                                {{ in_array('upi', $allowedMethods) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="pm_upi">UPI</label>
                                         </div>
                                     </div>
                                     <small class="text-muted">Select which payment methods artists can use for withdrawals.</small>

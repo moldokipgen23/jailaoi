@@ -31,7 +31,7 @@ class KycController extends Controller
         ])->pluck('value', 'key');
 
         return [
-            'allowed_payment_methods' => array_filter(explode(',', $rows['allowed_payment_methods'] ?? 'paypal,bank,mobile_money')),
+            'allowed_payment_methods' => array_filter(explode(',', $rows['allowed_payment_methods'] ?? 'bank,upi')),
             'allowed_id_types'        => array_filter(explode(',', $rows['allowed_id_types'] ?? 'passport,national_id,drivers_license')),
             'kyc_required_for_withdrawal' => ($rows['kyc_required_for_withdrawal'] ?? '1') === '1',
         ];
@@ -69,8 +69,12 @@ class KycController extends Controller
             $artist = Artist::where('user_id', $user->id)->first();
             if (!$artist) return response()->json(['status' => 400, 'errors' => 'Artist profile not found']);
 
-            $existing = ArtistKyc::where('user_id', $user->id)->whereIn('status', ['submitted', 'under_review', 'approved'])->first();
-            if ($existing) return response()->json(['status' => 400, 'errors' => 'KYC already submitted']);
+            // Block re-submission while under review — allow if approved (payment update)
+            $existing = ArtistKyc::where('user_id', $user->id)->whereIn('status', ['submitted', 'under_review'])->first();
+            if ($existing) return response()->json(['status' => 400, 'errors' => 'Your KYC is currently under review. Please wait for the result before resubmitting.']);
+
+            // Check if updating an approved KYC (payment details change)
+            $approvedKyc = ArtistKyc::where('user_id', $user->id)->where('status', 'approved')->latest()->first();
 
             $settings = $this->getSettings();
             $allowedMethods = implode(',', $settings['allowed_payment_methods']);
@@ -83,8 +87,8 @@ class KycController extends Controller
                 'nationality'      => 'required|string|max:100',
                 'id_type'          => 'required|in:' . $allowedIdTypes,
                 'id_number'        => 'required|string|max:100',
-                'id_front_img'     => 'required|image|mimes:jpeg,png,jpg|max:5120',
-                'id_back_img'      => 'required|image|mimes:jpeg,png,jpg|max:5120',
+                'id_front_img'     => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable' : 'required|image|mimes:jpeg,png,jpg|max:5120',
+                'id_back_img'      => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable' : 'required|image|mimes:jpeg,png,jpg|max:5120',
                 'address'          => 'required|string|max:500',
                 'city'             => 'required|string|max:100',
                 'country'          => 'required|string|max:100',
@@ -105,8 +109,14 @@ class KycController extends Controller
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
 
-            $id_front = $this->common->saveImage($request->file('id_front_img'), $this->folder_kyc, 'kyc_front_');
-            $id_back  = $this->common->saveImage($request->file('id_back_img'), $this->folder_kyc, 'kyc_back_');
+            // JAILAOI: keep existing images when artist updates payment details after approval
+            if ($request->input('_keep_existing_images') && $approvedKyc) {
+                $id_front = $approvedKyc->id_front_img;
+                $id_back  = $approvedKyc->id_back_img;
+            } else {
+                $id_front = $this->common->saveImage($request->file('id_front_img'), $this->folder_kyc, 'kyc_front_');
+                $id_back  = $this->common->saveImage($request->file('id_back_img'), $this->folder_kyc, 'kyc_back_');
+            }
 
             $paymentDetails = $request->payment_details;
             $decoded = json_decode($paymentDetails, true);
@@ -114,7 +124,7 @@ class KycController extends Controller
                 $decoded = ['raw' => $paymentDetails];
             }
 
-            ArtistKyc::create([
+            $kycData = [
                 'artist_id'        => $artist->id,
                 'user_id'          => $user->id,
                 'legal_first_name' => $request->legal_first_name,
@@ -131,9 +141,20 @@ class KycController extends Controller
                 'payment_method'   => $request->payment_method,
                 'payment_details'  => json_encode($decoded),
                 'status'           => 'submitted',
-            ]);
+                'admin_note'       => null,
+                'reviewed_at'      => null,
+            ];
 
-            return response()->json(['status' => 200, 'success' => 'KYC submitted successfully. We will review it within 3-5 business days.']);
+            if ($approvedKyc) {
+                // JAILAOI: artist updating payment details after approval — reset for re-review
+                $approvedKyc->fill($kycData)->save();
+                $msg = 'Payment details updated. Your KYC will be re-reviewed within 3-5 business days. Withdrawals are paused until re-approved.';
+            } else {
+                ArtistKyc::create($kycData);
+                $msg = 'KYC submitted successfully. We will review it within 3-5 business days.';
+            }
+
+            return response()->json(['status' => 200, 'success' => $msg]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

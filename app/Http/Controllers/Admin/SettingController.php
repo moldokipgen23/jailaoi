@@ -169,6 +169,7 @@ class SettingController extends Controller
                 $data['ai_api_key'] = '';
             }
             foreach ($data as $key => $value) {
+                if (is_null($value)) continue; // JAILAOI: skip null — tbl_general_setting.value NOT NULL
                 $setting = General_Setting::where('key', $key)->first();
                 if (isset($setting->id)) {
                     $setting->value = $value;

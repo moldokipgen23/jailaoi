@@ -123,48 +123,42 @@
                                     </div>
                                 </div>
 
-                                {{-- PayPal --}}
-                                <div class="payment-fields d-none" id="paypalFields">
-                                    <div class="row">
-                                        <div class="form-group col-md-6">
-                                            <label>PayPal Email <span class="text-danger">*</span></label>
-                                            <input type="email" name="payment_details_paypal" class="form-control" placeholder="your@paypal.com">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Bank --}}
+                                {{-- Bank Transfer --}}
                                 <div class="payment-fields d-none" id="bankFields">
                                     <div class="row">
                                         <div class="form-group col-md-6">
                                             <label>Bank Name <span class="text-danger">*</span></label>
-                                            <input type="text" name="payment_details_bank_name" class="form-control">
+                                            <input type="text" name="payment_details_bank_name" class="form-control" placeholder="e.g. Maybank, CIMB">
                                         </div>
                                         <div class="form-group col-md-6">
-                                            <label>Account Name <span class="text-danger">*</span></label>
-                                            <input type="text" name="payment_details_acct_name" class="form-control">
+                                            <label>Account Holder Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="payment_details_acct_name" class="form-control" placeholder="Full name as on bank account">
                                         </div>
                                         <div class="form-group col-md-6">
                                             <label>Account Number <span class="text-danger">*</span></label>
                                             <input type="text" name="payment_details_acct_number" class="form-control">
                                         </div>
                                         <div class="form-group col-md-6">
-                                            <label>SWIFT / Routing Code</label>
+                                            <label>SWIFT / Routing Code <span class="text-muted">(optional)</span></label>
                                             <input type="text" name="payment_details_swift" class="form-control">
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Mobile Money --}}
-                                <div class="payment-fields d-none" id="mobileMoneyFields">
+                                {{-- UPI --}}
+                                <div class="payment-fields d-none" id="upiFields">
                                     <div class="row">
                                         <div class="form-group col-md-6">
-                                            <label>Provider Name <span class="text-danger">*</span></label>
-                                            <input type="text" name="payment_details_provider" class="form-control" placeholder="e.g. GCash, PayMaya, M-Pesa">
+                                            <label>UPI ID <span class="text-danger">*</span></label>
+                                            <input type="text" name="payment_details_upi_id" class="form-control" placeholder="e.g. yourname@bank">
                                         </div>
                                         <div class="form-group col-md-6">
-                                            <label>Mobile Number <span class="text-danger">*</span></label>
-                                            <input type="text" name="payment_details_mobile" class="form-control" placeholder="+60123456789">
+                                            <label>Account Holder Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="payment_details_upi_name" class="form-control" placeholder="Full name linked to UPI">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label>Bank Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="payment_details_upi_bank" class="form-control" placeholder="e.g. SBI, HDFC">
                                         </div>
                                     </div>
                                 </div>
@@ -226,9 +220,69 @@
                             Your identity has been verified. Your payment method on file:
                             <strong>{{ ucfirst(str_replace('_', ' ', $kyc->payment_method)) }}</strong>
                         </p>
-                        <a href="{{ route('user.earnings.index') }}" class="btn btn-primary mt-3">
-                            <i class="fa-solid fa-wallet me-2"></i> Go to Earnings
-                        </a>
+                        <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+                            <a href="{{ route('user.earnings.index') }}" class="btn btn-primary">
+                                <i class="fa-solid fa-wallet me-2"></i> Go to Earnings
+                            </a>
+                            <button type="button" class="btn btn-outline-warning" onclick="document.getElementById('updatePaymentSection').classList.toggle('d-none')">
+                                <i class="fa-solid fa-pen me-2"></i> Update Payment Details
+                            </button>
+                        </div>
+
+                        {{-- JAILAOI: Update payment details form (collapsed by default) --}}
+                        <div id="updatePaymentSection" class="d-none mt-4 text-left" style="max-width:600px;margin:0 auto;">
+                            <div class="alert alert-warning py-2">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                Updating payment details will require <strong>re-verification</strong>. Withdrawals will be paused until re-approved.
+                            </div>
+                            <form id="kycUpdateForm" enctype="multipart/form-data">
+                                @csrf
+                                {{-- Hidden: carry over existing identity fields so backend doesn't require re-upload --}}
+                                <input type="hidden" name="legal_first_name" value="{{ $kyc->legal_first_name }}">
+                                <input type="hidden" name="legal_last_name" value="{{ $kyc->legal_last_name }}">
+                                <input type="hidden" name="date_of_birth" value="{{ $kyc->date_of_birth }}">
+                                <input type="hidden" name="nationality" value="{{ $kyc->nationality }}">
+                                <input type="hidden" name="id_type" value="{{ $kyc->id_type }}">
+                                <input type="hidden" name="id_number" value="{{ $kyc->id_number }}">
+                                <input type="hidden" name="address" value="{{ $kyc->address }}">
+                                <input type="hidden" name="city" value="{{ $kyc->city }}">
+                                <input type="hidden" name="country" value="{{ $kyc->country }}">
+                                <input type="hidden" name="agree_accurate" value="1">
+                                <input type="hidden" name="agree_terms" value="1">
+                                {{-- ID images (required by validation but we carry existing filenames as hidden — override in controller) --}}
+                                <input type="hidden" name="_keep_existing_images" value="1">
+
+                                <h6 class="mb-3">New Payment Method</h6>
+                                <div class="form-group">
+                                    <label>Payment Method <span class="text-danger">*</span></label>
+                                    <select name="payment_method" class="form-control" id="updatePaymentMethod" onchange="toggleUpdatePaymentFields()" required>
+                                        @foreach ($settings['allowed_payment_methods'] as $pm)
+                                            <option value="{{ $pm }}" {{ $kyc->payment_method === $pm ? 'selected' : '' }}>
+                                                {{ ucwords(str_replace('_', ' ', $pm)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="update-payment-fields d-none" id="updateBankFields">
+                                    <div class="form-group"><label>Bank Name <span class="text-danger">*</span></label><input type="text" name="upd_bank_name" class="form-control"></div>
+                                    <div class="form-group"><label>Account Holder Name <span class="text-danger">*</span></label><input type="text" name="upd_acct_name" class="form-control"></div>
+                                    <div class="form-group"><label>Account Number <span class="text-danger">*</span></label><input type="text" name="upd_acct_number" class="form-control"></div>
+                                    <div class="form-group"><label>SWIFT / Routing <span class="text-muted">(optional)</span></label><input type="text" name="upd_swift" class="form-control"></div>
+                                </div>
+                                <div class="update-payment-fields d-none" id="updateUpiFields">
+                                    <div class="form-group"><label>UPI ID <span class="text-danger">*</span></label><input type="text" name="upd_upi_id" class="form-control" placeholder="yourname@bank"></div>
+                                    <div class="form-group"><label>Account Holder Name <span class="text-danger">*</span></label><input type="text" name="upd_upi_name" class="form-control"></div>
+                                    <div class="form-group"><label>Bank Name <span class="text-danger">*</span></label><input type="text" name="upd_upi_bank" class="form-control"></div>
+                                </div>
+                                <input type="hidden" name="payment_details" id="updatePaymentDetailsJson">
+
+                                <button type="button" class="btn btn-warning mt-2" onclick="submitKycUpdate()">
+                                    <i class="fa-solid fa-paper-plane me-2"></i> Submit Update
+                                </button>
+                            </form>
+                            <div id="updateMsg" class="mt-2"></div>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -305,41 +359,73 @@ function showStep(step) {
 
 function togglePaymentFields() {
     const method = document.getElementById('paymentMethod').value;
-    const map = { paypal: 'paypal', bank: 'bank', mobile_money: 'mobileMoney' };
+    const map = { bank: 'bank', upi: 'upi' };
     document.querySelectorAll('.payment-fields').forEach(el => el.classList.add('d-none'));
-    if (map[method]) {
-        document.getElementById(map[method] + 'Fields').classList.remove('d-none');
-    }
+    const target = document.getElementById((map[method] || method) + 'Fields');
+    if (target) target.classList.remove('d-none');
 }
 
 function buildPaymentJson() {
     const method = document.getElementById('paymentMethod').value;
     let details = {};
-
-    if (method === 'paypal') {
+    if (method === 'bank') {
         details = {
-            paypal_email: document.querySelector('[name="payment_details_paypal"]').value
-        };
-    } else if (method === 'bank') {
-        details = {
-            bank_name: document.querySelector('[name="payment_details_bank_name"]').value,
-            account_name: document.querySelector('[name="payment_details_acct_name"]').value,
+            bank_name:      document.querySelector('[name="payment_details_bank_name"]').value,
+            account_name:   document.querySelector('[name="payment_details_acct_name"]').value,
             account_number: document.querySelector('[name="payment_details_acct_number"]').value,
-            swift: document.querySelector('[name="payment_details_swift"]').value,
+            swift:          document.querySelector('[name="payment_details_swift"]').value,
         };
-    } else if (method === 'mobile_money') {
+    } else if (method === 'upi') {
         details = {
-            provider: document.querySelector('[name="payment_details_provider"]').value,
-            mobile_number: document.querySelector('[name="payment_details_mobile"]').value,
+            upi_id:       document.querySelector('[name="payment_details_upi_id"]').value,
+            account_name: document.querySelector('[name="payment_details_upi_name"]').value,
+            bank_name:    document.querySelector('[name="payment_details_upi_bank"]').value,
         };
     }
-
     document.getElementById('paymentDetailsJson').value = JSON.stringify(details);
 }
 
+function toggleUpdatePaymentFields() {
+    const method = document.getElementById('updatePaymentMethod').value;
+    document.querySelectorAll('.update-payment-fields').forEach(el => el.classList.add('d-none'));
+    const map = { bank: 'updateBank', upi: 'updateUpi' };
+    const target = document.getElementById((map[method] || 'updateBank') + 'Fields');
+    if (target) target.classList.remove('d-none');
+}
+
+function buildUpdatePaymentJson() {
+    const method = document.getElementById('updatePaymentMethod')?.value;
+    if (!method) return;
+    let details = {};
+    if (method === 'bank') {
+        details = { bank_name: document.querySelector('[name="upd_bank_name"]').value, account_name: document.querySelector('[name="upd_acct_name"]').value, account_number: document.querySelector('[name="upd_acct_number"]').value, swift: document.querySelector('[name="upd_swift"]').value };
+    } else if (method === 'upi') {
+        details = { upi_id: document.querySelector('[name="upd_upi_id"]').value, account_name: document.querySelector('[name="upd_upi_name"]').value, bank_name: document.querySelector('[name="upd_upi_bank"]').value };
+    }
+    document.getElementById('updatePaymentDetailsJson').value = JSON.stringify(details);
+}
+
+function submitKycUpdate() {
+    buildUpdatePaymentJson();
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
+    const formData = new FormData(document.getElementById('kycUpdateForm'));
+    $.ajax({
+        type: 'POST', url: '{{ route("user.kyc.store") }}', data: formData, processData: false, contentType: false,
+        success: function(resp) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> Submit Update';
+            if (resp.status == 200) { toastr.success(resp.success); setTimeout(() => location.reload(), 1800); }
+            else { toastr.error(Array.isArray(resp.errors) ? resp.errors.join('\n') : resp.errors); }
+        },
+        error: function() { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> Submit Update'; toastr.error('Something went wrong'); }
+    });
+}
+
 $(document).ready(function() {
-    // Show fields for initial payment method on load
     togglePaymentFields();
+    if (document.getElementById('updatePaymentMethod')) toggleUpdatePaymentFields();
 });
 
 function submitKyc() {
