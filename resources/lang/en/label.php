@@ -728,6 +728,11 @@ return [
     'package_purchase' => "Package Purchased",
     'package_buy_msg' => "Congratulation !! Package Purchased Successfully",
 
-
+    // JAILAOI: Artist portal sidebar labels
+    'my_content'    => 'My Content',
+    'my_music'      => 'My Music',
+    'my_playlists'  => 'My Playlists',
+    'my_radio'      => 'My Radio',
+    'my_ads'        => 'My Ads',
 
 ];
