@@ -22,10 +22,10 @@ use Illuminate\Support\Facades\URL;
 
 class DashboardController extends Controller
 {
-    private $folder_song = "song";
+    private $folder_song = "content";
     private $folder_city = "city";
     private $folder_language = "language";
-    private $folder_podcast = "podcast";
+    private $folder_podcast = "content";
     public $common;
     public function __construct()
     {

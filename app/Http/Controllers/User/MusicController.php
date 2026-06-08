@@ -367,31 +367,30 @@ class MusicController extends Controller
             $musicFile  = $content->content ?? '';
             $duration   = $content->content_duration ?? 0;
 
-            // Copy portrait to music/ folder so Get_Image('music', ...) works in the app
-            $portraitImg = '';
-            $srcFile = basename($content->portrait_img ?? '');
-            if ($srcFile) {
-                $src = storage_path('app/public/content/' . $srcFile);
-                $dst = storage_path('app/public/music/' . $srcFile);
-                if (file_exists($src) && !file_exists($dst)) {
-                    @mkdir(storage_path('app/public/music'), 0755, true);
-                    @copy($src, $dst);
+            // JAILAOI: Portrait stays in content/ — API now reads from content/
+            $portraitImg = basename($content->portrait_img ?? '');
+
+            // JAILAOI: Copy audio to content/ so Get_Song('content', ...) works
+            $audioFile = $content->content ?? '';
+            if ($audioFile && !str_starts_with($audioFile, 'http')) {
+                $src = storage_path('app/public/content/' . $audioFile);
+                if (file_exists($src)) {
+                    // already in content/ — no copy needed, just use filename
                 }
-                $portraitImg = $srcFile;
             }
 
             Music::updateOrCreate(
-                ['jailaoi_content_id' => $content->id],  // stable link key
+                ['jailaoi_content_id' => $content->id],
                 [
                     'title'        => $content->title ?? '',
                     'artist_id'    => $artistId,
                     'album_name'   => '',
-                    'categroy_id'  => $content->category_id ?? 0,  // note: typo is in original Music model
+                    'categroy_id'  => $content->category_id ?? 0,
                     'language_id'  => $content->language_id ?? 0,
                     'is_premium'   => 0,
                     'duration'     => $duration,
                     'upload_type'  => $uploadType,
-                    'music'        => $musicFile,
+                    'music'        => basename($content->content ?? ''),
                     'description'  => $content->description ?? '',
                     'portrait_img' => $portraitImg,
                     'landscape_img'=> '',
