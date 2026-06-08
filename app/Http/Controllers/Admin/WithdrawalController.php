@@ -99,8 +99,8 @@ class WithdrawalController extends Controller
             $paymentDetails = $kyc ? $kyc->payment_details : null;
 
             $common = new Common;
-            $idFrontUrl = $kyc ? $common->getImage('kyc', $kyc->id_front_img) : null;
-            $idBackUrl  = $kyc ? $common->getImage('kyc', $kyc->id_back_img) : null;
+            $idFrontUrl = $kyc ? $common->Get_Image('kyc', $kyc->id_front_img) : null;
+            $idBackUrl  = $kyc ? $common->Get_Image('kyc', $kyc->id_back_img) : null;
 
             return response()->json([
                 'status' => 200,

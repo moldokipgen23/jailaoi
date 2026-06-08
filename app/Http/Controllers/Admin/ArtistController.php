@@ -242,11 +242,16 @@ class ArtistController extends Controller
                 ->where('status', 1)
                 ->count();
 
+            // JAILAOI: resolve image URLs in controller — don't pass $common to view
             $common = new Common;
+            $artistImageUrl = $common->Get_Image('artist', $artist->image ?? '');
+            $kycFrontUrl    = $kyc ? $common->Get_Image('kyc', $kyc->id_front_img) : null;
+            $kycBackUrl     = $kyc ? $common->Get_Image('kyc', $kyc->id_back_img) : null;
 
             return view('admin.artist.show', compact(
                 'artist', 'totalPlays', 'totalEarned', 'paidOut', 'pending',
-                'available', 'totalTracks', 'kyc', 'common', 'followers'
+                'available', 'totalTracks', 'kyc', 'followers',
+                'artistImageUrl', 'kycFrontUrl', 'kycBackUrl'
             ));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);

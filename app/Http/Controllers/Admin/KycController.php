@@ -91,8 +91,8 @@ class KycController extends Controller
         try {
             $kyc = ArtistKyc::with(['artist', 'user'])->findOrFail($id);
 
-            $kyc->id_front_img_url = $this->common->getImage($this->folder_kyc, $kyc->id_front_img);
-            $kyc->id_back_img_url  = $this->common->getImage($this->folder_kyc, $kyc->id_back_img);
+            $kyc->id_front_img_url = $this->common->Get_Image($this->folder_kyc, $kyc->id_front_img);
+            $kyc->id_back_img_url  = $this->common->Get_Image($this->folder_kyc, $kyc->id_back_img);
 
             // payment_details is cast to array by the model
             $kyc->payment_details_display = $kyc->payment_details ?: [];

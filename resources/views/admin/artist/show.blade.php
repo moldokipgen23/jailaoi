@@ -23,7 +23,7 @@
             <div class="col-md-4">
                 <div class="card custom-border-card text-center">
                     <div class="card-body">
-                        <img src="{{ $common->getImage('artist', $artist->image) }}" alt="{{ $artist->name }}" style="width:150px;height:150px;border-radius:50%;object-fit:cover;border:3px solid #e9ecef;">
+                        <img src="{{ $artistImageUrl }}" alt="{{ $artist->name }}" style="width:150px;height:150px;border-radius:50%;object-fit:cover;border:3px solid #e9ecef;">
                         <h4 class="mt-3">{{ $artist->name }}</h4>
                         <span class="badge badge-{{ $artist->status == 1 ? 'success' : 'danger' }}">{{ $artist->status == 1 ? 'Active' : 'Inactive' }}</span>
                         <hr>
