@@ -68,7 +68,7 @@ class SystemSettingController extends Controller
             $notification = 'public/notification';
             $package = 'public/package';
             $podcast = 'public/podcast';
-            $song = 'public/song';
+            $song = 'public/radio';
             $user = 'public/user';
             $music = 'public/music';
 
@@ -224,7 +224,7 @@ class SystemSettingController extends Controller
 
                 $song_file_check = Song::select('id')->where('image', $value)->orwhere('song_url', $value)->first();
                 if ($song_file_check == null) {
-                    $this->common->deleteImageToFolder('song', $value);
+                    $this->common->deleteImageToFolder('radio', $value);
                 }
             }
             foreach ($user_name as $key => $value) {

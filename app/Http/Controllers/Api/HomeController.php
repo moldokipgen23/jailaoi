@@ -46,16 +46,16 @@ class HomeController extends Controller
 {
     private $folder_app = "app";
     private $folder_city = "city";
-    private $folder_song = "content";
+    private $folder_song = "radio";
     private $folder_artist = "artist";
     private $folder_package = "package";
-    private $folder_podcast = "content";
+    private $folder_podcast = "podcast";
     private $folder_category = "category";
     private $folder_language = "language";
     private $folder_live_event = "live_event";
     private $folder_notification = "notification";
     private $folder_user = "user";
-    private $folder_music = "content";
+    private $folder_music = "music";
     public $common;
     public $page_limit;
     public function __construct()

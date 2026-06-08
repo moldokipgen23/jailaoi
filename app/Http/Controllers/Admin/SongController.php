@@ -18,7 +18,7 @@ use Exception;
 // Song Upload Type :1- Server Content, 2- External URL
 class SongController extends Controller
 {
-    private $folder = "song";
+    private $folder = "radio";
     public $common;
     public function __construct()
     {
@@ -250,7 +250,7 @@ class SongController extends Controller
                 $this->common->deleteImageToFolder($this->folder, $data['image']);
                 // JAILAOI: delete audio from Bunny before removing DB record
                 if ($data['song_url'] && getAudioStorageDriver() == 'bunny') {
-                    $this->common->deleteFileFromBunny('song/' . $data['song_url']);
+                    $this->common->deleteFileFromBunny('radio/' . $data['song_url']);
                 }
                 $this->common->deleteImageToFolder($this->folder, $data['song_url']);
                 $data->delete();
@@ -285,7 +285,7 @@ class SongController extends Controller
     {
         @set_time_limit(5 * 60);
 
-        $targetDir = storage_path('/app/public/song');
+        $targetDir = storage_path('/app/public/radio');
         //$targetDir = 'uploads';
 
         $cleanupTargetDir = true; // Remove old files
@@ -391,14 +391,14 @@ class SongController extends Controller
             $audioDriver = getAudioStorageDriver();
             if ($audioDriver == 'bunny') {
                 try {
-                    (new \App\Models\Common)->uploadFileToBunny($newFilePath, 'song/' . $remoteFileName);
+                    (new \App\Models\Common)->uploadFileToBunny($newFilePath, 'radio/' . $remoteFileName);
                 } catch (Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Bunny upload failed for song: ' . $e->getMessage());
                 }
             } elseif ($audioDriver == 'r2') {
                 try {
                     \Illuminate\Support\Facades\Storage::disk('r2')->put(
-                        'song/' . $remoteFileName,
+                        'radio/' . $remoteFileName,
                         file_get_contents($newFilePath)
                     );
                 } catch (Exception $e) {

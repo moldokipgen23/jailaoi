@@ -160,7 +160,7 @@ class ArtistController extends Controller
             $offset = $this->page_limit * ($page_no - 1);
             $content = $songs->skip($offset)->take($this->page_limit)->get();
 
-            $this->common->imageNameToUrl($content, 'image', 'song');
+            $this->common->imageNameToUrl($content, 'image', 'radio');
 
             $more_page = ($page_no * $this->page_limit) < $total;
             $pagination = [

@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Mail;
 
 class Common extends Model
 {
-    public $folder_song = "content";
-    public $folder_podcast = "content";
-    public $folder_music = "content";
+    public $folder_song = "radio";
+    public $folder_podcast = "podcast";
+    public $folder_music = "music";
     public $folder_artist = "artist";
 
     // Image Functions

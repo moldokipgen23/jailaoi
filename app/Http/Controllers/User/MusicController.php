@@ -25,8 +25,8 @@ use Exception;
 
 class MusicController extends Controller
 {
-    private $folder = "content";
-    private $folder_ffmpeg = "/app/public/content/";
+    private $folder = "music";
+    private $folder_ffmpeg = "/app/public/music/";
     public $common;
     public function __construct()
     {
@@ -364,20 +364,7 @@ class MusicController extends Controller
 
             $artistId  = (string) $artist->id;
             $uploadType = (($req['content_upload_type'] ?? '') === 'server_video') ? 1 : 2;
-            $musicFile  = $content->content ?? '';
             $duration   = $content->content_duration ?? 0;
-
-            // JAILAOI: Portrait stays in content/ — API now reads from content/
-            $portraitImg = basename($content->portrait_img ?? '');
-
-            // JAILAOI: Copy audio to content/ so Get_Song('content', ...) works
-            $audioFile = $content->content ?? '';
-            if ($audioFile && !str_starts_with($audioFile, 'http')) {
-                $src = storage_path('app/public/content/' . $audioFile);
-                if (file_exists($src)) {
-                    // already in content/ — no copy needed, just use filename
-                }
-            }
 
             Music::updateOrCreate(
                 ['jailaoi_content_id' => $content->id],
@@ -390,9 +377,9 @@ class MusicController extends Controller
                     'is_premium'   => 0,
                     'duration'     => $duration,
                     'upload_type'  => $uploadType,
-                    'music'        => basename($content->content ?? ''),
+                    'music'        => $content->content ?? '',
                     'description'  => $content->description ?? '',
-                    'portrait_img' => $portraitImg,
+                    'portrait_img' => $content->portrait_img ?? '',
                     'landscape_img'=> '',
                     'ogtag_img'    => '',
                     'total_play'   => 0,

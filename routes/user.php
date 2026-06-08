@@ -25,7 +25,6 @@ use App\Http\Controllers\User\MusicController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\PasswordController;
 use App\Http\Controllers\User\PlaylistController;
-use App\Http\Controllers\User\RadioController;
 use App\Http\Controllers\User\VerifyController;
 
 Route::group(['middleware' => 'installation'], function () {
@@ -72,8 +71,6 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('playlist/save', [PlaylistController::class, 'pl_save'])->name('playlist.content.save');
         Route::post('playlist/delete', [PlaylistController::class, 'pl_delete'])->name('playlist.content.delete');
         Route::post('playlist/sortorder', [PlaylistController::class, 'pl_sort_order'])->name('playlist.content.sort_order');
-        // Radio
-        Route::resource('radio', RadioController::class)->only(['index', 'create', 'store', 'edit', 'update']);
         // Custom Ads
         Route::resource('ads', AdsController::class)->only(['index', 'create', 'store', 'edit', 'show']);
 
@@ -95,8 +92,6 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('music', MusicController::class)->only(['show']);
             // Playlist
             Route::resource('playlist', PlaylistController::class)->only(['destroy']);
-            // Radio
-            Route::resource('radio', RadioController::class)->only(['show']);
         });
     });
 });
