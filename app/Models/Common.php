@@ -102,23 +102,59 @@ class Common extends Model
         }
         return $name;
     }
+    // JAILAOI: Reads Bunny CDN credentials from tbl_general_setting (admin panel),
+    // falling back to .env vars for backwards compatibility.
+    // Cached statically so we only hit the DB once per request.
+    private function getBunnyConfig(): array
+    {
+        static $cfg = null;
+        if ($cfg !== null) return $cfg;
+        try {
+            $rows = \Illuminate\Support\Facades\DB::table('tbl_general_setting')
+                ->whereIn('key', ['bunny_storage_zone', 'bunny_storage_api_key', 'bunny_storage_endpoint', 'bunny_cdn_url'])
+                ->pluck('value', 'key')
+                ->toArray();
+            $cfg = [
+                'storage_zone' => $rows['bunny_storage_zone']     ?? env('BUNNY_STORAGE_ZONE', ''),
+                'api_key'      => $rows['bunny_storage_api_key']  ?? env('BUNNY_STORAGE_API_KEY', ''),
+                'endpoint'     => $rows['bunny_storage_endpoint'] ?? env('BUNNY_STORAGE_ENDPOINT', 'https://storage.bunnycdn.com'),
+                'cdn_url'      => $rows['bunny_cdn_url']          ?? env('BUNNY_CDN_URL', ''),
+            ];
+        } catch (Exception $e) {
+            Log::error('getBunnyConfig failed: ' . $e->getMessage());
+            $cfg = [
+                'storage_zone' => env('BUNNY_STORAGE_ZONE', ''),
+                'api_key'      => env('BUNNY_STORAGE_API_KEY', ''),
+                'endpoint'     => env('BUNNY_STORAGE_ENDPOINT', 'https://storage.bunnycdn.com'),
+                'cdn_url'      => env('BUNNY_CDN_URL', ''),
+            ];
+        }
+        return $cfg;
+    }
+
     // JAILAOI: Helper — returns Bunny CDN URL prefix, or null if not configured.
     private function getBunnyCdnUrl(): ?string
     {
-        $url = config('filesystems.disks.bunny.cdn_url', env('BUNNY_CDN_URL', ''));
+        $url = $this->getBunnyConfig()['cdn_url'] ?? '';
         return $url ? rtrim($url, '/') : null;
     }
 
     // JAILAOI: Helper — uploads a file (by path string) to Bunny Storage Zone.
     // Uses Bunny's native HTTP API — no extra package required.
+    // Credentials come from admin panel (tbl_general_setting), not .env.
     // Public so admin chunk-upload controllers can call it directly.
     public function uploadFileToBunny(string $localPath, string $remotePath): void
     {
-        $storageZone = config('filesystems.disks.bunny.storage_zone', env('BUNNY_STORAGE_ZONE', ''));
-        $apiKey      = config('filesystems.disks.bunny.api_key', env('BUNNY_STORAGE_API_KEY', ''));
-        $endpoint    = config('filesystems.disks.bunny.endpoint', env('BUNNY_STORAGE_ENDPOINT', 'https://storage.bunnycdn.com'));
+        $cfg      = $this->getBunnyConfig();
+        $zone     = $cfg['storage_zone'];
+        $apiKey   = $cfg['api_key'];
+        $endpoint = rtrim($cfg['endpoint'] ?: 'https://storage.bunnycdn.com', '/');
 
-        $url = rtrim($endpoint, '/') . '/' . $storageZone . '/' . ltrim($remotePath, '/');
+        if (!$zone || !$apiKey) {
+            throw new Exception('Bunny CDN not configured. Set Storage Zone and API Key in Admin → Settings → CDN.');
+        }
+
+        $url = $endpoint . '/' . $zone . '/' . ltrim($remotePath, '/');
 
         $response = \Illuminate\Support\Facades\Http::withHeaders([
             'AccessKey'    => $apiKey,

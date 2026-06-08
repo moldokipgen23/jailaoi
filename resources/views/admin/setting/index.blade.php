@@ -287,28 +287,82 @@
                             <div class="card-body">
                                 <form id="cdn_storage_form">
                                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                                    {{-- Driver selector --}}
                                     <div class="form-row">
                                         <div class="form-group col-md-4">
                                             <label>Storage Driver <span class="text-danger">*</span></label>
                                             <select name="audio_storage_driver" class="form-control" id="audio_storage_driver_select" onchange="toggleCdnFields()">
-                                                <option value="local"   {{ ($result['audio_storage_driver'] ?? 'local') == 'local'  ? 'selected' : '' }}>Local Server (default)</option>
-                                                <option value="bunny"   {{ ($result['audio_storage_driver'] ?? 'local') == 'bunny'  ? 'selected' : '' }}>🐰 Bunny CDN (recommended)</option>
-                                                <option value="r2"      {{ ($result['audio_storage_driver'] ?? 'local') == 'r2'     ? 'selected' : '' }}>☁️ Cloudflare R2</option>
+                                                <option value="local" {{ ($result['audio_storage_driver'] ?? 'local') == 'local' ? 'selected' : '' }}>Local Server (default)</option>
+                                                <option value="bunny" {{ ($result['audio_storage_driver'] ?? 'local') == 'bunny' ? 'selected' : '' }}>🐰 Bunny CDN (recommended)</option>
+                                                <option value="r2"    {{ ($result['audio_storage_driver'] ?? 'local') == 'r2'    ? 'selected' : '' }}>☁️ Cloudflare R2</option>
                                             </select>
                                             <small class="text-muted">
-                                                <strong>local</strong> = files stored on this server.<br>
-                                                <strong>bunny</strong> = files uploaded to Bunny CDN (add BUNNY_* vars in .env first).<br>
-                                                <strong>r2</strong> = files uploaded to Cloudflare R2 (add R2_* vars in .env first).
+                                                <strong>local</strong> = files on this server (default).<br>
+                                                <strong>bunny</strong> = Bunny CDN — fill credentials below.<br>
+                                                <strong>r2</strong> = Cloudflare R2 — set R2_* vars in .env.
                                             </small>
                                         </div>
-                                        <div class="form-group col-md-8" id="cdn_url_hint" style="display:none;">
-                                            <label>Current CDN URL</label>
-                                            <input type="text" class="form-control" readonly
-                                                value="{{ ($result['audio_storage_driver'] ?? 'local') == 'bunny' ? env('BUNNY_CDN_URL','(set BUNNY_CDN_URL in .env)') : (($result['audio_storage_driver'] ?? 'local') == 'r2' ? env('R2_PUBLIC_URL','(set R2_PUBLIC_URL in .env)') : 'n/a') }}"
-                                                placeholder="CDN URL from .env">
-                                            <small class="text-muted">Read-only — set the URL in your server .env file.</small>
+                                    </div>
+
+                                    {{-- Bunny credentials (shown only when bunny is selected) --}}
+                                    <div id="bunny_fields" style="display:none;">
+                                        <hr>
+                                        <p class="text-muted mb-3">
+                                            <strong>🐰 Bunny CDN Setup:</strong>
+                                            Go to <a href="https://bunny.net" target="_blank">bunny.net</a> →
+                                            Storage → Add Storage Zone → then CDN → Add Pull Zone linked to that zone.
+                                        </p>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Storage Zone Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="bunny_storage_zone" class="form-control"
+                                                    value="{{ $result['bunny_storage_zone'] ?? '' }}"
+                                                    placeholder="e.g. jailaoi-audio">
+                                                <small class="text-muted">The name of your Storage Zone in Bunny dashboard.</small>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Storage API Key <span class="text-danger">*</span></label>
+                                                <input type="password" name="bunny_storage_api_key" class="form-control"
+                                                    value="{{ $result['bunny_storage_api_key'] ?? '' }}"
+                                                    placeholder="Storage Zone password / API key"
+                                                    autocomplete="new-password">
+                                                <small class="text-muted">Found in Storage Zone → FTP & API Access → Password.</small>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>CDN Pull Zone URL <span class="text-danger">*</span></label>
+                                                <input type="text" name="bunny_cdn_url" class="form-control"
+                                                    value="{{ $result['bunny_cdn_url'] ?? '' }}"
+                                                    placeholder="e.g. https://jailaoi.b-cdn.net">
+                                                <small class="text-muted">Your Pull Zone hostname — this is what the app uses to play audio.</small>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Storage Endpoint</label>
+                                                <select name="bunny_storage_endpoint" class="form-control">
+                                                    @php
+                                                        $currentEndpoint = $result['bunny_storage_endpoint'] ?? 'https://storage.bunnycdn.com';
+                                                        $endpoints = [
+                                                            'https://storage.bunnycdn.com'    => 'Default (Falkenstein, EU)',
+                                                            'https://uk.storage.bunnycdn.com' => 'UK (London)',
+                                                            'https://ny.storage.bunnycdn.com' => 'New York, US',
+                                                            'https://la.storage.bunnycdn.com' => 'Los Angeles, US',
+                                                            'https://sg.storage.bunnycdn.com' => 'Singapore (Asia)',
+                                                            'https://se.storage.bunnycdn.com' => 'Stockholm, SE',
+                                                            'https://br.storage.bunnycdn.com' => 'São Paulo, Brazil',
+                                                            'https://jh.storage.bunnycdn.com' => 'Johannesburg, Africa',
+                                                        ];
+                                                    @endphp
+                                                    @foreach($endpoints as $val => $label)
+                                                        <option value="{{ $val }}" {{ $currentEndpoint == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <small class="text-muted">Must match the region you chose when creating the Storage Zone.</small>
+                                            </div>
                                         </div>
                                     </div>
+
                                     <div class="border-top pt-3 text-right">
                                         <button type="button" class="btn btn-default mw-120" onclick="cdn_storage_save()">Save</button>
                                     </div>
@@ -744,13 +798,13 @@
         }
     }
 
-    // JAILAOI: CDN storage setting save
+    // JAILAOI: CDN storage setting — show/hide Bunny fields based on driver selection
     function toggleCdnFields() {
         var driver = $('#audio_storage_driver_select').val();
-        if (driver === 'bunny' || driver === 'r2') {
-            $('#cdn_url_hint').show();
+        if (driver === 'bunny') {
+            $('#bunny_fields').show();
         } else {
-            $('#cdn_url_hint').hide();
+            $('#bunny_fields').hide();
         }
     }
     // Run on page load to set initial state
