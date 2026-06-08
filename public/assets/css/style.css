@@ -2311,3 +2311,338 @@ div.table-responsive
 }
 
 /* # sourceMappingURL=style.css.map */
+
+{{-- JAILAOI: ====== Artist Portal Styles ====== --}}
+{{-- Profile Card (Dashboard) --}}
+.profile-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+.profile-header {
+    height: 120px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #9b7fff 100%);
+    border-radius: 16px 16px 0 0;
+}
+.profile-picture {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--card-bg);
+    margin-top: -50px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+{{-- Stat Cards --}}
+.stat-card-row {
+    margin-bottom: 16px;
+}
+.stat-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--primary-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+}
+.stat-icon.primary { background: var(--primary-light); color: var(--primary-color); }
+.stat-icon.success { background: rgba(34,197,94,0.12); color: var(--success-color); }
+.stat-icon.warning { background: rgba(245,158,11,0.12); color: var(--warning-color); }
+.stat-icon.info    { background: rgba(6,182,212,0.12); color: #06b6d4; }
+.stat-icon.danger  { background: rgba(239,68,68,0.12);  color: var(--danger-color); }
+.stat-info { flex: 1; min-width: 0; }
+.stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    margin-bottom: 2px;
+}
+.stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--body-color);
+    line-height: 1.2;
+}
+
+{{-- Card form sections (Profile page) --}}
+.custom-border-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+    background: var(--card-bg);
+}
+.custom-border-card .card-header {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--body-color);
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    border-radius: 16px 16px 0 0;
+}
+.custom-border-card .card-body {
+    padding: 24px;
+}
+.custom-border-card .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+}
+.custom-border-card .form-control {
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.custom-border-card .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background: var(--card-bg);
+}
+
+{{-- Radio group toggle style --}}
+.radio-group {
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+}
+.radio-group .custom-control {
+    padding-left: 0;
+    margin-right: 0;
+    flex: 1;
+}
+.radio-group .custom-control-label {
+    margin-bottom: 0;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    background: transparent;
+    border-radius: 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+}
+.radio-group .custom-control-input:checked ~ .custom-control-label {
+    background: var(--primary-color);
+    color: var(--white-color);
+}
+.radio-group .custom-control-label::before,
+.radio-group .custom-control-label::after { display: none; }
+
+{{-- Avatar upload boxes --}}
+.avatar-upload {
+    max-width: 180px;
+}
+.avatar-upload .avatar-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #e5e7eb;
+    background: #f9fafb;
+}
+.avatar-upload .avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.avatar-upload .avatar-edit input + label {
+    margin-top: 0;
+    top: 8px;
+    right: 8px;
+    margin-right: 0;
+    width: 32px;
+    height: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    background: var(--card-bg);
+}
+.avatar-upload .avatar-edit input + label:after {
+    top: 4px;
+    right: 0;
+    left: 0;
+}
+.avatar-upload-landscape {
+    max-width: 220px;
+}
+.avatar-upload-landscape .avatar-preview-landscape {
+    width: 200px;
+    height: 120px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid #e5e7eb;
+    background: #f9fafb;
+}
+.avatar-upload-landscape .avatar-preview-landscape img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+{{-- Buttons --}}
+.btn-default {
+    background: var(--primary-color);
+    border-radius: 12px;
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    color: var(--white-color);
+    transition: all 0.25s;
+    box-shadow: 0 2px 8px rgba(108,71,255,0.25);
+}
+.btn-default:hover {
+    background: var(--primary-dark);
+    color: var(--white-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(108,71,255,0.35);
+}
+
+{{-- Breadcrumbs --}}
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+}
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "\f105";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #aaa;
+}
+.breadcrumb-item a { color: var(--primary-color); font-weight: 500; }
+
+{{-- Page title --}}
+.page-title-sm {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--body-color);
+    margin-bottom: 16px;
+    display: none;
+}
+
+{{-- Pagination --}}
+.pagination {
+    padding: 0;
+    border: none;
+    gap: 4px;
+}
+.pagination .page-link {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px !important;
+    background: #f3f4f6 !important;
+    border: none;
+    color: #666;
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pagination .active .page-link {
+    background: var(--primary-color) !important;
+    color: var(--white-color) !important;
+    box-shadow: 0 2px 8px rgba(108,71,255,0.25);
+}
+
+{{-- Tables --}}
+.table {
+    color: var(--body-color);
+    min-width: 650px;
+}
+.table thead th {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 12px 16px;
+}
+.table td {
+    font-size: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+{{-- Custom tabs --}}
+.custom-tabs {
+    border-radius: 12px;
+    background: #f3f4f6;
+    padding: 4px;
+    margin: 16px 0;
+}
+.custom-tabs .nav-link {
+    border-radius: 10px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s;
+}
+.custom-tabs .nav-link.active {
+    background: var(--card-bg);
+    color: var(--body-color);
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+{{-- Alerts --}}
+.alert-warning {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 12px;
+    color: #92400e;
+    padding: 14px 18px;
+    font-size: 14px;
+}
+
+{{-- Page search bar --}}
+.page-search {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+}
+.page-search .form-control {
+    border: none;
+    background: transparent;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+.page-search .sorting {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 4px 12px;
+}

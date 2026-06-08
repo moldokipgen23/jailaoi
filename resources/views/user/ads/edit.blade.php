@@ -30,9 +30,9 @@
                     <div class="card custom-card card-color-primary">
                         <div class="card-body">
                             <div>
-                                <h4 class="text-dark">{{__('label.title_:')}}{{ $data['title'] }}</h4>
-                                <h5>{{__('label.channel_:')}}{{ $data['user']['channel_name']?? '' }}</h5>
-                                <h5>{{__('label.user_:')}}{{ $data['user']['full_name'] ?? '' }}</h5>
+                                <h4 class="text-dark">{{__('label.title')}}: {{ $data['title'] }}</h4>
+                                <h5>{{__('label.channel')}}: {{ $data['user']['channel_name'] ?? '' }}</h5>
+                                <h5>{{__('label.user')}}: {{ $data['user']['full_name'] ?? '' }}</h5>
                             </div>
                         </div>
                     </div>

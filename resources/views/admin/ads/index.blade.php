@@ -74,7 +74,7 @@
                                 <img src="{{ $value['image'] }}" class="wallet-image">
                                 <div class="card-body px-2 py-0">
                                     <h6 class="landscape-card-title">{{$value['title'] ?? ''}}</h6>
-                                    <h6 class="primary-color">{{__('label.budget_:')}}{{$value['budget'] ?? '0'}}</h6>
+                                    <h6 class="primary-color">{{__('label.budget')}}: {{$value['budget'] ?? '0'}}</h6>
                                     <p class="landscape-card-name mb-0">{{$value['user']['channel_name'] ?? ''}}</p>
                                     <div class="landscape-card-border"></div>
 

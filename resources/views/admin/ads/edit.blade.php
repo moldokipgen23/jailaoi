@@ -27,9 +27,9 @@
 
             <div class="card custom-border-card mb-3">
                 <div class="card-body">
-                    <h4 class="mb-2">{{__('label.title_:')}} {{ $data['title'] }}</h4>
-                    <h5 class="text-muted mb-1">{{__('label.channel_:')}} {{ $data['user']['channel_name'] ?? '' }}</h5>
-                    <h5 class="text-muted">{{__('label.user_:')}} {{ $data['user']['full_name'] ?? '' }}</h5>
+                    <h4 class="mb-2">{{__('label.title')}}: {{ $data['title'] }}</h4>
+                    <h5 class="text-muted mb-1">{{__('label.channel')}}: {{ $data['user']['channel_name'] ?? '' }}</h5>
+                    <h5 class="text-muted">{{__('label.user')}}: {{ $data['user']['full_name'] ?? '' }}</h5>
                 </div>
             </div>
 
