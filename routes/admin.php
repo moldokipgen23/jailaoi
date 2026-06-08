@@ -162,6 +162,8 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('artist-requests', [ArtistRequestController::class, 'index'])->name('admin.artist-requests.index');
         // JAILAOI: Withdrawals
         Route::get('withdrawals', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
+        // JAILAOI: Monetization / Earnings Overview
+        Route::get('earnings', [WithdrawalController::class, 'earningsOverview'])->name('admin.earnings.index');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 

@@ -63,6 +63,13 @@
                 <span>{{__('label.artist_requests')}}</span>
             </a>
         </li>
+        {{-- JAILAOI: Monetization overview --}}
+        <li class="side_line {{ request()->routeIs('admin.earnings*') ? 'active' : '' }}">
+            <a href="{{ route('admin.earnings.index') }}">
+                <i class="fa-solid fa-chart-line fa-2xl menu-icon"></i>
+                <span>Monetization</span>
+            </a>
+        </li>
         <li class="side_line {{ request()->routeIs('admin.withdrawals*') ? 'active' : '' }}">
             <a href="{{ route('admin.withdrawals.index') }}">
                 <i class="fa-solid fa-money-bill-transfer fa-2xl menu-icon"></i>

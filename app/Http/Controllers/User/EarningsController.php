@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\ArtistEarning;
 use App\Models\General_Setting;
+use App\Models\Music;
 use App\Models\WithdrawalRequest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class EarningsController extends Controller
@@ -21,16 +23,78 @@ class EarningsController extends Controller
             if (!$user) return redirect()->route('user.login');
 
             $artist = Artist::where('user_id', $user->id)->first();
-            $stats = $this->getStats($artist);
+            $stats  = $this->getStats($artist);
+
+            // JAILAOI: Per-song earnings breakdown
+            $songBreakdown = [];
+            if ($artist) {
+                $rows = DB::table('tbl_artist_earnings')
+                    ->select('content_id', 'content_type',
+                        DB::raw('COUNT(*) as play_count'),
+                        DB::raw('SUM(amount) as earned'))
+                    ->where('artist_id', $artist->id)
+                    ->groupBy('content_id', 'content_type')
+                    ->orderByDesc('play_count')
+                    ->limit(20)
+                    ->get();
+
+                foreach ($rows as $row) {
+                    $title = '—';
+                    if ($row->content_type == 1 || $row->content_type == 8) {
+                        $music = Music::find($row->content_id);
+                        if ($music) $title = $music->title;
+                    } elseif ($row->content_type == 2) {
+                        $song = DB::table('tbl_song')->where('id', $row->content_id)->first();
+                        if ($song) $title = $song->title ?? '—';
+                    } else {
+                        $content = DB::table('tbl_content')->where('id', $row->content_id)->first();
+                        if ($content) $title = $content->title ?? '—';
+                    }
+                    $songBreakdown[] = [
+                        'title'      => $title,
+                        'play_count' => (int) $row->play_count,
+                        'earned'     => round((float) $row->earned, 4),
+                    ];
+                }
+            }
+
+            // JAILAOI: Monthly earnings trend (last 6 months)
+            $monthlyTrend = [];
+            if ($artist) {
+                $rows = DB::table('tbl_artist_earnings')
+                    ->select(
+                        DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                        DB::raw('SUM(amount) as earned'),
+                        DB::raw('COUNT(*) as plays')
+                    )
+                    ->where('artist_id', $artist->id)
+                    ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+                    ->groupBy('month')
+                    ->orderBy('month')
+                    ->get()
+                    ->keyBy('month');
+
+                for ($i = 5; $i >= 0; $i--) {
+                    $key   = now()->subMonths($i)->format('Y-m');
+                    $label = now()->subMonths($i)->format('M Y');
+                    $monthlyTrend[] = [
+                        'label'  => $label,
+                        'earned' => round((float) ($rows[$key]->earned ?? 0), 2),
+                        'plays'  => (int) ($rows[$key]->plays ?? 0),
+                    ];
+                }
+            }
 
             $withdrawals = $artist
                 ? WithdrawalRequest::where('artist_id', $artist->id)->orderByDesc('id')->get()
                 : collect();
 
             return view('user.earnings.index', [
-                'artist' => $artist,
-                'stats' => $stats,
-                'withdrawals' => $withdrawals,
+                'artist'        => $artist,
+                'stats'         => $stats,
+                'withdrawals'   => $withdrawals,
+                'songBreakdown' => $songBreakdown,
+                'monthlyTrend'  => $monthlyTrend,
             ]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
