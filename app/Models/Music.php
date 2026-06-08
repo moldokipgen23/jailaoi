@@ -17,7 +17,7 @@ class Music extends Model
         'title' => 'string',
         'artist_id' => 'string',
         'album_name' => 'string',
-        'categroy_id' => 'integer',
+        'category_id' => 'integer',
         'language_id' => 'integer',
         'is_premium' => 'integer',
         'duration' => 'integer',

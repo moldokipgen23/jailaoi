@@ -372,7 +372,7 @@ class MusicController extends Controller
                     'title'        => $content->title ?? '',
                     'artist_id'    => $artistId,
                     'album_name'   => '',
-                    'categroy_id'  => $content->category_id ?? 0,
+                    'category_id'  => $content->category_id ?? 0,
                     'language_id'  => $content->language_id ?? 0,
                     'is_premium'   => 0,
                     'duration'     => $duration,

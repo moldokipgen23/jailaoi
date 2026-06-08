@@ -97,7 +97,7 @@ class MirrorContentToMusic extends Command
                     'title'              => $content->title ?? '',
                     'artist_id'          => (string) $artist->id,
                     'album_name'         => '',
-                    'categroy_id'        => $content->category_id ?? 0,
+                    'category_id'        => $content->category_id ?? 0,
                     'language_id'        => $content->language_id ?? 0,
                     'is_premium'         => 0,
                     'duration'           => $duration,
