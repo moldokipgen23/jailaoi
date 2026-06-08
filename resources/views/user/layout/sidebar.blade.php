@@ -79,11 +79,11 @@
     list-style: none !important;
 }
 .side-section-label {
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    letter-spacing: 1.5px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.2px !important;
     text-transform: uppercase !important;
-    color: rgba(255,255,255,0.3) !important;
+    color: rgba(255,255,255,0.7) !important;
     padding: 16px 8px 5px !important;
     display: block !important;
 }

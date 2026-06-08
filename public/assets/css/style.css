@@ -2084,10 +2084,10 @@ div.table-responsive
 }
 /* Side Menu Section Label */
 .side-section-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    color: rgba(255,255,255,0.25);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: rgba(255,255,255,0.7);
     padding: 20px 12px 4px;
     list-style: none;
     text-transform: uppercase;
