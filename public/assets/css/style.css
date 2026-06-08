@@ -499,14 +499,14 @@ a {
     filter: none;
 }
 
-.sidebar .side-menu .active .dropdown-menu .active .submenu-icon {
-    -webkit-filter: brightness(0) invert(1);
-    filter: brightness(0) invert(1);
-}
+{{-- JAILAOI: Active submenu icon inherits color from parent a --}}
+{{-- JAILAOI: Dropdown arrow centered --}}
 .sidebar .side-menu .dropdown-toggle::after {
     position: absolute;
     right: 10px;
-    top: 22px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
 }
 .sidebar .side-menu .dropdown-menu {
     position: relative !important;
