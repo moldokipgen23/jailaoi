@@ -71,6 +71,25 @@ class Common extends Model
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+    // JAILAOI: backwards-compat alias — dtradio controllers call getImage($folder, $name, $storage_type)
+    // $storage_type is ignored; all images are served from local/Bunny via Get_Image()
+    public function getImage($folder = "", $name = "", $storage_type = 0)
+    {
+        return $this->Get_Image($folder, $name);
+    }
+
+    // JAILAOI: dtradio rental feature not used in JailaOi — stub to prevent 500 errors
+    public function rent_expiry()
+    {
+        return null;
+    }
+
+    // JAILAOI: count followers (subscribers) for a user
+    public function total_subscriber($user_id)
+    {
+        return \App\Models\Subscriber::where('to_user_id', $user_id)->where('status', 1)->count();
+    }
+
     public function Get_Image($folder = "", $name = "")
     {
 

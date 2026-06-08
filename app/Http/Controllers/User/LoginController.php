@@ -65,7 +65,8 @@ class LoginController extends Controller
                 ]);
             }
 
-            if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'role' => 'artist', 'user_penal_status' => 1])) {
+            // JAILAOI: user_penal_status=0 means normal/active; 1 means penalized/banned — only allow 0
+            if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'role' => 'artist', 'user_penal_status' => 0])) {
                 // Update last login
                 $user = Auth()->guard('user')->user();
                 if ($user) {
