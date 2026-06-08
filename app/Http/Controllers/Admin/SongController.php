@@ -29,7 +29,8 @@ class SongController extends Controller
     {
         try {
 
-            $params['artist'] = Artist::where('type', 1)->latest()->get();
+            // JAILAOI FIX: removed type=1 filter — all JailaOi artists are type=0
+            $params['artist'] = Artist::where('status', 1)->latest()->get();
 
             $input_search = $request['input_search'];
             $input_artist = $request['input_artist'];
@@ -59,7 +60,8 @@ class SongController extends Controller
 
             $params['data'] = [];
             $params['category'] = Category::orderBy('sort_order', 'asc')->where('status', 1)->get();
-            $params['artist'] = Artist::where('type', 1)->orderBy('sort_order', 'asc')->where('status', 1)->get();
+            // JAILAOI FIX: removed type=1 filter — all JailaOi artists are type=0
+            $params['artist'] = Artist::where('status', 1)->orderBy('sort_order', 'asc')->get();
             $params['language'] = Language::orderBy('sort_order', 'asc')->where('status', 1)->get();
             $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
@@ -144,7 +146,8 @@ class SongController extends Controller
 
             $params['data'] = Song::where('id', $id)->first();
             $params['category'] = Category::orderBy('sort_order', 'asc')->where('status', 1)->get();
-            $params['artist'] = Artist::where('type', 1)->orderBy('sort_order', 'asc')->where('status', 1)->get();
+            // JAILAOI FIX: removed type=1 filter — all JailaOi artists are type=0
+            $params['artist'] = Artist::where('status', 1)->orderBy('sort_order', 'asc')->get();
             $params['language'] = Language::orderBy('sort_order', 'asc')->where('status', 1)->get();
             $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
@@ -359,25 +362,39 @@ class SongController extends Controller
             rename("{$filePath}.part", $filePath);
 
             // Generate a new filename based on the current date and time
-            $extension = pathinfo($fileName, PATHINFO_EXTENSION); // Get the file extension from the original filename
-            $newFileName = 'song' . date('_d_m_Y_') . rand(1111, 9999) . '.' . $extension; // Use the extracted extension
-            $newFilePath = $targetDir . DIRECTORY_SEPARATOR . $newFileName;
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+            $newFileName = 'song' . date('_d_m_Y_') . rand(1111, 9999) . '.' . $extension;
 
-            // Rename the uploaded file to the new filename
+            // JAILAOI: Organize into artist subfolder (song/artist-slug/filename.mp3)
+            $artistId = isset($_REQUEST['artist_id']) ? intval($_REQUEST['artist_id']) : 0;
+            $artistSlug = 'various';
+            if ($artistId > 0) {
+                $artist = \App\Models\Artist::find($artistId);
+                if ($artist) {
+                    $artistSlug = \Illuminate\Support\Str::slug($artist->name, '-') ?: 'various';
+                }
+            }
+            $artistSubDir = $targetDir . DIRECTORY_SEPARATOR . $artistSlug;
+            if (!is_dir($artistSubDir)) {
+                @mkdir($artistSubDir, 0755, true);
+            }
+            $newFilePath = $artistSubDir . DIRECTORY_SEPARATOR . $newFileName;
+            $remoteFileName = $artistSlug . '/' . $newFileName;
+
             rename($filePath, $newFilePath);
 
             // JAILAOI: Upload assembled chunk file to CDN if driver is bunny or r2.
             $audioDriver = getAudioStorageDriver();
             if ($audioDriver == 'bunny') {
                 try {
-                    (new \App\Models\Common)->uploadFileToBunny($newFilePath, 'song/' . $newFileName);
+                    (new \App\Models\Common)->uploadFileToBunny($newFilePath, 'song/' . $remoteFileName);
                 } catch (Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Bunny upload failed for song: ' . $e->getMessage());
                 }
             } elseif ($audioDriver == 'r2') {
                 try {
                     \Illuminate\Support\Facades\Storage::disk('r2')->put(
-                        'song/' . $newFileName,
+                        'song/' . $remoteFileName,
                         file_get_contents($newFilePath)
                     );
                 } catch (Exception $e) {
@@ -385,8 +402,7 @@ class SongController extends Controller
                 }
             }
 
-            // Send the new file name back to the client
-            die(json_encode(array('jsonrpc' => '2.0', 'result' => $newFileName, 'id' => 'id')));
+            die(json_encode(array('jsonrpc' => '2.0', 'result' => $remoteFileName, 'id' => 'id')));
         }
         // Return Success JSON-RPC response
         die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');

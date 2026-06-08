@@ -237,6 +237,12 @@
     $("#artist_id").select2({
         placeholder: "{{__('label.select_artist')}}"
     });
+    // JAILAOI: Pass artist_id to chunk upload so file is stored in artist subfolder
+    $("#artist_id").on('change', function() {
+        var ids = $(this).val();
+        var artistId = (ids && ids.length > 0) ? ids[0] : '';
+        datafile2.setOption('multipart_params', { artist_id: artistId });
+    });
     $("#language_id").select2();
     $("#city_id").select2();
 
