@@ -57,6 +57,17 @@
             </a>
         </li>
 
+        {{-- JAILAOI: Only show for non-artists --}}
+        @if(auth()->guard('user')->check() && auth()->guard('user')->user()->role !== 'artist')
+        <p class="partition"><span>{{__('label.become_an_artist')}}</span></p>
+        <li class="side_line {{ request()->routeIs('user.become.artist') ? 'active' : '' }}">
+            <a href="{{ route('user.become.artist') }}">
+                <i class="fa-solid fa-star fa-2xl menu-icon"></i>
+                <span>{{__('label.become_an_artist')}}</span>
+            </a>
+        </li>
+        @endif
+
         <p class="partition"><span>{{__('label.logout')}}</span></p>
         <li>
             <a href="{{ route('user.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

@@ -197,10 +197,20 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, 'You are already an artist');
             }
 
+            // JAILAOI: save artist_types (comma-separated: music,podcast)
+            $artistTypes = 'music';
+            if ($request->filled('artist_types')) {
+                $types = is_array($request->artist_types)
+                    ? implode(',', $request->artist_types)
+                    : $request->artist_types;
+                $artistTypes = $types;
+            }
+
             $req = new ArtistRequest();
             $req->user_id = $request->user_id;
             $req->artist_name = $request->artist_name;
             $req->bio = $request->bio ?? '';
+            $req->artist_types = $artistTypes;
             $req->status = 'pending';
             $req->save();
 
