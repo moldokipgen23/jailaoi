@@ -219,7 +219,9 @@ class UploadLocalToBunny extends Command
 
             $artist = DB::table('tbl_artist')->where('id', $firstId)->first();
             if ($artist) {
-                $slug = $artist->slug ?? Str::slug($artist->artist_name ?? 'various', '-');
+                // JAILAOI: tbl_artist column is `name` (not artist_name). Slug column may not exist.
+                $name = $artist->name ?? '';
+                $slug = !empty($artist->slug ?? null) ? $artist->slug : Str::slug($name, '-');
                 $map[$id] = $slug ?: 'various';
             } else {
                 $map[$id] = 'various';

@@ -2,22 +2,19 @@
 
 namespace App\Console\Commands;
 
-// JAILAOI: Cleans up orphaned flat files on Bunny CDN that were uploaded before
-// the proper folder structure was implemented.
+// JAILAOI: Cleans up orphaned files on Bunny CDN AND resets polluted DB paths.
 //
-// Bad (flat, orphaned):
-//   music/track.mp3
-//   music/cover.jpg
-//   radio/stream.mp3
-//   radio/banner.jpg
-//   podcast/episode.mp3
+// What gets deleted from Bunny:
+//   - Flat files at root of music/, radio/, podcast/  (e.g. music/track.mp3)
+//   - The entire various/ subfolder under music/, radio/, podcast/
+//     (was created by a buggy earlier upload run that couldn't resolve artist names)
 //
-// Good (kept):
-//   music/{artist-slug}/track.mp3
-//   images/music/cover.jpg
-//   music/2023/...  music/2024/...
+// What gets reset in DB:
+//   - tbl_music.music, tbl_song.song_url, tbl_podcast.trailer_audio paths
+//     starting with "various/" → stripped back to just the filename
+//     so the next bunny:upload-local run uploads them under the correct artist slug.
 //
-// Use --pretend first to see what would be deleted. Then run for real.
+// Use --pretend first to preview.
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -25,93 +22,183 @@ use Illuminate\Support\Facades\DB;
 class BunnyCleanupFlat extends Command
 {
     protected $signature = 'bunny:cleanup-flat
-        {--pretend       : Dry-run — list files that would be deleted}
-        {--keep=2023,2024 : Comma-separated subfolder names to KEEP (besides artist-slug subdirs)}';
+        {--pretend          : Dry-run — list files / DB rows that would change}
+        {--skip-bunny       : Only reset DB paths, leave Bunny untouched}
+        {--skip-db          : Only clean Bunny, leave DB untouched}';
 
-    protected $description = 'Delete orphaned flat files at the root of music/, radio/, podcast/ on Bunny CDN.';
+    protected $description = 'Delete orphaned flat files + various/ subfolders on Bunny CDN, and reset polluted DB paths.';
 
     private array $rootFolders = ['music', 'radio', 'podcast'];
 
+    // table → audio column to reset
+    private array $audioCols = [
+        'tbl_music'   => 'music',
+        'tbl_song'    => 'song_url',
+        'tbl_podcast' => 'trailer_audio',
+    ];
+
     public function handle(): int
     {
-        $pretend = $this->option('pretend');
-        $keepList = array_map('trim', explode(',', $this->option('keep')));
+        $pretend  = $this->option('pretend');
+        $skipBunny = $this->option('skip-bunny');
+        $skipDb    = $this->option('skip-db');
 
-        // Bunny config
-        $cfg = DB::table('tbl_general_setting')
-            ->whereIn('key', ['bunny_storage_zone', 'bunny_storage_api_key', 'bunny_storage_endpoint'])
-            ->pluck('value', 'key');
+        $errors = 0;
 
-        $zone     = $cfg['bunny_storage_zone']     ?? '';
-        $apiKey   = $cfg['bunny_storage_api_key']  ?? '';
-        $endpoint = rtrim($cfg['bunny_storage_endpoint'] ?? 'https://storage.bunnycdn.com', '/');
+        // ── PART 1: Reset DB paths ──────────────────────────────────────────
+        if (!$skipDb) {
+            $this->info("\n══ Resetting DB paths that contain 'various/' ══");
+            foreach ($this->audioCols as $table => $col) {
+                $rows = DB::table($table)
+                    ->where($col, 'LIKE', 'various/%')
+                    ->select('id', $col)
+                    ->get();
 
-        if (!$zone || !$apiKey) {
-            $this->error('Bunny CDN not configured. Set Storage Zone and API Key in Admin → Settings.');
-            return Command::FAILURE;
+                $this->line("  {$table}.{$col}: " . $rows->count() . " row(s) to reset.");
+
+                foreach ($rows as $row) {
+                    $filename = basename($row->{$col});  // strip "various/" prefix
+                    if ($pretend) {
+                        $this->line("    [PRETEND] id={$row->id}: {$row->{$col}} → {$filename}");
+                        continue;
+                    }
+                    try {
+                        DB::table($table)->where('id', $row->id)->update([$col => $filename]);
+                        $this->line("    OK id={$row->id}: {$row->{$col}} → {$filename}");
+                    } catch (\Throwable $e) {
+                        $this->error("    FAILED id={$row->id}: {$e->getMessage()}");
+                        $errors++;
+                    }
+                }
+            }
         }
 
-        $totalDeleted = 0;
-        $totalKept    = 0;
-        $errors       = 0;
+        // ── PART 2: Clean Bunny ─────────────────────────────────────────────
+        if (!$skipBunny) {
+            $cfg = DB::table('tbl_general_setting')
+                ->whereIn('key', ['bunny_storage_zone', 'bunny_storage_api_key', 'bunny_storage_endpoint'])
+                ->pluck('value', 'key');
 
-        foreach ($this->rootFolders as $folder) {
-            $this->info("\n── Scanning {$folder}/ ──");
+            $zone     = $cfg['bunny_storage_zone']     ?? '';
+            $apiKey   = $cfg['bunny_storage_api_key']  ?? '';
+            $endpoint = rtrim($cfg['bunny_storage_endpoint'] ?? 'https://storage.bunnycdn.com', '/');
 
-            $entries = $this->listBunnyFolder($endpoint, $zone, $apiKey, $folder);
-            if ($entries === null) {
-                $this->warn("  Could not list {$folder}/ — skipping.");
-                continue;
+            if (!$zone || !$apiKey) {
+                $this->error('Bunny CDN not configured. Set Storage Zone and API Key in Admin → Settings.');
+                return Command::FAILURE;
             }
 
-            $this->line("  Found " . count($entries) . " entries.");
+            $totalDeleted = 0;
+            $totalKept    = 0;
 
-            foreach ($entries as $entry) {
-                $name      = $entry['ObjectName'] ?? '';
-                $isDir     = (bool)($entry['IsDirectory'] ?? false);
-                if (!$name) continue;
+            foreach ($this->rootFolders as $folder) {
+                $this->info("\n══ Scanning Bunny: {$folder}/ ══");
 
-                if ($isDir) {
-                    // Keep all directories — they're either artist-slug or year (2023/2024)
-                    $this->line("  KEEP dir : {$folder}/{$name}/");
-                    $totalKept++;
+                $entries = $this->listBunnyFolder($endpoint, $zone, $apiKey, $folder);
+                if ($entries === null) {
+                    $this->warn("  Could not list {$folder}/ — skipping.");
                     continue;
                 }
 
-                // It's a flat file at the root → orphan
-                $path = "{$folder}/{$name}";
+                $this->line("  Found " . count($entries) . " entries.");
 
-                if ($pretend) {
-                    $this->line("  [PRETEND] DELETE {$path}");
-                    $totalDeleted++;
-                    continue;
-                }
+                foreach ($entries as $entry) {
+                    $name  = $entry['ObjectName'] ?? '';
+                    $isDir = (bool)($entry['IsDirectory'] ?? false);
+                    if (!$name) continue;
 
-                try {
-                    $this->deleteFromBunny($endpoint, $zone, $apiKey, $path);
-                    $this->line("  DELETED  {$path}");
-                    $totalDeleted++;
-                } catch (\Throwable $e) {
-                    $this->error("  FAILED   {$path} — {$e->getMessage()}");
-                    $errors++;
+                    if ($isDir) {
+                        // Delete the buggy "various" subdir entirely
+                        if ($name === 'various') {
+                            $this->warn("  DELETING dir: {$folder}/various/ (was wrongly created by buggy upload)");
+                            $deleted = $this->deleteBunnyDirRecursive($endpoint, $zone, $apiKey, "{$folder}/various", $pretend);
+                            $totalDeleted += $deleted;
+                            continue;
+                        }
+                        // Keep all other directories (artist-slug, 2023, 2024, etc)
+                        $this->line("  KEEP dir : {$folder}/{$name}/");
+                        $totalKept++;
+                        continue;
+                    }
+
+                    // Flat file at root → orphan
+                    $path = "{$folder}/{$name}";
+                    if ($pretend) {
+                        $this->line("  [PRETEND] DELETE {$path}");
+                        $totalDeleted++;
+                        continue;
+                    }
+                    try {
+                        $this->deleteFromBunny($endpoint, $zone, $apiKey, $path);
+                        $this->line("  DELETED  {$path}");
+                        $totalDeleted++;
+                    } catch (\Throwable $e) {
+                        $this->error("  FAILED   {$path} — {$e->getMessage()}");
+                        $errors++;
+                    }
                 }
             }
+
+            $this->newLine();
+            $this->line("  Bunny files deleted : {$totalDeleted}");
+            $this->line("  Bunny dirs kept     : {$totalKept}");
         }
 
         $this->newLine();
         $this->line('=====================================');
-        $this->line("  Flat files deleted : {$totalDeleted}");
-        $this->line("  Directories kept   : {$totalKept}");
-        $this->line("  Errors             : {$errors}");
+        $this->line("  Errors : {$errors}");
         $this->line('=====================================');
 
         if ($pretend) {
-            $this->warn('Dry-run complete — nothing deleted. Run without --pretend to actually delete.');
+            $this->warn('Dry-run complete — NOTHING changed. Run without --pretend to apply.');
         } elseif ($errors === 0) {
-            $this->info('Cleanup complete!');
+            $this->info('Cleanup complete! Now run: php artisan bunny:upload-local');
         }
 
         return $errors > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * Recursively delete every file inside a Bunny dir, then the dir itself.
+     * Returns the number of files deleted (or that would be deleted in pretend mode).
+     */
+    private function deleteBunnyDirRecursive(string $endpoint, string $zone, string $apiKey, string $dir, bool $pretend): int
+    {
+        $entries = $this->listBunnyFolder($endpoint, $zone, $apiKey, $dir);
+        if ($entries === null) return 0;
+
+        $count = 0;
+        foreach ($entries as $entry) {
+            $name  = $entry['ObjectName'] ?? '';
+            $isDir = (bool)($entry['IsDirectory'] ?? false);
+            if (!$name) continue;
+
+            if ($isDir) {
+                $count += $this->deleteBunnyDirRecursive($endpoint, $zone, $apiKey, "{$dir}/{$name}", $pretend);
+                continue;
+            }
+
+            $path = "{$dir}/{$name}";
+            if ($pretend) {
+                $this->line("    [PRETEND] DELETE {$path}");
+                $count++;
+                continue;
+            }
+            try {
+                $this->deleteFromBunny($endpoint, $zone, $apiKey, $path);
+                $this->line("    DELETED  {$path}");
+                $count++;
+            } catch (\Throwable $e) {
+                $this->error("    FAILED   {$path} — {$e->getMessage()}");
+            }
+        }
+
+        // Delete the directory itself (Bunny auto-removes empty dirs, but try anyway)
+        if (!$pretend) {
+            try { $this->deleteFromBunny($endpoint, $zone, $apiKey, $dir . '/'); } catch (\Throwable) {}
+        }
+
+        return $count;
     }
 
     private function listBunnyFolder(string $endpoint, string $zone, string $apiKey, string $folder): ?array
