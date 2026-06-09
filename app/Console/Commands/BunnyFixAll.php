@@ -144,19 +144,30 @@ class BunnyFixAll extends Command
                 }
                 // ── AUDIO ──
                 $storedAudio = $rec->{$audioCol} ?? '';
-                if (!empty($storedAudio) && !str_contains($storedAudio, '/')) {
+                if (!empty($storedAudio)) {
                     $artistId   = $rec->{$artistFk} ?? 0;
                     $artistSlug = $artistMap[$artistId] ?? 'various';
+
+                    // JAILAOI: Determine remote path
+                    //   - If path has no slash → put under artist-slug subfolder (new uploads)
+                    //   - If path has slash (e.g. "2024/05/file.mp3") → keep as-is on CDN
+                    //     to match the DB, just ensure file is on Bunny.
+                    if (!str_contains($storedAudio, '/')) {
+                        $remotePath = "{$folder}/{$artistSlug}/{$storedAudio}";
+                        $newDbValue = "{$artistSlug}/{$storedAudio}";
+                    } else {
+                        $remotePath = "{$folder}/{$storedAudio}";
+                        $newDbValue = null;  // DB already correct
+                    }
                     $localPath  = storage_path("app/public/{$folder}/{$storedAudio}");
-                    $remotePath = "{$folder}/{$artistSlug}/{$storedAudio}";
 
                     if (!file_exists($localPath)) {
                         $missing++;
                     } elseif ($this->existsOnBunny($remotePath)) {
                         $skipped++;
-                        // still update DB even if file already there
-                        if (!$pretend) {
-                            DB::table($table)->where('id', $rec->id)->update([$audioCol => "{$artistSlug}/{$storedAudio}"]);
+                        // still update DB if we need to (only for flat-path records)
+                        if (!$pretend && $newDbValue !== null) {
+                            DB::table($table)->where('id', $rec->id)->update([$audioCol => $newDbValue]);
                             $dbUpd++;
                         }
                     } else {
@@ -165,16 +176,17 @@ class BunnyFixAll extends Command
                         } else {
                             try {
                                 $this->uploadBunny($localPath, $remotePath);
-                                DB::table($table)->where('id', $rec->id)->update([$audioCol => "{$artistSlug}/{$storedAudio}"]);
-                                $audioUp++; $dbUpd++;
+                                if ($newDbValue !== null) {
+                                    DB::table($table)->where('id', $rec->id)->update([$audioCol => $newDbValue]);
+                                    $dbUpd++;
+                                }
+                                $audioUp++;
                             } catch (\Throwable $e) {
                                 $this->error("    FAILED audio id={$rec->id}: {$e->getMessage()}");
                                 $errors++;
                             }
                         }
                     }
-                } elseif (str_contains($storedAudio, '/')) {
-                    $skipped++;
                 }
 
                 // ── IMAGES ──
