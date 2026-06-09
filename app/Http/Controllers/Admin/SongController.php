@@ -18,7 +18,8 @@ use Exception;
 // Song Upload Type :1- Server Content, 2- External URL
 class SongController extends Controller
 {
-    private $folder = "radio";
+    private $folder     = "radio";            // audio folder
+    private $folder_img = "images/radio";     // JAILAOI: image folder on Bunny CDN
     public $common;
     public function __construct()
     {
@@ -46,7 +47,7 @@ class SongController extends Controller
             }
             $params['data'] = $query->latest()->paginate(15);
 
-            $this->common->imageNameToUrl($params['data'], 'image', $this->folder);
+            $this->common->imageNameToUrl($params['data'], 'image', $this->folder_img);
             $this->common->songNameToUrl($params['data'], 'song_url', $this->folder);
 
             return view('admin.song.index', $params);
@@ -105,7 +106,7 @@ class SongController extends Controller
             $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
             if (isset($requestData['image'])) {
                 $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, "song_");
+                $requestData['image'] = $this->common->saveImage($files, $this->folder_img, "song_");
             }
 
             if ($requestData['upload_type'] == 1) {
@@ -119,7 +120,7 @@ class SongController extends Controller
             if (isset($song_data->id)) {
 
                 // Send Notification
-                $imageURL = $this->common->Get_Image($this->folder, $requestData['image']);
+                $imageURL = $this->common->Get_Image($this->folder_img, $requestData['image']);
 
                 $noti_array = array(
                     'title' => __('label.new_radio_added'),
@@ -152,7 +153,7 @@ class SongController extends Controller
             $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
             // Image Name to URL
-            $this->common->imageNameToUrl(array($params['data']), 'image', $this->folder);
+            $this->common->imageNameToUrl(array($params['data']), 'image', $this->folder_img);
             $this->common->songNameToUrl(array($params['data']), 'song_url', $this->folder);
 
             if ($params['data'] != null) {
@@ -200,9 +201,9 @@ class SongController extends Controller
             // Image
             if (isset($requestData['image'])) {
                 $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, "song_");
+                $requestData['image'] = $this->common->saveImage($files, $this->folder_img, "song_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_image']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_image']));
             }
             // Song URL
             if ($requestData['upload_type'] == 1) {
@@ -247,7 +248,7 @@ class SongController extends Controller
 
             $data = Song::where('id', $id)->first();
             if (isset($data)) {
-                $this->common->deleteImageToFolder($this->folder, $data['image']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['image']);
                 // JAILAOI: delete audio from Bunny before removing DB record
                 if ($data['song_url'] && getAudioStorageDriver() == 'bunny') {
                     $this->common->deleteFileFromBunny('radio/' . $data['song_url']);

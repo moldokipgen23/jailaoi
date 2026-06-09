@@ -16,7 +16,8 @@ use Exception;
 
 class PodcastController extends Controller
 {
-    private $folder = "podcast";
+    private $folder     = "podcast";          // audio folder
+    private $folder_img = "images/podcast";   // JAILAOI: image folder on Bunny CDN
     public $common;
     public function __construct()
     {
@@ -42,8 +43,8 @@ class PodcastController extends Controller
                     $data = Podcast::withCount(['episodes'])->latest()->get();
                 }
 
-                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder);
-                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder);
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_img);
                 foreach ($data as $podcast) {
                     if ($podcast['trailer_upload_type'] == 1) {
                         $podcast['trailer_audio'] =  $this->common->Get_Song($this->folder, $podcast['trailer_audio']);
@@ -122,8 +123,8 @@ class PodcastController extends Controller
             $files = $requestData['portrait_img'];
             $files1 = $requestData['landscape_img'];
             $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
-            $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "podcast_");
-            $requestData['landscape_img'] = $this->common->saveImage($files1, $this->folder, "podcast_");
+            $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "podcast_");
+            $requestData['landscape_img'] = $this->common->saveImage($files1, $this->folder_img, "podcast_");
             $requestData['total_play'] = 0;
             if ($requestData['trailer_upload_type'] == 1) {
                 $requestData['trailer_audio'] = $requestData['trailer_audio'] ?? '';
@@ -136,7 +137,7 @@ class PodcastController extends Controller
             $podcast_data = Podcast::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($podcast_data->id)) {
                 // Send Notification
-                $imageURL = $this->common->Get_Image($this->folder, $requestData['portrait_img']);
+                $imageURL = $this->common->Get_Image($this->folder_img, $requestData['portrait_img']);
 
                 $noti_array = array(
                     'title' => __('label.new_podcast_added'),
@@ -217,15 +218,15 @@ class PodcastController extends Controller
             $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "podcast_");
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "podcast_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']));
             }
             if (isset($requestData['landscape_img'])) {
                 $files = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder, "podcast_");
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "podcast_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']));
             }
             unset($requestData['old_portrait_img'], $requestData['old_landscape_img'], $requestData['old_trailer_upload_type'], $requestData['old_trailer_audio'], $requestData['url'], $requestData['old_url']);
 
@@ -245,14 +246,14 @@ class PodcastController extends Controller
 
             $data = Podcast::where('id', $id)->first();
             if (isset($data)) {
-                $this->common->deleteImageToFolder($this->folder, $data['portrait_img']);
-                $this->common->deleteImageToFolder($this->folder, $data['landscape_img']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['portrait_img']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['landscape_img']);
                 $data->delete();
 
                 $episode = Episode::where('podcasts_id', $id)->get();
                 for ($i = 0; $i < count($episode); $i++) {
-                    $this->common->deleteImageToFolder($this->folder, $episode[$i]['portrait_img']);
-                    $this->common->deleteImageToFolder($this->folder, $episode[$i]['landscape_img']);
+                    $this->common->deleteImageToFolder($this->folder_img, $episode[$i]['portrait_img']);
+                    $this->common->deleteImageToFolder($this->folder_img, $episode[$i]['landscape_img']);
                     // JAILAOI: delete episode audio from Bunny before removing DB record
                     if ($episode[$i]['episode_audio'] && getAudioStorageDriver() == 'bunny') {
                         $this->common->deleteFileFromBunny('podcast/' . $episode[$i]['episode_audio']);
@@ -301,8 +302,8 @@ class PodcastController extends Controller
                 $params['data'] = Episode::where('podcasts_id', $id)->orderBy('sortable', 'asc')->paginate(15);
             }
 
-            $this->common->imageNameToUrl($params['data'], 'portrait_img', $this->folder);
-            $this->common->imageNameToUrl($params['data'], 'landscape_img', $this->folder);
+            $this->common->imageNameToUrl($params['data'], 'portrait_img', $this->folder_img);
+            $this->common->imageNameToUrl($params['data'], 'landscape_img', $this->folder_img);
             for ($i = 0; $i < count($params['data']); $i++) {
                 if ($params['data'][$i]['episode_upload_type'] == 1) {
                     $this->common->videoNameToUrl(array($params['data'][$i]), 'episode_audio', $this->folder);
@@ -361,8 +362,8 @@ class PodcastController extends Controller
 
             $files1 = $requestData['portrait_img'];
             $files2 = $requestData['landscape_img'];
-            $requestData['portrait_img'] = $this->common->saveImage($files1, $this->folder, "episode_");
-            $requestData['landscape_img'] = $this->common->saveImage($files2, $this->folder, "episode_");
+            $requestData['portrait_img'] = $this->common->saveImage($files1, $this->folder_img, "episode_");
+            $requestData['landscape_img'] = $this->common->saveImage($files2, $this->folder_img, "episode_");
 
             if ($requestData['episode_upload_type'] == 1) {
                 $requestData['episode_audio'] = $requestData['episode_audio'];
@@ -390,8 +391,8 @@ class PodcastController extends Controller
 
                 $params['podcasts_id'] = $podcasts_id;
 
-                $this->common->imageNameToUrl(array($params['data']), 'portrait_img', $this->folder);
-                $this->common->imageNameToUrl(array($params['data']), 'landscape_img', $this->folder);
+                $this->common->imageNameToUrl(array($params['data']), 'portrait_img', $this->folder_img);
+                $this->common->imageNameToUrl(array($params['data']), 'landscape_img', $this->folder_img);
                 if ($params['data']['episode_upload_type'] == 1) {
                     $this->common->videoNameToUrl(array($params['data']), 'episode_audio', $this->folder);
                 }
@@ -441,13 +442,13 @@ class PodcastController extends Controller
 
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, 'episode_');
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']));
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, 'episode_');
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']));
             }
             if (isset($requestData['landscape_img'])) {
                 $files1 = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files1, $this->folder, 'episode_');
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']));
+                $requestData['landscape_img'] = $this->common->saveImage($files1, $this->folder_img, 'episode_');
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']));
             }
 
             if ($requestData['episode_upload_type'] == 1) {
@@ -500,8 +501,8 @@ class PodcastController extends Controller
             $data = Episode::where('id', $id)->first();
             if (isset($data)) {
 
-                $this->common->deleteImageToFolder($this->folder, $data['portrait_img']);
-                $this->common->deleteImageToFolder($this->folder, $data['landscape_img']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['portrait_img']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['landscape_img']);
                 $this->common->deleteImageToFolder($this->folder, $data['episode_audio']);
                 $data->delete();
             }

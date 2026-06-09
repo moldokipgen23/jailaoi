@@ -18,7 +18,8 @@ use Exception;
 // Music Upload Type :1- Server Content, 2- External URL
 class MusicController extends Controller
 {
-    private $folder = "music";
+    private $folder     = "music";           // audio folder
+    private $folder_img = "images/music";    // JAILAOI: image folder on Bunny CDN
     public $common;
     public function __construct()
     {
@@ -47,7 +48,7 @@ class MusicController extends Controller
             $params['data'] = $query->latest()->paginate(15);
 
             foreach ($params['data'] as $music) {
-                $music['portrait_img'] = $this->common->Get_Image($this->folder, $music['portrait_img']);
+                $music['portrait_img'] = $this->common->Get_Image($this->folder_img, $music['portrait_img']);
                 if ($music['upload_type'] == 1) {
                     $music['music'] = $this->common->Get_Song($this->folder, $music['music']);
                 }
@@ -125,17 +126,17 @@ class MusicController extends Controller
             }
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
             }
             if (isset($requestData['ogtag_img'])) {
                 $files = $requestData['ogtag_img'];
-                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
             } else {
                 $requestData['ogtag_img'] = "";
             }
             if (isset($requestData['landscape_img'])) {
                 $files = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
             } else {
                 $requestData['landscape_img'] = "";
             }
@@ -157,7 +158,7 @@ class MusicController extends Controller
             if (isset($music_data->id)) {
 
                 // Send Notification
-                $imageURL = $this->common->Get_Image($this->folder, $requestData['portrait_img']);
+                $imageURL = $this->common->Get_Image($this->folder_img, $requestData['portrait_img']);
 
                 $noti_array = array(
                     'title' => __('label.new_music_added'),
@@ -191,9 +192,9 @@ class MusicController extends Controller
             $params['city'] = City::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
             // Image Name to URL
-            $this->common->imageNameToUrl(array($params['data']), 'portrait_img', $this->folder);
-            $this->common->imageNameToUrl(array($params['data']), 'ogtag_img', $this->folder);
-            $this->common->imageNameToUrl(array($params['data']), 'landscape_img', $this->folder);
+            $this->common->imageNameToUrl(array($params['data']), 'portrait_img', $this->folder_img);
+            $this->common->imageNameToUrl(array($params['data']), 'ogtag_img', $this->folder_img);
+            $this->common->imageNameToUrl(array($params['data']), 'landscape_img', $this->folder_img);
             if ($params['data']['upload_type'] == 1) {
                 $params['data']['music'] = $this->common->Get_Song($this->folder, $params['data']['music']);
             }
@@ -263,23 +264,23 @@ class MusicController extends Controller
             // potrait_image
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']));
             }
             // ogtag_image
             if (isset($requestData['ogtag_img'])) {
                 $files = $requestData['ogtag_img'];
-                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_ogtag_img']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_ogtag_img']));
             }
             // landscape_image
             if (isset($requestData['landscape_img'])) {
                 $files = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder, "music_");
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']));
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']));
             }
             // music URL
             if ($requestData['upload_type'] == 1) {
