@@ -44,19 +44,23 @@ use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    private $folder_app = "app";
-    private $folder_city = "city";
+    // JAILAOI: Audio folders (artist-subfolder structure on Bunny: {type}/{artist-slug}/file.mp3)
     private $folder_song = "radio";
-    private $folder_artist = "artist";
-    private $folder_package = "package";
     private $folder_podcast = "podcast";
-    private $folder_category = "category";
-    private $folder_language = "language";
-    private $folder_live_event = "live_event";
-    private $folder_notification = "notification";
-    private $folder_user = "user";
     private $folder_music = "music";
-    // JAILAOI: Image folders on Bunny CDN — images/{type}/filename.jpg
+
+    // JAILAOI: All image folders live under images/{type}/ on Bunny CDN
+    private $folder_app          = "images/app";
+    private $folder_city         = "images/city";
+    private $folder_artist       = "images/artist";
+    private $folder_package      = "images/package";
+    private $folder_category     = "images/category";
+    private $folder_language     = "images/language";
+    private $folder_live_event   = "images/live_event";
+    private $folder_notification = "images/notification";
+    private $folder_user         = "images/user";
+
+    // Per-type image subfolders for content tables (image columns inside content tables)
     private $folder_song_img    = "images/radio";
     private $folder_podcast_img = "images/podcast";
     private $folder_music_img   = "images/music";

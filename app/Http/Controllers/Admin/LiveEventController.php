@@ -12,7 +12,7 @@ use Exception;
 
 class LiveEventController extends Controller
 {
-    private $folder = "live_event";
+    private $folder = "images/live_event";
     public $common;
     public function __construct()
     {

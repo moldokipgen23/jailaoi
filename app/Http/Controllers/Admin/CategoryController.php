@@ -11,7 +11,7 @@ use Exception;
 
 class CategoryController extends Controller
 {
-    private $folder = "category";
+    private $folder = "images/category";
     public $common;
     public function __construct()
     {

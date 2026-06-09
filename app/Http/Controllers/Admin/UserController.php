@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 // Login Type : 1- OTP, 2- Goggle, 3- Apple, 4- Normal
 class UserController extends Controller
 {
-    private $folder = "user";
+    private $folder = "images/user";
     public $common;
     public function __construct()
     {

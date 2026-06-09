@@ -14,8 +14,8 @@ use Exception;
 
 class ArtistController extends Controller
 {
-    private $folder_user = "user";
-    private $folder_artist = "artist";
+    private $folder_user = "images/user";
+    private $folder_artist = "images/artist";
     public $common;
     public $page_limit;
 

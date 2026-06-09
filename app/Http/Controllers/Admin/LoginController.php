@@ -10,7 +10,7 @@ use Exception;
 
 class LoginController extends Controller
 {
-    private $folder = "app";
+    private $folder = "images/app";
     protected $redirectTo = 'admin/login';
     private $common;
     public function __construct()

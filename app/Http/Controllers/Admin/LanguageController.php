@@ -11,7 +11,7 @@ use Exception;
 
 class LanguageController extends Controller
 {
-    private $folder = "language";
+    private $folder = "images/language";
     public $common;
     public function __construct()
     {

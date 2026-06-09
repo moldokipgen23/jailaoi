@@ -10,7 +10,7 @@ use Exception;
 
 class PanelSettingController extends Controller
 {
-    private $folder = "app";
+    private $folder = "images/app";
     public $common;
     public function __construct()
     {

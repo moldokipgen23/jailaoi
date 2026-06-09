@@ -11,7 +11,7 @@ use Exception;
 
 class PackageController extends Controller
 {
-    private $folder = "package";
+    private $folder = "images/package";
     public $common;
     public function __construct()
     {

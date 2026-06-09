@@ -11,7 +11,7 @@ use Exception;
 
 class ArtistController extends Controller
 {
-    private $folder = "artist";
+    private $folder = "images/artist";
     public $common;
     public function __construct()
     {

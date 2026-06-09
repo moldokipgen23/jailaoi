@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
-    private $folder = "user";
+    private $folder = "images/user";
     public $common;
     public function __construct()
     {

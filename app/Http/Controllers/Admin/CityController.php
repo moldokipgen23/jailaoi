@@ -11,7 +11,7 @@ use Exception;
 
 class CityController extends Controller
 {
-    private $folder = "city";
+    private $folder = "images/city";
     public $common;
     public function __construct()
     {

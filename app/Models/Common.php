@@ -15,7 +15,7 @@ class Common extends Model
     public $folder_song    = "radio";
     public $folder_podcast = "podcast";
     public $folder_music   = "music";
-    public $folder_artist  = "artist";
+    public $folder_artist  = "images/artist";
 
     // JAILAOI: Image folders — Bunny path: images/{type}/filename.jpg
     public $folder_song_img    = "images/radio";
@@ -31,7 +31,27 @@ class Common extends Model
 
             $img_ext = $org_name->getClientOriginalExtension();
             $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
-            $org_name->move(base_path('storage/app/public/' . $folder), $filename);
+
+            // JAILAOI: Ensure local dir exists (supports nested paths like images/artist/)
+            $localDir = base_path('storage/app/public/' . $folder);
+            if (!is_dir($localDir)) @mkdir($localDir, 0755, true);
+
+            // Save locally first (kept as backup + for FFmpeg/etc operations)
+            $localPath = $localDir . '/' . $filename;
+            $org_name->move($localDir, $filename);
+
+            // JAILAOI: If folder targets the CDN (images/*) and Bunny is configured,
+            // also push to Bunny so the image is immediately CDN-served.
+            if (str_starts_with($folder, 'images/') || $folder === 'images') {
+                try {
+                    if ($this->getBunnyCdnUrl()) {
+                        $this->uploadFileToBunny($localPath, $folder . '/' . $filename);
+                    }
+                } catch (Exception $e) {
+                    Log::error('Bunny upload for image failed (continuing): ' . $e->getMessage());
+                }
+            }
+
             return $filename;
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
@@ -85,7 +105,13 @@ class Common extends Model
     {
         try {
 
+            // Remove local copy
             Storage::disk('public')->delete($folder . '/' . $name);
+
+            // JAILAOI: Also remove from Bunny if it's a CDN-backed folder
+            if (str_starts_with($folder, 'images/') || $folder === 'images') {
+                $this->deleteFileFromBunny($folder . '/' . $name);
+            }
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }

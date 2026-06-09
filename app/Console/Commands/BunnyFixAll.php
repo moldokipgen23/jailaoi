@@ -11,6 +11,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class BunnyFixAll extends Command
@@ -24,6 +25,23 @@ class BunnyFixAll extends Command
         'tbl_song'    => ['song_url',      'artist_id', ['image'],                                       'radio'],
         'tbl_podcast' => ['trailer_audio', 'artist_id', ['portrait_img', 'landscape_img'],               'podcast'],
     ];
+
+    // JAILAOI: Simple image-only tables → upload from local folder to images/{folder}/
+    // table → [columns[], local_folder]
+    private array $imageOnlySources = [
+        'tbl_artist'        => [['image'],                          'artist'],
+        'tbl_category'      => [['image'],                          'category'],
+        'tbl_language'      => [['image'],                          'language'],
+        'tbl_city'          => [['image'],                          'city'],
+        'tbl_user'          => [['image'],                          'user'],
+        'tbl_package'       => [['image'],                          'package'],
+        'tbl_live_event'    => [['portrait_img', 'landscape_img'],  'live_event'],
+        'tbl_notification'  => [['image'],                          'notification'],
+        'tbl_episode'       => [['portrait_img', 'landscape_img'],  'podcast'],   // episode images live under podcast/ folder
+    ];
+
+    // JAILAOI: App-level files in tbl_general_setting (logos, login bg, etc.)
+    private array $appSettingKeys = ['app_logo', 'dev_logo', 'login_page_image', 'company_logo'];
 
     private string $zone;
     private string $apiKey;
@@ -176,6 +194,57 @@ class BunnyFixAll extends Command
                 }
             }
             echo "\n";  // end progress line
+        }
+
+        // ── STEP 5: Image-only tables (artist, category, language, city, user, etc.) ──
+        $this->info("\n[5/5] Uploading image-only tables (artist, category, language, user, etc.) ...");
+        foreach ($this->imageOnlySources as $table => [$cols, $localFolder]) {
+            if (!Schema::hasTable($table)) { $this->line("  {$table}: table missing, skip"); continue; }
+
+            $records = DB::table($table)->select(array_merge(['id'], $cols))->get();
+            $total = $records->count();
+            $this->line("\n  ── {$table} ({$total} rows) → images/{$localFolder}/ ──");
+
+            $idx = 0;
+            $startTime = time();
+            foreach ($records as $rec) {
+                $idx++;
+                if ($idx % 50 === 0 || $idx === $total) {
+                    $pct = round($idx / max($total, 1) * 100, 1);
+                    $elapsed = max(1, time() - $startTime);
+                    echo "\r    [{$idx}/{$total}] {$pct}%  img:{$imgUp}  skip:{$skipped}  miss:{$missing}    ";
+                }
+                foreach ($cols as $col) {
+                    $stored = $rec->{$col} ?? '';
+                    if (empty($stored)) continue;
+
+                    $localPath  = storage_path("app/public/{$localFolder}/{$stored}");
+                    $remotePath = "images/{$localFolder}/{$stored}";
+
+                    if (!file_exists($localPath)) { $missing++; continue; }
+                    if ($this->existsOnBunny($remotePath)) { $skipped++; continue; }
+                    if ($pretend) { $imgUp++; continue; }
+                    try { $this->uploadBunny($localPath, $remotePath); $imgUp++; }
+                    catch (\Throwable $e) { $this->error("\n    FAILED {$table} id={$rec->id} {$col}: {$e->getMessage()}"); $errors++; }
+                }
+            }
+            echo "\n";
+        }
+
+        // ── STEP 6: App-level settings (logos in tbl_general_setting) ──
+        $this->info("\n[6/6] Uploading app logos / login images ...");
+        if (Schema::hasTable('tbl_general_setting')) {
+            $appFiles = DB::table('tbl_general_setting')->whereIn('key', $this->appSettingKeys)->pluck('value', 'key');
+            foreach ($appFiles as $key => $filename) {
+                if (empty($filename)) continue;
+                $localPath  = storage_path("app/public/app/{$filename}");
+                $remotePath = "images/app/{$filename}";
+                if (!file_exists($localPath)) { $this->line("  MISS {$key}: {$localPath}"); $missing++; continue; }
+                if ($this->existsOnBunny($remotePath)) { $this->line("  SKIP {$key} (already on Bunny)"); $skipped++; continue; }
+                if ($pretend) { $this->line("  [PRETEND] {$key} → {$remotePath}"); $imgUp++; continue; }
+                try { $this->uploadBunny($localPath, $remotePath); $this->line("  OK   {$key} → {$remotePath}"); $imgUp++; }
+                catch (\Throwable $e) { $this->error("  FAIL {$key}: {$e->getMessage()}"); $errors++; }
+            }
         }
 
         // ── SUMMARY ──

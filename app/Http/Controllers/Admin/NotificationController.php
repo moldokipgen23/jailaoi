@@ -13,7 +13,7 @@ use Exception;
 
 class NotificationController extends Controller
 {
-    private $folder = "notification";
+    private $folder = "images/notification";
     public $common;
     public function __construct()
     {
