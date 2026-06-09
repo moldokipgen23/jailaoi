@@ -2,40 +2,51 @@
 
 namespace App\Console\Commands;
 
-// JAILAOI: Uploads local audio/image files to Bunny CDN.
-// Use after any local-only file migration to make files available on CDN.
-// Safe to re-run — skips files already on Bunny (HEAD request check).
+// JAILAOI: Uploads local audio/image files to Bunny CDN with proper folder structure.
+//
+// Audio → music/{artist-slug}/filename.mp3
+//          radio/{artist-slug}/filename.mp3
+//          podcast/{artist-slug}/filename.mp3
+// Images → images/music/filename.jpg
+//           images/radio/filename.jpg
+//           images/podcast/filename.jpg
+//
+// DB audio columns are updated to store "{artist-slug}/filename.mp3" after upload.
+// DB image columns are NOT changed — Get_Image('images/music', filename) builds the URL.
+//
+// Safe to re-run — checks Bunny HEAD before uploading (unless --skip-check is set).
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\Common;
 
 class UploadLocalToBunny extends Command
 {
     protected $signature = 'bunny:upload-local
-        {--type=all : Which table to process: all, music, radio, podcast}
-        {--pretend  : Dry-run — show what would be uploaded without doing it}
+        {--type=all   : Which table to process: all, music, radio, podcast}
+        {--pretend    : Dry-run — show what would be uploaded without doing it}
         {--skip-check : Skip Bunny HEAD check (faster, re-uploads even if already there)}';
 
-    protected $description = 'Upload local audio/image files to Bunny CDN. Fixes "track unavailable" for mirrored content.';
+    protected $description = 'Upload local audio + image files to Bunny CDN with correct folder structure.';
 
     private Common $common;
 
-    // folder → [table, columns_with_files]
+    // table → [audio_col, artist_fk, image_cols[]]
     private array $sources = [
-        'music'   => ['tbl_music',   ['music', 'portrait_img', 'landscape_img', 'ogtag_img']],
-        'radio'   => ['tbl_song',    ['song_url', 'image']],
-        'podcast' => ['tbl_podcast', ['trailer_audio', 'portrait_img', 'landscape_img']],
+        'music'   => ['tbl_music',   'music',         'artist_id', ['portrait_img', 'landscape_img', 'ogtag_img']],
+        'radio'   => ['tbl_song',    'song_url',      'artist_id', ['image']],
+        'podcast' => ['tbl_podcast', 'trailer_audio', 'artist_id', ['portrait_img', 'landscape_img']],
     ];
 
     public function handle(): int
     {
         $this->common = new Common;
-        $pretend      = $this->option('pretend');
-        $skipCheck    = $this->option('skip-check');
-        $type         = $this->option('type');
+        $pretend   = $this->option('pretend');
+        $skipCheck = $this->option('skip-check');
+        $type      = $this->option('type');
 
-        // Verify Bunny is configured
+        // Load Bunny config
         $cfg = DB::table('tbl_general_setting')
             ->whereIn('key', ['bunny_storage_zone', 'bunny_storage_api_key', 'bunny_cdn_url', 'bunny_storage_endpoint'])
             ->pluck('value', 'key');
@@ -51,90 +62,170 @@ class UploadLocalToBunny extends Command
         }
 
         $sources = $type === 'all' ? $this->sources : array_intersect_key($this->sources, [$type => true]);
-
         if (empty($sources)) {
             $this->error("Unknown type '{$type}'. Use: all, music, radio, podcast");
             return Command::FAILURE;
         }
 
-        $uploaded = 0;
-        $skipped  = 0;
-        $missing  = 0;
-        $errors   = 0;
+        $audioUploaded = 0;
+        $imgUploaded   = 0;
+        $skipped       = 0;
+        $missing       = 0;
+        $dbUpdated     = 0;
+        $errors        = 0;
 
-        foreach ($sources as $folder => [$table, $columns]) {
-            $this->info("\n── {$table} → Bunny:{$folder}/ ──");
+        foreach ($sources as $folder => [$table, $audioCol, $artistFk, $imageCols]) {
+            $this->info("\n── {$table} ──");
 
-            $records = DB::table($table)->select(array_merge(['id'], $columns))->get();
-            $total   = $records->count() * count($columns);
-            $bar     = $this->output->createProgressBar($total);
-            $bar->start();
+            // Build artist slug lookup: artist_id → slug
+            $artistMap = $this->buildArtistMap($table, $artistFk);
 
+            $records = DB::table($table)->select(
+                array_merge(['id', $audioCol, $artistFk], $imageCols)
+            )->get();
+
+            $this->line("  {$records->count()} records found.");
+
+            // ── AUDIO ──────────────────────────────────────────────────────────
+            $this->info("  [Audio → {$folder}/{artist-slug}/file]");
             foreach ($records as $record) {
-                foreach ($columns as $col) {
-                    $storedPath = $record->{$col} ?? '';
-                    if (empty($storedPath)) { $bar->advance(); continue; }
+                $storedAudio = $record->{$audioCol} ?? '';
+                if (empty($storedAudio)) continue;
 
-                    $localPath  = storage_path("app/public/{$folder}/{$storedPath}");
-                    $remotePath = "{$folder}/{$storedPath}";
+                // Skip if already has a slash (already in artist subfolder)
+                if (str_contains($storedAudio, '/')) {
+                    $this->line("  SKIP audio (already has path): {$storedAudio}");
+                    $skipped++;
+                    continue;
+                }
+
+                $artistId   = $record->{$artistFk} ?? 0;
+                $artistSlug = $artistMap[$artistId] ?? 'various';
+                $localPath  = storage_path("app/public/{$folder}/{$storedAudio}");
+                $remotePath = "{$folder}/{$artistSlug}/{$storedAudio}";
+
+                if (!file_exists($localPath)) {
+                    $this->line("  NOT FOUND (audio): {$localPath}");
+                    $missing++;
+                    continue;
+                }
+
+                if (!$skipCheck && $this->existsOnBunny($cdnUrl, $remotePath)) {
+                    $this->line("  SKIP audio (already on Bunny): {$remotePath}");
+                    $skipped++;
+                    // Still update DB if needed
+                    if ($storedAudio !== "{$artistSlug}/{$storedAudio}") {
+                        if (!$pretend) {
+                            DB::table($table)->where('id', $record->id)->update([$audioCol => "{$artistSlug}/{$storedAudio}"]);
+                            $dbUpdated++;
+                        }
+                    }
+                    continue;
+                }
+
+                if ($pretend) {
+                    $this->line("  [PRETEND] upload {$localPath} → Bunny:{$remotePath}");
+                    $this->line("            DB update id={$record->id} {$audioCol} = {$artistSlug}/{$storedAudio}");
+                    $audioUploaded++;
+                    continue;
+                }
+
+                try {
+                    $this->uploadToBunny($localPath, $remotePath, $zone, $apiKey, $endpoint);
+                    DB::table($table)->where('id', $record->id)->update([$audioCol => "{$artistSlug}/{$storedAudio}"]);
+                    $audioUploaded++;
+                    $dbUpdated++;
+                    $this->line("  OK audio: {$remotePath}");
+                } catch (\Throwable $e) {
+                    $this->error("  FAILED audio id={$record->id}: {$e->getMessage()}");
+                    $errors++;
+                }
+            }
+
+            // ── IMAGES ─────────────────────────────────────────────────────────
+            $this->info("  [Images → images/{$folder}/file]");
+            foreach ($records as $record) {
+                foreach ($imageCols as $col) {
+                    $storedImg = $record->{$col} ?? '';
+                    if (empty($storedImg)) continue;
+
+                    $localPath  = storage_path("app/public/{$folder}/{$storedImg}");
+                    $remotePath = "images/{$folder}/{$storedImg}";
 
                     if (!file_exists($localPath)) {
+                        $this->line("  NOT FOUND (img): {$localPath}");
                         $missing++;
-                        $bar->advance();
                         continue;
                     }
 
                     if (!$skipCheck && $this->existsOnBunny($cdnUrl, $remotePath)) {
+                        $this->line("  SKIP img (already on Bunny): {$remotePath}");
                         $skipped++;
-                        $bar->advance();
                         continue;
                     }
 
                     if ($pretend) {
-                        $bar->clear();
-                        $this->line("  [PRETEND] {$remotePath}");
-                        $bar->display();
-                        $uploaded++;
-                        $bar->advance();
+                        $this->line("  [PRETEND] upload {$localPath} → Bunny:{$remotePath}");
+                        $imgUploaded++;
                         continue;
                     }
 
                     try {
                         $this->uploadToBunny($localPath, $remotePath, $zone, $apiKey, $endpoint);
-                        $uploaded++;
+                        $imgUploaded++;
+                        $this->line("  OK img: {$remotePath}");
                     } catch (\Throwable $e) {
-                        $bar->clear();
-                        $this->error("  FAILED: {$remotePath} — {$e->getMessage()}");
-                        $bar->display();
+                        $this->error("  FAILED img id={$record->id} {$col}: {$e->getMessage()}");
                         $errors++;
                     }
-
-                    $bar->advance();
                 }
             }
-
-            $bar->finish();
-            $this->newLine(2);
         }
 
         // Summary
         $this->newLine();
-        $this->line('================================');
-        $this->line("  Uploaded  : {$uploaded}");
-        $this->line("  Skipped   : {$skipped}");
-        $this->line("  Not found : {$missing}");
-        $this->line("  Errors    : {$errors}");
-        $this->line('================================');
+        $this->line('=====================================');
+        $this->line("  Audio uploaded  : {$audioUploaded}");
+        $this->line("  Images uploaded : {$imgUploaded}");
+        $this->line("  DB rows updated : {$dbUpdated}");
+        $this->line("  Skipped         : {$skipped}");
+        $this->line("  Not found local : {$missing}");
+        $this->line("  Errors          : {$errors}");
+        $this->line('=====================================');
 
         if ($pretend) {
-            $this->warn('Dry-run — nothing uploaded.');
+            $this->warn('Dry-run complete — nothing uploaded or changed.');
         } elseif ($errors === 0) {
-            $this->info('Done! All files uploaded to Bunny CDN.');
+            $this->info('Done! Files uploaded to Bunny CDN with correct folder structure.');
         } else {
-            $this->warn("{$errors} failed. Re-run to retry.");
+            $this->warn("{$errors} errors. Re-run to retry failed files.");
         }
 
         return $errors > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * Build artist_id → slug map for all artists referenced in a table.
+     */
+    private function buildArtistMap(string $table, string $artistFk): array
+    {
+        $ids = DB::table($table)->whereNotNull($artistFk)->pluck($artistFk)->unique()->filter();
+
+        $map = [];
+        foreach ($ids as $id) {
+            // tbl_music uses comma-separated artist_ids — take the first
+            $firstId = (int) explode(',', (string)$id)[0];
+            if (!$firstId) continue;
+
+            $artist = DB::table('tbl_artist')->where('id', $firstId)->first();
+            if ($artist) {
+                $slug = $artist->slug ?? Str::slug($artist->artist_name ?? 'various', '-');
+                $map[$id] = $slug ?: 'various';
+            } else {
+                $map[$id] = 'various';
+            }
+        }
+        return $map;
     }
 
     private function existsOnBunny(string $cdnUrl, string $remotePath): bool
@@ -159,8 +250,7 @@ class UploadLocalToBunny extends Command
 
     private function uploadToBunny(string $localPath, string $remotePath, string $zone, string $apiKey, string $endpoint): void
     {
-        $url = $endpoint . '/' . $zone . '/' . ltrim($remotePath, '/');
-
+        $url  = $endpoint . '/' . $zone . '/' . ltrim($remotePath, '/');
         $fp   = fopen($localPath, 'rb');
         $size = filesize($localPath);
 

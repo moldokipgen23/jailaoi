@@ -25,7 +25,8 @@ use Exception;
 
 class MusicController extends Controller
 {
-    private $folder = "music";
+    private $folder     = "music";           // audio folder on CDN/disk
+    private $folder_img = "images/music";    // JAILAOI: image folder on Bunny CDN
     private $folder_ffmpeg = "/app/public/music/";
     public $common;
     public function __construct()
@@ -58,8 +59,8 @@ class MusicController extends Controller
 
             for ($i = 0; $i < count($params['data']); $i++) {
 
-                $params['data'][$i]['portrait_img'] = $this->common->getImage($this->folder, $params['data'][$i]['portrait_img'], $params['data'][$i]['portrait_img_storage_type']);
-                $params['data'][$i]['landscape_img'] = $this->common->getImage($this->folder, $params['data'][$i]['landscape_img'], $params['data'][$i]['landscape_img_storage_type']);
+                $params['data'][$i]['portrait_img'] = $this->common->getImage($this->folder_img, $params['data'][$i]['portrait_img'], $params['data'][$i]['portrait_img_storage_type']);
+                $params['data'][$i]['landscape_img'] = $this->common->getImage($this->folder_img, $params['data'][$i]['landscape_img'], $params['data'][$i]['landscape_img_storage_type']);
                 if ($params['data'][$i]['content_upload_type'] == 'server_video') {
                     $params['data'][$i]['content'] = $this->common->getVideo($this->folder, $params['data'][$i]['content'], $params['data'][$i]['content_storage_type']);
                 }
@@ -125,13 +126,13 @@ class MusicController extends Controller
             $requestData['hashtag_id'] = $hashtagId;
             if (isset($requestData['portrait_img'])) {
                 $file1 = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder, 'port_', $requestData['portrait_img_storage_type']);
+                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $requestData['portrait_img_storage_type']);
             } else {
                 $requestData['portrait_img'] = "";
             }
             if (isset($requestData['landscape_img'])) {
                 $file2 = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder, 'land_', $requestData['landscape_img_storage_type']);
+                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $requestData['landscape_img_storage_type']);
             } else {
                 $requestData['landscape_img'] = "";
             }
@@ -187,8 +188,8 @@ class MusicController extends Controller
                 $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
                 $params['language'] = Language::orderby('sort_order', 'asc')->latest()->get();
 
-                $params['data']['portrait_img'] = $this->common->getImage($this->folder, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
-                $params['data']['landscape_img'] = $this->common->getImage($this->folder, $params['data']['landscape_img'], $params['data']['landscape_img_storage_type']);
+                $params['data']['portrait_img'] = $this->common->getImage($this->folder_img, $params['data']['portrait_img'], $params['data']['portrait_img_storage_type']);
+                $params['data']['landscape_img'] = $this->common->getImage($this->folder_img, $params['data']['landscape_img'], $params['data']['landscape_img_storage_type']);
                 if ($params['data']['content_upload_type'] == 'server_video') {
                     $params['data']['content'] = $this->common->getVideo($this->folder, $params['data']['content'], $params['data']['content_storage_type']);
                 }
@@ -243,16 +244,16 @@ class MusicController extends Controller
             if (isset($requestData['portrait_img'])) {
                 $file1 = $requestData['portrait_img'];
                 $requestData['portrait_img_storage_type'] = $storage_type;
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder, 'port_', $requestData['portrait_img_storage_type']);
+                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $requestData['portrait_img_storage_type']);
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_portrait_img']), $request['old_portrait_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']), $request['old_portrait_img_storage_type']);
             }
             if (isset($requestData['landscape_img'])) {
                 $file2 = $requestData['landscape_img'];
                 $requestData['landscape_img_storage_type'] = $storage_type;
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder, 'land_', $requestData['landscape_img_storage_type']);
+                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $requestData['landscape_img_storage_type']);
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_landscape_img']), $request['old_landscape_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']), $request['old_landscape_img_storage_type']);
             }
             if ($requestData['content_upload_type'] == 'server_video') {
 
@@ -330,8 +331,8 @@ class MusicController extends Controller
                 $old_hashtag = explode(',', $data['hashtag_id']);
                 Hashtag::whereIn('id', $old_hashtag)->decrement('total_used', 1);
 
-                $this->common->deleteImageToFolder($this->folder, $data['portrait_img'], $data['portrait_img_storage_type']);
-                $this->common->deleteImageToFolder($this->folder, $data['landscape_img'], $data['landscape_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['portrait_img'], $data['portrait_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, $data['landscape_img'], $data['landscape_img_storage_type']);
                 $this->common->deleteImageToFolder($this->folder, $data['content'], $data['content_storage_type']);
                 // JAILAOI: Also remove the tbl_music mirror
                 $this->deleteMusicMirror($data);

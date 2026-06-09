@@ -11,10 +11,18 @@ use Illuminate\Support\Facades\Mail;
 
 class Common extends Model
 {
-    public $folder_song = "radio";
+    // JAILAOI: Audio folders — Bunny path: {folder}/{artist-slug}/filename.mp3
+    public $folder_song    = "radio";
     public $folder_podcast = "podcast";
-    public $folder_music = "music";
-    public $folder_artist = "artist";
+    public $folder_music   = "music";
+    public $folder_artist  = "artist";
+
+    // JAILAOI: Image folders — Bunny path: images/{type}/filename.jpg
+    public $folder_song_img    = "images/radio";
+    public $folder_podcast_img = "images/podcast";
+    public $folder_music_img   = "images/music";
+    public $folder_artist_img  = "images/artist";
+    public $folder_user_img    = "images/user";
 
     // Image Functions
     public function saveImage($org_name, $folder, $prefix = "")
@@ -32,10 +40,21 @@ class Common extends Model
     public function imageNameToUrl($array, $column, $folder)
     {
         try {
+            // JAILAOI: Bunny CDN — folders starting with "images/" live on CDN, not local disk.
+            $cdnUrl = null;
+            if (str_starts_with($folder, 'images/') || $folder === 'images') {
+                $cdnUrl = $this->getBunnyCdnUrl();
+            }
 
             foreach ($array as $key => $value) {
                 $appName = Config::get('app.image_url');
                 if (isset($value[$column]) && $value[$column] != "") {
+                    if ($cdnUrl) {
+                        // Serve directly from Bunny CDN
+                        $value[$column] = $cdnUrl . '/' . $folder . '/' . $value[$column];
+                        $array[$key] = $value;
+                        continue;
+                    }
                     if ($folder == "user" or $folder == "artist") {
                         if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
                             $value[$column] = $appName . $folder . '/' . $value[$column];
@@ -92,34 +111,23 @@ class Common extends Model
 
     public function Get_Image($folder = "", $name = "")
     {
+        $isUser = str_contains($folder, 'user');
+        $default = $isUser ? asset('assets/imgs/default.png') : asset('assets/imgs/no_img.png');
 
-        $appName = Config::get('app.image_url');
+        if ($folder === "" || $name === "") return $default;
 
-        if ($folder != "" && $name != "") {
-            if ($folder == "user") {
-
-                if (Storage::disk('public')->exists($folder . '/' . $name)) {
-                    $name = $appName . $folder . '/' . $name;
-                } else {
-                    $name = asset('assets/imgs/default.png');
-                }
-            } else {
-
-                if (Storage::disk('public')->exists($folder . '/' . $name)) {
-                    $name = $appName . $folder . '/' . $name;
-                } else {
-                    $name = asset('assets/imgs/no_img.png');
-                }
-            }
-        } else {
-
-            if ($folder == "user") {
-                $name = asset('assets/imgs/default.png');
-            } else {
-                $name = asset('assets/imgs/no_img.png');
-            }
+        // JAILAOI: Bunny CDN — images stored under images/{type}/filename
+        $cdnUrl = $this->getBunnyCdnUrl();
+        if ($cdnUrl) {
+            return $cdnUrl . '/' . $folder . '/' . $name;
         }
-        return $name;
+
+        // Local fallback
+        $appName = Config::get('app.image_url');
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
+        }
+        return $default;
     }
     // JAILAOI: Reads Bunny CDN credentials from tbl_general_setting (admin panel),
     // falling back to .env vars for backwards compatibility.
@@ -823,7 +831,7 @@ class Common extends Model
             for ($i = 0; $i < count($query); $i++) {
                 if ($type == 1) {
 
-                    $query[$i]['image'] = $this->Get_Image($this->folder_song, $query[$i]['image']);
+                    $query[$i]['image'] = $this->Get_Image($this->folder_song_img, $query[$i]['image']);
                     if ($query[$i]['upload_type'] == 1) {
                         $query[$i]['song_url'] = $this->Get_Song($this->folder_song, $query[$i]['song_url']);
                     }
@@ -835,8 +843,8 @@ class Common extends Model
                     unset($query[$i]['artist']);
                 } elseif ($type == 2) {
 
-                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_podcast, $query[$i]['portrait_img']);
-                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_podcast, $query[$i]['landscape_img']);
+                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_podcast_img, $query[$i]['portrait_img']);
+                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_podcast_img, $query[$i]['landscape_img']);
                     if ($query[$i]['trailer_upload_type'] == 1) {
                         $query[$i]['trailer_audio'] = $this->Get_Song($this->folder_podcast, $query[$i]['trailer_audio']);
                     }
@@ -851,9 +859,9 @@ class Common extends Model
                     if ($query[$i]['upload_type'] == 1) {
                         $query[$i]['music'] = $this->Get_Song($this->folder_music, $query[$i]['music']);
                     }
-                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_music, $query[$i]['portrait_img']);
-                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_music, $query[$i]['landscape_img']);
-                    $query[$i]['ogtag_img'] = $this->Get_Image($this->folder_music, $query[$i]['ogtag_img']);
+                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['portrait_img']);
+                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['landscape_img']);
+                    $query[$i]['ogtag_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['ogtag_img']);
 
                     $query[$i]['is_buy'] = $this->is_any_package_buy($user_id);
                     $query[$i]['is_favorite'] = $this->isFavorite(3, $query[$i]['id'], $user_id);

@@ -56,6 +56,12 @@ class HomeController extends Controller
     private $folder_notification = "notification";
     private $folder_user = "user";
     private $folder_music = "music";
+    // JAILAOI: Image folders on Bunny CDN — images/{type}/filename.jpg
+    private $folder_song_img    = "images/radio";
+    private $folder_podcast_img = "images/podcast";
+    private $folder_music_img   = "images/music";
+    private $folder_artist_img  = "images/artist";
+    private $folder_user_img    = "images/user";
     public $common;
     public $page_limit;
     public function __construct()
@@ -349,7 +355,7 @@ class HomeController extends Controller
                 }
             }
 
-            $this->common->imageNameToUrl($result, 'image', $this->folder_song);
+            $this->common->imageNameToUrl($result, 'image', $this->folder_song_img);
             $this->common->songNameToUrl($result, 'song_url', $this->folder_song);
             $this->common->getAllIdByName($result);
 
@@ -409,7 +415,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
 
@@ -470,7 +476,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
@@ -530,7 +536,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
@@ -590,7 +596,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
@@ -639,7 +645,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
@@ -682,7 +688,7 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                 $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
@@ -901,7 +907,7 @@ class HomeController extends Controller
                     if ($item['type'] == 1 && !empty($item['song'])) {
                         if ($item['song']['status'] == 1) {
 
-                            $item['song']['image'] = $this->common->Get_Image($this->folder_song, $item['song']['image']);
+                            $item['song']['image'] = $this->common->Get_Image($this->folder_song_img, $item['song']['image']);
                             if ($item['song']['upload_type'] == 1) {
                                 $item['song']['song_url'] = $this->common->Get_Song($this->folder_song, $item['song']['song_url']);
                             }
@@ -916,8 +922,8 @@ class HomeController extends Controller
 
                         if ($item['podcast']['status'] == 1) {
 
-                            $item['podcast']['portrait_img'] = $this->common->Get_Image($this->folder_podcast, $item['podcast']['portrait_img']);
-                            $item['podcast']['landscape_img'] = $this->common->Get_Image($this->folder_podcast, $item['podcast']['landscape_img']);
+                            $item['podcast']['portrait_img'] = $this->common->Get_Image($this->folder_podcast_img, $item['podcast']['portrait_img']);
+                            $item['podcast']['landscape_img'] = $this->common->Get_Image($this->folder_podcast_img, $item['podcast']['landscape_img']);
 
                             if ($item['podcast']['trailer_upload_type'] == 1) {
                                 $item['podcast']['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $item['podcast']['trailer_audio']);
@@ -936,9 +942,9 @@ class HomeController extends Controller
                             if ($item['music']['upload_type'] == 1) {
                                 $item['music']['music'] = $this->common->Get_Song($this->folder_music, $item['music']['music']);
                             }
-                            $item['music']['portrait_img'] = $this->common->Get_Image($this->folder_music, $item['music']['portrait_img']);
-                            $item['music']['landscape_img'] = $this->common->Get_Image($this->folder_music, $item['music']['landscape_img']);
-                            $item['music']['ogtag_img'] = $this->common->Get_Image($this->folder_music, $item['music']['ogtag_img']);
+                            $item['music']['portrait_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['portrait_img']);
+                            $item['music']['landscape_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['landscape_img']);
+                            $item['music']['ogtag_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['ogtag_img']);
 
                             $item['music']['is_buy'] = $this->common->is_any_package_buy($user_id);
                             $item['music']['is_favorite'] = $this->common->isFavorite(3, $item['music']['id'], $user_id);
@@ -1016,7 +1022,7 @@ class HomeController extends Controller
                 $this->common->getAllIdByName($data);
                 if ($type == 1) {
 
-                    $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                    $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                     $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                     foreach ($data as $key => $value) {
                         $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
@@ -1025,8 +1031,8 @@ class HomeController extends Controller
                     }
                 } else if ($type == 2) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                     foreach ($data as $key => $value) {
                         if ($value['trailer_upload_type'] == 1) {
                             $value['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $value['trailer_audio']);
@@ -1049,9 +1055,9 @@ class HomeController extends Controller
                     }
                 } else if ($type == 4) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music_img);
                     foreach ($data as $key => $value) {
                         if ($value['upload_type'] == 1) {
                             $value['music'] = $this->common->Get_Song($this->folder_music, $value['music']);
@@ -1095,8 +1101,8 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
 
@@ -1142,8 +1148,8 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                 $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
 
@@ -1199,8 +1205,8 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                 for ($i = 0; $i < count($data); $i++) {
                     if ($data[$i]['episode_upload_type'] == 1) {
                         $data[$i]['episode_audio'] =  $this->common->Get_Song($this->folder_podcast, $data[$i]['episode_audio']);
@@ -1280,8 +1286,8 @@ class HomeController extends Controller
                 }
             }
 
-            $this->common->imageNameToUrl($result, 'portrait_img', $this->folder_podcast);
-            $this->common->imageNameToUrl($result, 'landscape_img', $this->folder_podcast);
+            $this->common->imageNameToUrl($result, 'portrait_img', $this->folder_podcast_img);
+            $this->common->imageNameToUrl($result, 'landscape_img', $this->folder_podcast_img);
 
             foreach ($result as $key => $value) {
 
@@ -1598,7 +1604,7 @@ class HomeController extends Controller
                 for ($i = 0; $i < count($data); $i++) {
                     if ($section['type'] == 1) {
 
-                        $data[$i]['image'] = $this->common->Get_Image($this->folder_song, $data[$i]['image']);
+                        $data[$i]['image'] = $this->common->Get_Image($this->folder_song_img, $data[$i]['image']);
                         if ($data[$i]['upload_type'] == 1) {
                             $data[$i]['song_url'] = $this->common->Get_Song($this->folder_song, $data[$i]['song_url']);
                         }
@@ -1608,8 +1614,8 @@ class HomeController extends Controller
                         $this->common->getAllIdByName(array($data[$i]));
                     } else if ($section['type'] == 2) {
 
-                        $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['portrait_img']);
-                        $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['landscape_img']);
+                        $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_podcast_img, $data[$i]['portrait_img']);
+                        $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_podcast_img, $data[$i]['landscape_img']);
                         if ($data[$i]['trailer_upload_type'] == 1) {
                             $data[$i]['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $data[$i]['trailer_audio']);
                         }
@@ -1645,9 +1651,9 @@ class HomeController extends Controller
                         if ($data[$i]['upload_type'] == 1) {
                             $data[$i]['music'] = $this->common->Get_Song($this->folder_music, $data[$i]['music']);
                         }
-                        $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_music, $data[$i]['portrait_img']);
-                        $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_music, $data[$i]['landscape_img']);
-                        $data[$i]['ogtag_img'] = $this->common->Get_Image($this->folder_music, $data[$i]['ogtag_img']);
+                        $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_music_img, $data[$i]['portrait_img']);
+                        $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_music_img, $data[$i]['landscape_img']);
+                        $data[$i]['ogtag_img'] = $this->common->Get_Image($this->folder_music_img, $data[$i]['ogtag_img']);
                         $data[$i]['is_buy'] = $this->common->is_any_package_buy($user_id);
                         $data[$i]['is_favorite'] = $this->common->isFavorite(3, $data[$i]['id'], $user_id);
                         $this->common->get_all_count_for_content(3, $data[$i]);
@@ -1746,8 +1752,8 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
                 for ($i = 0; $i < count($data); $i++) {
-                    $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['portrait_img']);
-                    $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_podcast, $data[$i]['landscape_img']);
+                    $data[$i]['portrait_img'] = $this->common->Get_Image($this->folder_podcast_img, $data[$i]['portrait_img']);
+                    $data[$i]['landscape_img'] = $this->common->Get_Image($this->folder_podcast_img, $data[$i]['landscape_img']);
                     if ($data[$i]['trailer_upload_type'] == 1) {
                         $data[$i]['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $data[$i]['trailer_audio']);
                     }
@@ -1799,7 +1805,7 @@ class HomeController extends Controller
                 foreach ($data as &$item) {
                     if ($item['type'] == 1 && !empty($item['song'])) {
                         if ($item['song']['status'] == 1) {
-                            $item['song']['image'] = $this->common->Get_Image($this->folder_song, $item['song']['image']);
+                            $item['song']['image'] = $this->common->Get_Image($this->folder_song_img, $item['song']['image']);
                             if ($item['song']['upload_type'] == 1) {
                                 $item['song']['song_url'] = $this->common->Get_Song($this->folder_song, $item['song']['song_url']);
                             }
@@ -1812,8 +1818,8 @@ class HomeController extends Controller
                         }
                     } elseif ($item['type'] == 2 && !empty($item['podcast'])) {
                         if ($item['podcast']['status'] == 1) {
-                            $item['podcast']['portrait_img'] = $this->common->Get_Image($this->folder_podcast, $item['podcast']['portrait_img']);
-                            $item['podcast']['landscape_img'] = $this->common->Get_Image($this->folder_podcast, $item['podcast']['landscape_img']);
+                            $item['podcast']['portrait_img'] = $this->common->Get_Image($this->folder_podcast_img, $item['podcast']['portrait_img']);
+                            $item['podcast']['landscape_img'] = $this->common->Get_Image($this->folder_podcast_img, $item['podcast']['landscape_img']);
 
                             if ($item['podcast']['trailer_upload_type'] == 1) {
                                 $item['podcast']['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $item['podcast']['trailer_audio']);
@@ -1831,9 +1837,9 @@ class HomeController extends Controller
                             if ($item['music']['upload_type'] == 1) {
                                 $item['music']['music'] = $this->common->Get_Song($this->folder_music, $item['music']['music']);
                             }
-                            $item['music']['portrait_img'] = $this->common->Get_Image($this->folder_music, $item['music']['portrait_img']);
-                            $item['music']['landscape_img'] = $this->common->Get_Image($this->folder_music, $item['music']['landscape_img']);
-                            $item['music']['ogtag_img'] = $this->common->Get_Image($this->folder_music, $item['music']['ogtag_img']);
+                            $item['music']['portrait_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['portrait_img']);
+                            $item['music']['landscape_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['landscape_img']);
+                            $item['music']['ogtag_img'] = $this->common->Get_Image($this->folder_music_img, $item['music']['ogtag_img']);
 
                             $item['music']['is_buy'] = $this->common->is_any_package_buy($user_id);
                             $item['music']['is_favorite'] = $this->common->isFavorite(3, $item['music']['id'], $user_id);
@@ -2253,7 +2259,7 @@ class HomeController extends Controller
                 $this->common->getAllIdByName($data);
                 if ($type == 1) {
 
-                    $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                    $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                     $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                     foreach ($data as $key => $value) {
                         $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
@@ -2262,8 +2268,8 @@ class HomeController extends Controller
                     }
                 } else if ($type == 2) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                     foreach ($data as $key => $value) {
                         $value['is_favorite'] = $this->common->isFavorite(2, $value->id, $user_id);
                         $value['is_buy'] = $this->common->is_any_package_buy($user_id);
@@ -2272,9 +2278,9 @@ class HomeController extends Controller
                     }
                 } else if ($type == 3) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music_img);
                     foreach ($data as $key => $value) {
                         if ($value['upload_type'] == 1) {
                             $value['music'] = $this->common->Get_Song($this->folder_music, $value['music']);
@@ -2355,7 +2361,7 @@ class HomeController extends Controller
 
                 $this->common->getAllIdByName($data);
                 if ($type == 1) {
-                    $this->common->imageNameToUrl($data, 'image', $this->folder_song);
+                    $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
                     $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
                     $this->common->getAllIdByName($data);
                     foreach ($data as $key => $value) {
@@ -2366,8 +2372,8 @@ class HomeController extends Controller
                     }
                 } else if ($type == 2) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
                     foreach ($data as $key => $value) {
                         if ($value['trailer_upload_type'] == 1) {
                             $value['trailer_audio'] = $this->common->Get_Song($this->folder_podcast, $value['trailer_audio']);
@@ -2379,9 +2385,9 @@ class HomeController extends Controller
                     }
                 } else if ($type == 3) {
 
-                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music);
-                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music);
+                    $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music_img);
+                    $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music_img);
                     foreach ($data as $key => $value) {
                         if ($value['upload_type'] == 1) {
                             $value['music'] = $this->common->Get_Song($this->folder_music, $value['music']);
