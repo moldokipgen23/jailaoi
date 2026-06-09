@@ -107,9 +107,23 @@ class BunnyFixAll extends Command
             $artistMap = $this->buildArtistMap($table, $artistFk);
 
             $records = DB::table($table)->select(array_merge(['id', $audioCol, $artistFk], $imageCols))->get();
-            $this->line("    {$records->count()} records");
+            $total = $records->count();
+            $this->line("    {$total} records");
 
+            $idx = 0;
+            $startTime = time();
             foreach ($records as $rec) {
+                $idx++;
+                // JAILAOI: progress line every 10 records — overwrites previous line
+                if ($idx % 10 === 0 || $idx === $total) {
+                    $pct = round($idx / max($total, 1) * 100, 1);
+                    $elapsed = max(1, time() - $startTime);
+                    $rate = round($idx / $elapsed, 1);
+                    $eta = $rate > 0 ? round(($total - $idx) / $rate) : 0;
+                    $etaMin = (int) floor($eta / 60);
+                    $etaSec = $eta % 60;
+                    echo "\r    [{$idx}/{$total}] {$pct}%  audio:{$audioUp}  img:{$imgUp}  skip:{$skipped}  err:{$errors}  ETA:{$etaMin}m{$etaSec}s    ";
+                }
                 // ── AUDIO ──
                 $storedAudio = $rec->{$audioCol} ?? '';
                 if (!empty($storedAudio) && !str_contains($storedAudio, '/')) {
@@ -158,9 +172,10 @@ class BunnyFixAll extends Command
 
                     if ($pretend) { $imgUp++; continue; }
                     try { $this->uploadBunny($localPath, $remotePath); $imgUp++; }
-                    catch (\Throwable $e) { $this->error("    FAILED img id={$rec->id} {$col}: {$e->getMessage()}"); $errors++; }
+                    catch (\Throwable $e) { $this->error("\n    FAILED img id={$rec->id} {$col}: {$e->getMessage()}"); $errors++; }
                 }
             }
+            echo "\n";  // end progress line
         }
 
         // ── SUMMARY ──
