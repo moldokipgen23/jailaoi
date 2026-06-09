@@ -66,7 +66,8 @@ class UploadLocalToBunny extends Command
             $this->info("\n── {$table} → Bunny:{$folder}/ ──");
 
             $records = DB::table($table)->select(array_merge(['id'], $columns))->get();
-            $bar = $this->output->createProgressBar($records->count());
+            $total   = $records->count() * count($columns);
+            $bar     = $this->output->createProgressBar($total);
             $bar->start();
 
             foreach ($records as $record) {
@@ -74,17 +75,15 @@ class UploadLocalToBunny extends Command
                     $storedPath = $record->{$col} ?? '';
                     if (empty($storedPath)) { $bar->advance(); continue; }
 
-                    $localPath = storage_path("app/public/{$folder}/{$storedPath}");
+                    $localPath  = storage_path("app/public/{$folder}/{$storedPath}");
                     $remotePath = "{$folder}/{$storedPath}";
 
-                    // Skip if file doesn't exist locally
                     if (!file_exists($localPath)) {
                         $missing++;
                         $bar->advance();
                         continue;
                     }
 
-                    // Check if already on Bunny (unless --skip-check)
                     if (!$skipCheck && $this->existsOnBunny($cdnUrl, $remotePath)) {
                         $skipped++;
                         $bar->advance();
@@ -92,20 +91,21 @@ class UploadLocalToBunny extends Command
                     }
 
                     if ($pretend) {
-                        $this->newLine();
-                        $this->line("  [PRETEND] {$folder}/{$storedPath}");
+                        $bar->clear();
+                        $this->line("  [PRETEND] {$remotePath}");
+                        $bar->display();
                         $uploaded++;
                         $bar->advance();
                         continue;
                     }
 
-                    // Upload to Bunny
                     try {
                         $this->uploadToBunny($localPath, $remotePath, $zone, $apiKey, $endpoint);
                         $uploaded++;
                     } catch (\Throwable $e) {
-                        $this->newLine();
+                        $bar->clear();
                         $this->error("  FAILED: {$remotePath} — {$e->getMessage()}");
+                        $bar->display();
                         $errors++;
                     }
 
@@ -114,27 +114,24 @@ class UploadLocalToBunny extends Command
             }
 
             $bar->finish();
-            $this->newLine();
+            $this->newLine(2);
         }
 
         // Summary
         $this->newLine();
-        $this->table(
-            ['Status', 'Count'],
-            [
-                ['Uploaded to Bunny',          $uploaded],
-                ['Skipped (already on Bunny)', $skipped],
-                ['Missing locally (not found)', $missing],
-                ['Errors',                      $errors],
-            ]
-        );
+        $this->line('================================');
+        $this->line("  Uploaded  : {$uploaded}");
+        $this->line("  Skipped   : {$skipped}");
+        $this->line("  Not found : {$missing}");
+        $this->line("  Errors    : {$errors}");
+        $this->line('================================');
 
         if ($pretend) {
-            $this->warn('Dry-run complete — nothing was uploaded.');
+            $this->warn('Dry-run — nothing uploaded.');
         } elseif ($errors === 0) {
-            $this->info('All done! Audio should now be playable via Bunny CDN.');
+            $this->info('Done! All files uploaded to Bunny CDN.');
         } else {
-            $this->warn("{$errors} file(s) failed. Re-run the command to retry.");
+            $this->warn("{$errors} failed. Re-run to retry.");
         }
 
         return $errors > 0 ? Command::FAILURE : Command::SUCCESS;
