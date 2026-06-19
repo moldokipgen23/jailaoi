@@ -46,6 +46,9 @@ class createUploadBatchFile extends Command
 
             $filename = 'public/batch/input_' . now()->timestamp . "_" . uniqid() . '.jsonl';
             $filePath = storage_path('app/' . $filename);
+            if (!is_dir(dirname($filePath))) {
+                mkdir(dirname($filePath), 0755, true);
+            }
             $file = fopen($filePath, 'w');
 
             foreach ($rows as $item) {
