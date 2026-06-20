@@ -210,7 +210,7 @@ PROMPT;
                     'method' => 'POST',
                     'url' => '/v1/chat/completions',
                     'body' => [
-                        'model' => 'gpt-4.1',
+                        'model' => 'gpt-4o-mini',
                         'messages' => [
                             [
                                 'role' => 'system',
