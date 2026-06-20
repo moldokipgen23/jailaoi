@@ -84,4 +84,5 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('follow_artist', [ArtistController::class, 'follow_artist']);
     Route::post('unfollow_artist', [ArtistController::class, 'unfollow_artist']);
     Route::post('get_artist_dashboard', [ArtistController::class, 'get_artist_dashboard']);
+    Route::post('generate_portal_token', [ArtistController::class, 'generate_portal_token']);
 });

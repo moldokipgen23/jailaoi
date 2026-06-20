@@ -10,11 +10,16 @@ use App\Models\Common;
 use App\Models\Music;
 use App\Models\Song;
 use App\Models\Podcast;
+use App\Models\ArtistEarning;
+use App\Models\MonetizationApplication;
 use App\Models\Subscriber;
 use App\Models\User;
 use App\Models\User_Action;
+use App\Models\WithdrawalRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Exception;
 
 class ArtistController extends Controller
@@ -343,6 +348,35 @@ class ArtistController extends Controller
         }
     }
 
+    public function generate_portal_token(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), [
+                'user_id' => 'required|numeric',
+            ]);
+            if ($validation->fails()) {
+                return ['status' => 400, 'message' => $validation->errors()->first()];
+            }
+
+            $user = User::find($request->user_id);
+            if (!$user) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
+            $token = Str::random(48);
+            // Store token in cache for 5 minutes keyed to user_id
+            Cache::put("portal_token:{$token}", $user->id, now()->addMinutes(5));
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Token generated',
+                'token' => $token,
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function get_artist_dashboard(Request $request)
     {
         try {
@@ -363,17 +397,69 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, 'You are not an artist');
             }
 
-            $total_content = \App\Models\Song::where('artist_id', 'LIKE', "%{$artist->id}%")->count();
             $total_followers = Subscriber::where('to_user_id', $user->id)->count();
-            $total_views = \App\Models\Song::where('artist_id', 'LIKE', "%{$artist->id}%")->sum('total_play');
+
+            // Plays across all content types
+            $total_views = Song::where('artist_id', $artist->id)->sum('total_play')
+                + Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist->id])->sum('total_play')
+                + Podcast::where('artist_id', $artist->id)->sum('total_play');
+
+            // Content counts
+            $song_count    = Song::where('artist_id', $artist->id)->where('status', 1)->count();
+            $music_count   = Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist->id])->where('status', 1)->count();
+            $podcast_count = Podcast::where('artist_id', $artist->id)->where('status', 1)->count();
+            $total_content = $song_count + $music_count + $podcast_count;
+
+            // Monthly listeners — unique users who played in last 30 days
+            $monthly_listeners = User_Action::where('artist_id', $artist->id)
+                ->where('created_at', '>=', now()->subDays(30))
+                ->distinct('user_id')
+                ->count('user_id');
+
+            // Verified status
+            $is_verified = ArtistKyc::where('artist_id', $artist->id)
+                ->where('status', 'approved')
+                ->exists() ? 1 : 0;
+
+            // Earnings balance
+            $total_earned  = round((float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'), 2);
+            $paid_out      = round((float) WithdrawalRequest::where('artist_id', $artist->id)->where('status', 'approved')->sum('amount'), 2);
+            $pending_payout = round((float) WithdrawalRequest::where('artist_id', $artist->id)->where('status', 'pending')->sum('amount'), 2);
+            $available_balance = round(max(0, $total_earned - $paid_out - $pending_payout), 2);
+
+            // Monetization — full status
+            $monetization_row = MonetizationApplication::where('artist_id', $artist->id)
+                ->latest()->first();
+            $monetization_status = $monetization_row ? $monetization_row->status : null;
+            $monetization_approved = $monetization_status === 'approved' ? 1 : 0;
+
+            // KYC — full status
+            $kyc_row = ArtistKyc::where('artist_id', $artist->id)->latest()->first();
+            $kyc_status = $kyc_row ? $kyc_row->status : null;
+
+            // Recent 5 tracks
+            $recent_tracks = Song::where('artist_id', $artist->id)
+                ->where('status', 1)
+                ->orderByDesc('id')
+                ->take(5)
+                ->get(['id', 'title', 'image', 'total_play']);
+            $this->common->imageNameToUrl($recent_tracks, 'image', 'images/radio');
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
 
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [[
-                'artist' => $artist->toArray(),
-                'total_content' => $total_content,
-                'total_followers' => $total_followers,
-                'total_views' => $total_views,
+                'artist'                => $artist->toArray(),
+                'total_content'         => $total_content,
+                'total_followers'       => $total_followers,
+                'total_views'           => $total_views,
+                'monthly_listeners'     => $monthly_listeners,
+                'is_verified'           => $is_verified,
+                'total_earned'          => $total_earned,
+                'available_balance'     => $available_balance,
+                'monetization_approved' => $monetization_approved,
+                'monetization_status'   => $monetization_status,
+                'kyc_status'            => $kyc_status,
+                'recent_tracks'         => $recent_tracks->toArray(),
             ]]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
