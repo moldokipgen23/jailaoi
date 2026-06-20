@@ -128,7 +128,7 @@ class HomeController extends Controller
             $data = Page::select('title', 'description', 'icon')->get();
 
             for ($i = 0; $i < count($data); $i++) {
-                $data[$i]['url'] = env('APP_URL') . '/public/pages/' . $data[$i]['title'];
+                $data[$i]['url'] = env('APP_URL') . '/pages/' . rawurlencode($data[$i]['title']);
                 $data[$i]['icon'] = $this->common->Get_Image($this->folder_app, $data[$i]['icon']);
             }
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data);
