@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
+use App\Models\ArtistKyc;
 use App\Models\ArtistRequest;
 use App\Models\Common;
+use App\Models\Music;
+use App\Models\Song;
+use App\Models\Podcast;
 use App\Models\Subscriber;
 use App\Models\User;
+use App\Models\User_Action;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -92,8 +97,33 @@ class ArtistController extends Controller
             }
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
-            $artist['total_followers'] = $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->count() : 0;
-            $artist['monthly_listeners'] = $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->where('created_at', '>=', now()->subDays(30))->count() : 0;
+
+            // Real followers count
+            $artist['total_followers'] = $artist->user_id
+                ? Subscriber::where('to_user_id', $artist->user_id)->count()
+                : 0;
+
+            // Real monthly listeners: unique users who played this artist's content in last 30 days
+            $artist['monthly_listeners'] = User_Action::where('artist_id', $artist->id)
+                ->where('created_at', '>=', now()->subDays(30))
+                ->distinct('user_id')
+                ->count('user_id');
+
+            // Total content count (radio + music + podcast)
+            $songCount  = Song::where('artist_id', $artist->id)->where('status', 1)->count();
+            $musicCount = Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist->id])->where('status', 1)->count();
+            $podcastCount = Podcast::where('artist_id', $artist->id)->where('status', 1)->count();
+            $artist['total_songs'] = $songCount + $musicCount + $podcastCount;
+
+            // Total plays across all content
+            $artist['total_plays'] = Song::where('artist_id', $artist->id)->sum('total_play')
+                + Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist->id])->sum('total_play')
+                + Podcast::where('artist_id', $artist->id)->sum('total_play');
+
+            // Verified if KYC approved
+            $artist['is_verified'] = ArtistKyc::where('artist_id', $artist->id)
+                ->where('status', 'approved')
+                ->exists() ? 1 : 0;
 
             $login_user_id = $request->login_user_id ?? 0;
             $artist['is_following'] = 0;
