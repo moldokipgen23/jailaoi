@@ -42,7 +42,9 @@ class createUploadBatchFile extends Command
             return Command::FAILURE;
         }
 
-        User_Summary::select('id', 'user_id', 'score_json')->where('status', 1)->chunkById(5000, function ($rows) use ($api_key) {
+        $ai_section_count = max(1, (int) (General_Setting::where('key', 'ai_section_count')->value('value') ?? 2));
+
+        User_Summary::select('id', 'user_id', 'score_json')->where('status', 1)->chunkById(5000, function ($rows) use ($api_key, $ai_section_count) {
 
             $filename = 'public/batch/input_' . now()->timestamp . "_" . uniqid() . '.jsonl';
             $filePath = storage_path('app/' . $filename);
@@ -115,11 +117,12 @@ INSTRUCTIONS:
 
 1. Sort content types by user_data[uid].content_type_affinity[tp].score descending.
 2. Compute gap_12 = top score − second score.
-3. Decide **exact number of sections per type** based on gap:
-   - Three types, gap_12 ≥ 0.10 → rank-1:3, rank-2:1, rank-3:1
-   - Three types, 0 < gap_12 < 0.10 → rank-1:2, rank-2:2, rank-3:1
-   - Two types → rank-1:3, rank-2:2
-   - One type → 5 sections
+3. Produce exactly N={$ai_section_count} sections total. Distribute across content types by affinity score proportion:
+   - Rank types by content_type_affinity score descending
+   - Assign sections proportionally: top type gets the most, lower types get fewer
+   - Minimum 1 section for the top-ranked type; lower types get sections only if N allows
+   - If only 1 type has affinity data, all N sections use that type with different filter rotations
+   - Round so total = exactly N
 4. If a type has no affinity vectors, allocate **generic sections** for it.
 
 FILTERS:
@@ -154,10 +157,8 @@ Skip any dimension whose pool is empty.
 
 SECTION ORDER:
 
-- 3-1-1 → rank-1 first, then rank-2, then rank-3
-- 2-2-1 → rank-1 first, then rank-2, then rank-3
-- 3-2 → rank-1 first, then rank-2
-- One type → rotate dimensions, fallback to generic if exhausted
+- Output highest-affinity type sections first, then lower types
+- Within a type, rotate filter dimensions by score strength
 
 TITLE RULES:
 
@@ -201,7 +202,7 @@ Return exactly:
 
 FINAL RULES:
 
-1. Always produce exactly 5 sections.
+1. Always produce exactly {$ai_section_count} sections. No more, no less.
 2. Never include explanations, markdown, or extra text.
 PROMPT;
 

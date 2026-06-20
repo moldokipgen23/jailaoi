@@ -165,6 +165,7 @@ class SettingController extends Controller
             $data = $request->all();
             $data["ai_api_key"] = isset($data['ai_api_key']) ? $data['ai_api_key'] : '';
             $data["ai_section"] = isset($data['ai_section']) ? $data['ai_section'] : 0;
+            $data["ai_section_count"] = max(1, (int) ($data['ai_section_count'] ?? 2));
             if ($data['ai_section'] == 0) {
                 $data['ai_api_key'] = '';
             }

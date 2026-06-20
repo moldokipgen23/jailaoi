@@ -266,10 +266,17 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-10 key_drop">
+                                        <div class="col-md-7 key_drop">
                                             <div class="form-group">
                                                 <label>{{__('label.api_key')}}<span class="text-danger">* </span>({{__('label.api_note')}} - <a href="https://developers.openai.com/api/docs" class="btn-link" target="_blank">{{__('label.click_here_to_get_your_api_key')}}</a>)</label>
                                                 <input type="text" name="ai_api_key" value="{{$result['ai_api_key']}}" class="form-control" placeholder="{{__('label.key_here')}}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 key_drop">
+                                            <div class="form-group">
+                                                <label>AI Sections Per User <span class="text-danger">*</span></label>
+                                                <input type="number" name="ai_section_count" min="1" max="20" value="{{$result['ai_section_count'] ?? 2}}" class="form-control">
+                                                <small class="text-muted">How many personalized sections to generate per user (start low, increase as user base grows)</small>
                                             </div>
                                         </div>
                                     </div>
