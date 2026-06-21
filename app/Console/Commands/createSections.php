@@ -74,6 +74,15 @@ class createSections extends Command
                     $user_ids[] = $request_data['custom_id'] ?? 0;
 
                     $content = isset($request_data['response']['body']['choices'][0]['message']['content']) ? $request_data['response']['body']['choices'][0]['message']['content'] : null;
+                    if ($content) {
+                        $content = trim($content);
+                        $content = preg_replace('/^```(?:json)?\s*/i', '', $content);
+                        $content = preg_replace('/```\s*$/', '', $content);
+                        $content = trim($content);
+                        if (str_starts_with($content, '[') && str_ends_with($content, '}')) {
+                            $content .= ']';
+                        }
+                    }
                     $content = json_decode($content, true);
 
                     if (isset($content) && is_array($content)) {
