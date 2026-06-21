@@ -32,11 +32,8 @@ class updateSummary extends Command
     public function handle()
     {
         User_Summary::truncate();
-        $start_date = now()->subWeek()->startOfWeek();
-        $end_date   = now()->startOfWeek();
 
-        $data = User_Action::whereBetween('created_at', [$start_date, $end_date])
-            ->get()
+        $data = User_Action::all()
             ->groupBy(['user_id', 'content_type']);
         $ids = [];
 
