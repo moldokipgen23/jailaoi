@@ -363,6 +363,15 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
 
+            $artist = Artist::where('user_id', $user->id)->first();
+            if ($artist && $artist->is_suspended) {
+                return response()->json([
+                    'status'         => 423,
+                    'message'        => 'Account suspended',
+                    'suspend_reason' => $artist->suspend_reason ?? '',
+                ]);
+            }
+
             $token = Str::random(48);
             // Store token in cache for 5 minutes keyed to user_id
             Cache::put("portal_token:{$token}", $user->id, now()->addMinutes(5));
@@ -449,6 +458,8 @@ class ArtistController extends Controller
 
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [[
                 'artist'                => $artist->toArray(),
+                'is_suspended'          => $artist->is_suspended ?? 0,
+                'suspend_reason'        => $artist->suspend_reason ?? '',
                 'total_content'         => $total_content,
                 'total_followers'       => $total_followers,
                 'total_views'           => $total_views,

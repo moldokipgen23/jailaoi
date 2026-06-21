@@ -38,6 +38,12 @@ class ArtistController extends Controller
 
                 return DataTables()::of($data)
                     ->addIndexColumn()
+                    ->addColumn('suspend_status', function ($row) {
+                        if ($row->is_suspended) {
+                            return '<span class="badge" style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:4px;font-size:11px;">⚠ Suspended</span>';
+                        }
+                        return '<span class="badge" style="background:#d1fae5;color:#065f46;padding:4px 8px;border-radius:4px;font-size:11px;">Active</span>';
+                    })
                     ->addColumn('status', function ($row) {
                         $status = $row->status == 1 ? "checked" : "";
                         return '<div class="switch">
@@ -62,9 +68,17 @@ class ArtistController extends Controller
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="edit-delete-btn" title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
 
+                        $isSuspended = $row->is_suspended ?? 0;
+                        if ($isSuspended) {
+                            $suspendBtn = '<button class="edit-delete-btn unsuspend-btn" title="Reinstate Artist" data-id="' . $row->id . '" style="color:#22c97a;"><i class="fa-solid fa-circle-check fa-xl"></i></button>';
+                        } else {
+                            $suspendBtn = '<button class="edit-delete-btn suspend-btn" title="Suspend Artist" data-id="' . $row->id . '" data-name="' . htmlspecialchars($row->name, ENT_QUOTES) . '" style="color:#f59e0b;"><i class="fa-solid fa-ban fa-xl"></i></button>';
+                        }
+
                         $btn = '<div class="d-flex justify-content-center" style="gap:6px;">';
                         $btn .= '<a class="edit-delete-btn" title="View Detail" href="' . route('artist.detail', [$row->id]) . '" style="color:#3b82f6;">';
                         $btn .= '<i class="fa-solid fa-eye fa-xl"></i></a>';
+                        $btn .= $suspendBtn;
                         $btn .= '<a class="edit-delete-btn edit_artist mr-4" title="' . __('label.edit') . '"'
                             . ' data-toggle="modal" href="#EditModel"'
                             . ' data-id="' . $row->id . '"'
@@ -85,7 +99,7 @@ class ArtistController extends Controller
                         $btn .= '</div>';
                         return $btn;
                     })
-                    ->rawColumns(['action', 'status'])
+                    ->rawColumns(['action', 'status', 'suspend_status'])
                     ->make(true);
             }
             return view('admin.artist.index', $params);
@@ -177,6 +191,53 @@ class ArtistController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function suspend(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'reason' => 'required|min:5',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->first()]);
+            }
+
+            $artist = Artist::find($id);
+            if (!$artist) {
+                return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
+            }
+
+            $artist->update([
+                'is_suspended'  => 1,
+                'suspend_reason' => $request->reason,
+                'suspended_at'  => now(),
+            ]);
+
+            return response()->json(['status' => 200, 'success' => 'Artist suspended successfully']);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function unsuspend($id)
+    {
+        try {
+            $artist = Artist::find($id);
+            if (!$artist) {
+                return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
+            }
+
+            $artist->update([
+                'is_suspended'  => 0,
+                'suspend_reason' => null,
+                'suspended_at'  => null,
+            ]);
+
+            return response()->json(['status' => 200, 'success' => 'Artist reinstated successfully']);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function ArtistSortableSave(Request $request)
     {
         try {

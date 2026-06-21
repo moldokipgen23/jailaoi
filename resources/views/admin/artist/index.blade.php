@@ -218,6 +218,39 @@
                 </div>
             </div>
         </div>
+        <!-- suspendModal -->
+        <div class="modal fade" id="suspendModal" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#fef3c7;border-bottom:1px solid #fcd34d;">
+                        <h5 class="modal-title w-100 text-center" style="color:#92400e;">
+                            <i class="fa-solid fa-ban mr-2"></i> Suspend Artist
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" class="text-dark">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="suspend_artist_id">
+                        <p class="mb-3" style="color:#374151;">
+                            Suspending <strong id="suspend_artist_name"></strong> will lock their portal, hold all payments, and show a suspension notice in the app.
+                        </p>
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#374151;">Reason for Suspension <span class="text-danger">*</span></label>
+                            <textarea id="suspend_reason" class="form-control" rows="4" placeholder="e.g. Copyright violation — uploaded content without proper rights. Artist has been notified via email."></textarea>
+                            <small class="text-muted">This reason is shown to the artist in the app.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="confirm_suspend_btn" class="btn btn-warning mw-120" style="background:#f59e0b;color:#fff;border:none;">
+                            <i class="fa-solid fa-ban mr-1"></i> Suspend
+                        </button>
+                        <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- sortableModal -->
         <div class="modal fade" id="sortableModal" tabindex="-1" data-backdrop="static" role="dialog"
             aria-labelledby="sortableModalLabel" aria-hidden="true">
@@ -322,6 +355,12 @@
                     searchable: false
                 },
                 {
+                    data: 'suspend_status',
+                    name: 'suspend_status',
+                    orderable: false,
+                    searchable: false
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false,
@@ -332,6 +371,64 @@
 
         $('#input_search').keyup(function() {
             table.draw();
+        });
+
+        // Suspend
+        $(document).on('click', '.suspend-btn', function () {
+            var id   = $(this).data('id');
+            var name = $(this).data('name');
+            $('#suspend_artist_id').val(id);
+            $('#suspend_artist_name').text(name);
+            $('#suspend_reason').val('');
+            $('#suspendModal').modal('show');
+        });
+
+        $('#confirm_suspend_btn').on('click', function () {
+            var id     = $('#suspend_artist_id').val();
+            var reason = $('#suspend_reason').val().trim();
+            if (!reason || reason.length < 5) {
+                toastr.error('Please enter a reason (min 5 characters).');
+                return;
+            }
+            $("#dvloader").show();
+            $.ajax({
+                type: 'POST',
+                url: '/admin/artist/' + id + '/suspend',
+                data: { _token: '{{ csrf_token() }}', reason: reason },
+                success: function (resp) {
+                    $("#dvloader").hide();
+                    $('#suspendModal').modal('hide');
+                    if (resp.status === 200) {
+                        toastr.success(resp.success);
+                        $('#datatable').DataTable().draw();
+                    } else {
+                        toastr.error(resp.errors || 'Failed to suspend.');
+                    }
+                },
+                error: function () { $("#dvloader").hide(); toastr.error('Server error.'); }
+            });
+        });
+
+        // Unsuspend
+        $(document).on('click', '.unsuspend-btn', function () {
+            var id = $(this).data('id');
+            if (!confirm('Reinstate this artist? Their account will be fully restored.')) return;
+            $("#dvloader").show();
+            $.ajax({
+                type: 'POST',
+                url: '/admin/artist/' + id + '/unsuspend',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (resp) {
+                    $("#dvloader").hide();
+                    if (resp.status === 200) {
+                        toastr.success(resp.success);
+                        $('#datatable').DataTable().draw();
+                    } else {
+                        toastr.error(resp.errors || 'Failed to reinstate.');
+                    }
+                },
+                error: function () { $("#dvloader").hide(); toastr.error('Server error.'); }
+            });
         });
     });
 

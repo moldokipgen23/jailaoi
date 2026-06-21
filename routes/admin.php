@@ -188,6 +188,8 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('city', CityController::class)->only(['store', 'update', 'destroy']);
             // Artist/RJ
             Route::resource('artist', ArtistController::class)->only(['store', 'update', 'destroy']);
+            Route::post('artist/{id}/suspend', [ArtistController::class, 'suspend'])->name('artist.suspend');
+            Route::post('artist/{id}/unsuspend', [ArtistController::class, 'unsuspend'])->name('artist.unsuspend');
             // Pages
             Route::resource('page', PageController::class)->only(['update', 'destroy']);
             // User
