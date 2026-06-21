@@ -264,6 +264,17 @@ class HomeController extends Controller
             if (count($data) > 0) {
 
                 $this->common->imageNameToUrl($data, 'image', $this->folder_category);
+
+                // Attach song count per category
+                $categorySongCounts = Song::where('status', 1)
+                    ->selectRaw('category_id, COUNT(*) as song_count')
+                    ->groupBy('category_id')
+                    ->pluck('song_count', 'category_id');
+
+                foreach ($data as $item) {
+                    $item['song_count'] = $categorySongCounts[$item['id']] ?? 0;
+                }
+
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
