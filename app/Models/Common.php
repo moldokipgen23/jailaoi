@@ -246,35 +246,35 @@ class Common extends Model
 
     public function Get_Song($folder = "", $name = "")
     {
-        if ($name != "" && $folder != "") {
-
-            // JAILAOI: Bunny CDN — return CDN URL directly, no local file check needed.
-            if (getAudioStorageDriver() == 'bunny') {
-                $cdnUrl = $this->getBunnyCdnUrl();
-                if ($cdnUrl) {
-                    return $cdnUrl . '/' . $folder . '/' . $name;
-                }
-            }
-
-            // JAILAOI: Cloudflare R2 — return R2 public URL.
-            if (getAudioStorageDriver() == 'r2') {
-                $url = Config::get('app.r2_public_url', env('R2_PUBLIC_URL', ''));
-                if ($url) {
-                    return rtrim($url, '/') . '/' . $folder . '/' . $name;
-                }
-            }
-
-            $appName = Config::get('app.image_url');
-
-            if (Storage::disk('public')->exists($folder . '/' . $name)) {
-                $data = $appName . $folder . '/' . $name;
-            } else {
-                $data = "";
-            }
-        } else {
-            $data = "";
+        if ($name == "" || $folder == "") {
+            return "";
         }
-        return ($data);
+
+        $appName = Config::get('app.image_url');
+
+        // If the file already exists on local disk, always serve it from there.
+        // This handles songs imported before CDN was configured — they live
+        // on local storage only and would 404 on Bunny/R2.
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
+        }
+
+        // File is not local — try the configured CDN driver.
+        if (getAudioStorageDriver() == 'bunny') {
+            $cdnUrl = $this->getBunnyCdnUrl();
+            if ($cdnUrl) {
+                return $cdnUrl . '/' . $folder . '/' . $name;
+            }
+        }
+
+        if (getAudioStorageDriver() == 'r2') {
+            $url = Config::get('app.r2_public_url', env('R2_PUBLIC_URL', ''));
+            if ($url) {
+                return rtrim($url, '/') . '/' . $folder . '/' . $name;
+            }
+        }
+
+        return "";
     }
 
     // JAILAOI: $artistSlug — optional subfolder e.g. 'minlun-hangmi'.
@@ -360,7 +360,7 @@ class Common extends Model
         try {
             $driver = getAudioStorageDriver();
 
-            // JAILAOI: Pre-resolve CDN prefix once outside the loop.
+            // Pre-resolve CDN prefix once outside the loop.
             $cdnPrefix = null;
             if ($driver == 'bunny') {
                 $cdnPrefix = $this->getBunnyCdnUrl();
@@ -368,20 +368,19 @@ class Common extends Model
                 $cdnPrefix = rtrim(Config::get('app.r2_public_url', env('R2_PUBLIC_URL', '')), '/') ?: null;
             }
 
+            $appName = Config::get('app.image_url');
+
             foreach ($array as $key => $value) {
 
                 if ($value['upload_type'] == 1) {
 
-                    if ($cdnPrefix && isset($value[$column]) && $value[$column] != "") {
-                        $value[$column] = $cdnPrefix . '/' . $folder . '/' . $value[$column];
-                        $array[$key] = $value;
-                        continue;
-                    }
-
-                    $appName = Config::get('app.image_url');
-                    if (isset($value[$column]) && $value[$column] != "") {
-                        if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
-                            $value[$column] = $appName . $folder . '/' . $value[$column];
+                    $filename = $value[$column] ?? '';
+                    if ($filename != "") {
+                        // Local disk takes priority: serves files imported before CDN was set up.
+                        if (Storage::disk('public')->exists($folder . '/' . $filename)) {
+                            $value[$column] = $appName . $folder . '/' . $filename;
+                        } elseif ($cdnPrefix) {
+                            $value[$column] = $cdnPrefix . '/' . $folder . '/' . $filename;
                         } else {
                             $value[$column] = "";
                         }
