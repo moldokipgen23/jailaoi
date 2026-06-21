@@ -226,7 +226,7 @@
                         <h5 class="modal-title w-100 text-center" style="color:#92400e;">
                             <i class="fa-solid fa-ban mr-2"></i> Suspend Artist
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" onclick="$('#suspendModal').modal('hide')" aria-label="Close">
                             <span aria-hidden="true" class="text-dark">&times;</span>
                         </button>
                     </div>
@@ -245,7 +245,7 @@
                         <button type="button" id="confirm_suspend_btn" class="btn btn-warning mw-120" style="background:#f59e0b;color:#fff;border:none;">
                             <i class="fa-solid fa-ban mr-1"></i> Suspend
                         </button>
-                        <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-cancel mw-120" onclick="$('#suspendModal').modal('hide')">Cancel</button>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
+use App\Models\ArtistRequest;
 use App\Models\Common;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -182,6 +183,8 @@ class ArtistController extends Controller
                 // Reset the linked user's role so the app no longer shows the artist portal
                 if (!empty($data->user_id)) {
                     \App\Models\User::where('id', $data->user_id)->update(['role' => 'user']);
+                    // Remove the artist request so get_artist_request_status returns null, not 'approved'
+                    ArtistRequest::where('user_id', $data->user_id)->delete();
                 }
                 $this->common->deleteImageToFolder($this->folder, $data['image']);
                 $data->delete();

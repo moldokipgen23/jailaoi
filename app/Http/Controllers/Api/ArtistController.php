@@ -282,8 +282,12 @@ class ArtistController extends Controller
 
             $is_artist = Artist::where('user_id', $request->user_id)->exists();
 
+            // If request shows 'approved' but artist record was deleted, treat as no status
+            // This handles stale records from before the destroy() cleanup was added
+            $effectiveStatus = ($req->status === 'approved' && !$is_artist) ? null : $req->status;
+
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [
-                'status' => $req->status,
+                'status' => $effectiveStatus,
                 'is_artist' => $is_artist,
                 'admin_note' => $req->admin_note ?? '',
             ]);
