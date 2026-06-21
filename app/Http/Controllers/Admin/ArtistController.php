@@ -24,15 +24,15 @@ class ArtistController extends Controller
         try {
 
             $params['data'] = [];
-            $params['artist'] = Artist::orderBy('sort_order', 'asc')->get();
+            $params['artist'] = Artist::orderBy('id', 'desc')->get();
             if ($request->ajax()) {
 
                 $input_search = $request['input_search'];
                 // JAILAOI: eager-load user + registration request for admin detail view
                 if ($input_search != null && isset($input_search)) {
-                    $data = Artist::with(['user', 'artistRequest'])->where('name', 'LIKE', "%{$input_search}%")->orderBy('sort_order', 'asc')->get();
+                    $data = Artist::with(['user', 'artistRequest'])->where('name', 'LIKE', "%{$input_search}%")->orderBy('id', 'desc')->get();
                 } else {
-                    $data = Artist::with(['user', 'artistRequest'])->orderBy('sort_order', 'asc')->get();
+                    $data = Artist::with(['user', 'artistRequest'])->orderBy('id', 'desc')->get();
                 }
 
                 $this->common->imageNameToUrl($data, 'image', $this->folder);

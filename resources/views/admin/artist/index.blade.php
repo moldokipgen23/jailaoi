@@ -309,7 +309,9 @@
                     orderable: false,
                     searchable: false,
                     "render": function(data, type, full, meta) {
-                        return "<a href='" + data + "' target='_blank' title='Watch'><img src='" + data + "' class='rounded-circle size-55'></a>";
+                        var fallback = "{{ asset('assets/imgs/default.png') }}";
+                        var src = (data && data.startsWith('http')) ? data : fallback;
+                        return "<a href='" + src + "' target='_blank'><img src='" + src + "' class='rounded-circle size-55' onerror=\"this.onerror=null;this.src='" + fallback + "';\"></a>";
                     },
                 },
                 {
