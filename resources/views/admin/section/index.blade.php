@@ -83,6 +83,7 @@
                                     <option value="6">{{__('label.language')}}</option>
                                     <option value="7">{{__('label.city')}}</option>
                                     <option value="8">{{__('label.music')}}</option>
+                                    <option value="9">Continue Listening</option>
                                 </select>
                             </div>
                         </div>
@@ -348,6 +349,7 @@
                                             <option value="6">{{__('label.language')}}</option>
                                             <option value="7">{{__('label.city')}}</option>
                                             <option value="8">{{__('label.music')}}</option>
+                                            <option value="9">Continue Listening</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1109,6 +1111,7 @@
             $("#type option[value='6']").show();
             $("#type option[value='7']").show();
             $("#type option[value='8']").show();
+            $("#type option[value='9']").show();
 
         } else if (section_type == 2) {
             $('.type_drop').show();
@@ -1121,6 +1124,7 @@
             $("#type option[value='6']").hide();
             $("#type option[value='7']").hide();
             $("#type option[value='8']").show();
+            $("#type option[value='9']").hide();
 
         } else if (section_type == 3) {
             $('.type_drop').show();
@@ -1133,6 +1137,7 @@
             $("#type option[value='6']").hide();
             $("#type option[value='7']").hide();
             $("#type option[value='8']").hide();
+            $("#type option[value='9']").hide();
         } else if (section_type == 4) {
             $('.type_drop').hide();
             $(".screen_layout").show();

@@ -1418,7 +1418,7 @@ class HomeController extends Controller
                 for ($i = 0; $i < count($data); $i++) {
 
                     $data[$i]['data'] = [];
-                    if ($data[$i]['type'] == 1 || $data[$i]['type'] == 2 || $data[$i]['type'] == 8) {
+                    if ($data[$i]['type'] == 1 || $data[$i]['type'] == 2 || $data[$i]['type'] == 8 || $data[$i]['type'] == 9) {
 
                         $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
 
@@ -1547,7 +1547,9 @@ class HomeController extends Controller
             $section = Section::where('id', $section_id)->first();
             if ($section != null && isset($section)) {
 
-                if ($section['type'] == 1 || $section['type'] == 2 || $section['type'] == 8) {
+                if ($section['type'] == 9) {
+                    $data = $this->common->section_query($user_id, 9, 0, 0, 0, 0, 0, 0, 0, 50);
+                } else if ($section['type'] == 1 || $section['type'] == 2 || $section['type'] == 8) {
                     $content = $this->common->section_query_detail($section['type'], $section['artist_id'], $section['category_id'], $section['language_id'], $section['city_id'], $section['order_by_upload'], $section['order_by_play'], $section['is_premium']);
                     $data = $content;
                 } else if ($section['type'] == 3) {

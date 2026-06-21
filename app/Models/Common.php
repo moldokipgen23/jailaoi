@@ -770,6 +770,45 @@ class Common extends Model
                 return $list;
             }
 
+            if ($type == 9) {
+                if ($user_id == 0) {
+                    return collect();
+                }
+                $recentIds = \Illuminate\Support\Facades\DB::table('tbl_user_action')
+                    ->select('content_id')
+                    ->where('user_id', $user_id)
+                    ->where('action', 1)
+                    ->where('content_type', 8)
+                    ->orderBy('created_at', 'desc')
+                    ->pluck('content_id')
+                    ->unique()
+                    ->take((int) $no_of_content)
+                    ->values();
+
+                if ($recentIds->isEmpty()) {
+                    return collect();
+                }
+
+                $orderedIds = $recentIds->implode(',');
+                $query = Music::where('status', 1)
+                    ->whereIn('id', $recentIds->toArray())
+                    ->orderByRaw("FIELD(id, {$orderedIds})")
+                    ->get();
+
+                foreach ($query as $i => $item) {
+                    if ($query[$i]['upload_type'] == 1) {
+                        $query[$i]['music'] = $this->Get_Song($this->folder_music, $query[$i]['music']);
+                    }
+                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['portrait_img']);
+                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['landscape_img']);
+                    $query[$i]['ogtag_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['ogtag_img']);
+                    $query[$i]['is_buy'] = $this->is_any_package_buy($user_id);
+                    $query[$i]['is_favorite'] = $this->isFavorite(3, $query[$i]['id'], $user_id);
+                    $this->get_all_count_for_content(3, $query[$i]);
+                }
+                return $query;
+            }
+
             if ($type == 1) {
                 $content = Song::with('artist')->where('status', 1);
             } else if ($type == 2) {
