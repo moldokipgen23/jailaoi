@@ -91,6 +91,7 @@
 
         var table = $('#datatable').DataTable({
             ...datatabledefault,
+            order: [[5, 'desc']],
             ajax: {
                 url: "{{ route('user.index') }}",
                 data: function(d) {

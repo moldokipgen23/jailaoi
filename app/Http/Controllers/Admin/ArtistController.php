@@ -165,6 +165,10 @@ class ArtistController extends Controller
             $data = Artist::where('id', $id)->first();
 
             if (isset($data)) {
+                // Reset the linked user's role so the app no longer shows the artist portal
+                if (!empty($data->user_id)) {
+                    \App\Models\User::where('id', $data->user_id)->update(['role' => 'user']);
+                }
                 $this->common->deleteImageToFolder($this->folder, $data['image']);
                 $data->delete();
             }
