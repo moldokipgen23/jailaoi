@@ -794,19 +794,87 @@ class Common extends Model
                     ->whereIn('id', $recentIds->toArray())
                     ->orderByRaw("FIELD(id, {$orderedIds})")
                     ->get();
+                return $this->formatMusicCollection($query, $user_id);
+            }
 
-                foreach ($query as $i => $item) {
-                    if ($query[$i]['upload_type'] == 1) {
-                        $query[$i]['music'] = $this->Get_Song($this->folder_music, $query[$i]['music']);
-                    }
-                    $query[$i]['portrait_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['portrait_img']);
-                    $query[$i]['landscape_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['landscape_img']);
-                    $query[$i]['ogtag_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['ogtag_img']);
-                    $query[$i]['is_buy'] = $this->is_any_package_buy($user_id);
-                    $query[$i]['is_favorite'] = $this->isFavorite(3, $query[$i]['id'], $user_id);
-                    $this->get_all_count_for_content(3, $query[$i]);
-                }
-                return $query;
+            // TYPE 10 — Liked Songs: user's favorited music tracks, newest liked first
+            if ($type == 10) {
+                if ($user_id == 0) return collect();
+                $likedIds = Favorite::where('user_id', $user_id)
+                    ->where('type', 3)
+                    ->orderBy('created_at', 'desc')
+                    ->pluck('content_id')
+                    ->unique()
+                    ->take((int) $no_of_content)
+                    ->values();
+                if ($likedIds->isEmpty()) return collect();
+                $orderedIds = $likedIds->implode(',');
+                $query = Music::where('status', 1)
+                    ->whereIn('id', $likedIds->toArray())
+                    ->orderByRaw("FIELD(id, {$orderedIds})")
+                    ->get();
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
+            // TYPE 11 — From Artists You Follow: latest music from followed artists
+            if ($type == 11) {
+                if ($user_id == 0) return collect();
+                $artistIds = Follow::where('user_id', $user_id)
+                    ->where('status', 1)
+                    ->pluck('artist_id');
+                if ($artistIds->isEmpty()) return collect();
+                $query = Music::where('status', 1)
+                    ->where(function ($q) use ($artistIds) {
+                        foreach ($artistIds as $aid) {
+                            $q->orWhereRaw('FIND_IN_SET(?, artist_id)', [$aid]);
+                        }
+                    })
+                    ->orderBy('id', 'desc')
+                    ->take((int) $no_of_content)
+                    ->get();
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
+            // TYPE 12 — Based on Your Top Category: newest music in user's most-played category
+            if ($type == 12) {
+                if ($user_id == 0) return collect();
+                $topCategory = \Illuminate\Support\Facades\DB::table('tbl_user_action')
+                    ->select('category_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as cnt'))
+                    ->where('user_id', $user_id)
+                    ->where('action', 1)
+                    ->where('category_id', '!=', 0)
+                    ->whereNotNull('category_id')
+                    ->groupBy('category_id')
+                    ->orderByDesc('cnt')
+                    ->value('category_id');
+                if (!$topCategory) return collect();
+                $query = Music::where('status', 1)
+                    ->where('category_id', $topCategory)
+                    ->orderBy('id', 'desc')
+                    ->take((int) $no_of_content)
+                    ->get();
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
+            // TYPE 13 — New in Your Language: newest music in user's most-played language
+            if ($type == 13) {
+                if ($user_id == 0) return collect();
+                $topLanguage = \Illuminate\Support\Facades\DB::table('tbl_user_action')
+                    ->select('language_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as cnt'))
+                    ->where('user_id', $user_id)
+                    ->where('action', 1)
+                    ->where('language_id', '!=', 0)
+                    ->whereNotNull('language_id')
+                    ->groupBy('language_id')
+                    ->orderByDesc('cnt')
+                    ->value('language_id');
+                if (!$topLanguage) return collect();
+                $query = Music::where('status', 1)
+                    ->where('language_id', $topLanguage)
+                    ->orderBy('id', 'desc')
+                    ->take((int) $no_of_content)
+                    ->get();
+                return $this->formatMusicCollection($query, $user_id);
             }
 
             if ($type == 1) {
@@ -937,6 +1005,23 @@ class Common extends Model
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
     }
+
+    private function formatMusicCollection($query, $user_id)
+    {
+        foreach ($query as $i => $item) {
+            if ($query[$i]['upload_type'] == 1) {
+                $query[$i]['music'] = $this->Get_Song($this->folder_music, $query[$i]['music']);
+            }
+            $query[$i]['portrait_img']  = $this->Get_Image($this->folder_music_img, $query[$i]['portrait_img']);
+            $query[$i]['landscape_img'] = $this->Get_Image($this->folder_music_img, $query[$i]['landscape_img']);
+            $query[$i]['ogtag_img']     = $this->Get_Image($this->folder_music_img, $query[$i]['ogtag_img']);
+            $query[$i]['is_buy']        = $this->is_any_package_buy($user_id);
+            $query[$i]['is_favorite']   = $this->isFavorite(3, $query[$i]['id'], $user_id);
+            $this->get_all_count_for_content(3, $query[$i]);
+        }
+        return $query;
+    }
+
     public function section_query_detail($type, $artist_id, $category_id, $language_id, $city_id, $order_by_upload, $order_by_play, $is_premium)
     {
         try {
