@@ -418,6 +418,21 @@ class SectionController extends Controller
         }
     }
 
+    public function togglePin(Request $request)
+    {
+        try {
+            $data = Section::where('id', $request->id)->first();
+            if ($data) {
+                $data->is_pinned = $data->is_pinned == 1 ? 0 : 1;
+                $data->save();
+                return response()->json(['status' => 200, 'is_pinned' => $data->is_pinned]);
+            }
+            return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function SectionSortable(Request $request)
     {
         try {

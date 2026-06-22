@@ -36,5 +36,6 @@ class Section extends Model
         'view_all' => 'integer',
         'sortable' => 'integer',
         'status' => 'integer',
+        'is_pinned' => 'integer',
     ];
 }

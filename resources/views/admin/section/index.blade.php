@@ -677,6 +677,8 @@
                         var type = "{{__('label.city')}}";
                     } else if (resp.result[i].type == 8) {
                         var type = "{{__('label.music')}}";
+                    } else if (resp.result[i].type == 9) {
+                        var type = "Continue Listening";
                     } else {
                         var type = "-";
                     }
@@ -787,6 +789,8 @@
                         var type = "{{__('label.city')}}";
                     } else if (resp.result[i].type == 8) {
                         var type = "{{__('label.music')}}";
+                    } else if (resp.result[i].type == 9) {
+                        var type = "Continue Listening";
                     } else {
                         var type = "-";
                     }
@@ -808,7 +812,10 @@
                     if (status == 1) {
                         statusLabel = "checked";
                     }
-                    var data = '<div class="card custom-border-card mt-3">' +
+                    let isPinned = resp.result[i].is_pinned == 1;
+                    let pinBtnClass = isPinned ? 'btn-warning' : 'btn-outline-secondary';
+                    let pinBtnText = isPinned ? '&#128204; Pinned' : '&#128204; Pin';
+                    var data = '<div class="card custom-border-card mt-3" id="section-card-' + resp.result[i].id + '">' +
                         '<div class="card-header d-flex justify-content-between">' +
                         '<h5>{{__("label.edit_section")}}</h5>' +
                         '<div class="switch">' +
@@ -846,7 +853,8 @@
                         '</div>' +
                         '</div>' +
                         '<div class="border-top pt-3 text-right">' +
-                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
+                        '<button type="button" id="pin-btn-' + resp.result[i].id + '" class="btn ' + pinBtnClass + ' mw-120" onclick="toggle_pin(' + resp.result[i].id + ')">' + pinBtnText + '</button>' +
+                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120 ml-2" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
                         '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("label.delete")}}</button>' +
                         '</div>' +
                         '</div>' +
@@ -1158,6 +1166,8 @@
                         var type = "{{__('label.city')}}";
                     } else if (resp.result[i].type == 8) {
                         var type = "{{__('label.music')}}";
+                    } else if (resp.result[i].type == 9) {
+                        var type = "Continue Listening";
                     } else {
                         var type = "-";
                     }
@@ -1179,7 +1189,10 @@
                     if (status == 1) {
                         statusLabel = "checked";
                     }
-                    var data = '<div class="card custom-border-card mt-3">' +
+                    let isPinnedC = resp.result[i].is_pinned == 1;
+                    let pinBtnClassC = isPinnedC ? 'btn-warning' : 'btn-outline-secondary';
+                    let pinBtnTextC = isPinnedC ? '&#128204; Pinned' : '&#128204; Pin';
+                    var data = '<div class="card custom-border-card mt-3" id="section-card-' + resp.result[i].id + '">' +
                         '<div class="card-header d-flex justify-content-between">' +
                         '<h5>{{__("label.edit_section")}}</h5>' +
                         '<div class="switch">' +
@@ -1188,73 +1201,41 @@
                         '<span class="toggle-text" data-on="{{__("label.show")}}" data-off="{{__("label.hide")}}"></span>' +
                         '</div>';
 
-                    if (section_type == 4) {
-                        data += '</div>' +
-                            '<div class="card-body">' +
-                            '<div class="form-row">' +
-                            '<div class="col-md-4">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.title")}}</label>' +
-                            '<input type="text" value="' + resp.result[i].title + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="col-md-4">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.sub_title")}}</label>' +
-                            '<input type="text" value="' + resp.result[i].sub_title + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="col-md-4">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.screen_layout")}}</label>' +
-                            '<input type="text" value="' + screen_layout + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="border-top pt-3 text-right">' +
-                            '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
-                            '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("label.delete")}}</button>' +
-                            '</div>' +
-                            '</div>' +
-                            '</div>';
-
-                    } else {
-                        data += '</div>' +
-                            '<div class="card-body">' +
-                            '<div class="form-row">' +
-                            '<div class="col-md-3">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.title")}}</label>' +
-                            '<input type="text" value="' + resp.result[i].title + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="col-md-3">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.sub_title")}}</label>' +
-                            '<input type="text" value="' + resp.result[i].sub_title + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="col-md-3">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.type")}}</label>' +
-                            '<input type="text" value="' + type + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="col-md-3">' +
-                            '<div class="form-group">' +
-                            '<label>{{__("label.screen_layout")}}</label>' +
-                            '<input type="text" value="' + screen_layout + '" class="form-control" readonly>' +
-                            '</div>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="border-top pt-3 text-right">' +
-                            '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
-                            '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("label.delete")}}</button>' +
-                            '</div>' +
-                            '</div>' +
-                            '</div>';
-
-                    }
+                    data += '</div>' +
+                        '<div class="card-body">' +
+                        '<div class="form-row">' +
+                        '<div class="col-md-3">' +
+                        '<div class="form-group">' +
+                        '<label>{{__("label.title")}}</label>' +
+                        '<input type="text" value="' + resp.result[i].title + '" class="form-control" readonly>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-md-3">' +
+                        '<div class="form-group">' +
+                        '<label>{{__("label.sub_title")}}</label>' +
+                        '<input type="text" value="' + resp.result[i].sub_title + '" class="form-control" readonly>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-md-3">' +
+                        '<div class="form-group">' +
+                        '<label>{{__("label.type")}}</label>' +
+                        '<input type="text" value="' + type + '" class="form-control" readonly>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-md-3">' +
+                        '<div class="form-group">' +
+                        '<label>{{__("label.screen_layout")}}</label>' +
+                        '<input type="text" value="' + screen_layout + '" class="form-control" readonly>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="border-top pt-3 text-right">' +
+                        '<button type="button" id="pin-btn-' + resp.result[i].id + '" class="btn ' + pinBtnClassC + ' mw-120" onclick="toggle_pin(' + resp.result[i].id + ')">' + pinBtnTextC + '</button>' +
+                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120 ml-2" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
+                        '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("label.delete")}}</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
 
                     $('.after-add-more').append(data);
                 }
@@ -1751,6 +1732,37 @@
         id = $(this).data('id');
         change_status(id);
     })
+
+    function toggle_pin(id) {
+        var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
+        if (Check_Admin != 1) {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+            return;
+        }
+        $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            type: 'POST',
+            url: '{{route("section.pin")}}',
+            data: { id: id },
+            success: function(resp) {
+                if (resp.status == 200) {
+                    var btn = $('#pin-btn-' + id);
+                    if (resp.is_pinned == 1) {
+                        btn.removeClass('btn-outline-secondary').addClass('btn-warning').html('&#128204; Pinned');
+                        toastr.success('Section pinned — it will always appear at the top.');
+                    } else {
+                        btn.removeClass('btn-warning').addClass('btn-outline-secondary').html('&#128204; Pin');
+                        toastr.success('Section unpinned.');
+                    }
+                } else {
+                    toastr.error(resp.errors);
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                toastr.error(errorThrown, textStatus);
+            }
+        });
+    }
 
     // Sortable Section
     $("#imageListId").sortable({

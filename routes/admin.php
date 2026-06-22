@@ -107,6 +107,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('section/status', [SectionController::class, 'changeStatus'])->name('section.status');
         Route::post('section/sortable', [SectionController::class, 'SectionSortable'])->name('section.sortable');
         Route::post('section/sortable/save', [SectionController::class, 'SectionSortableSave'])->name('section.sortable.save');
+        Route::post('section/pin', [SectionController::class, 'togglePin'])->name('section.pin');
         // Banner
         Route::resource('banner', BannerController::class)->only(['index', 'store', 'show']);
         Route::get('getcontent', [BannerController::class, 'getcontent'])->name('banner.getcontent');
