@@ -142,17 +142,19 @@ class Common extends Model
 
         if ($folder === "" || $name === "") return $default;
 
-        // JAILAOI: Bunny CDN — images stored under images/{type}/filename
+        $appName = Config::get('app.image_url');
+
+        // Local-first: images uploaded before CDN was configured live on local disk.
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
+        }
+
+        // Not found locally — serve from Bunny CDN (uploaded after CDN was configured).
         $cdnUrl = $this->getBunnyCdnUrl();
         if ($cdnUrl) {
             return $cdnUrl . '/' . $folder . '/' . $name;
         }
 
-        // Local fallback
-        $appName = Config::get('app.image_url');
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            return $appName . $folder . '/' . $name;
-        }
         return $default;
     }
     // JAILAOI: Reads Bunny CDN credentials from tbl_general_setting (admin panel),
@@ -250,7 +252,15 @@ class Common extends Model
             return "";
         }
 
-        // Bunny CDN — return CDN URL directly (files are uploaded there via saveChunk/saveAudioFile)
+        $appName = Config::get('app.image_url');
+
+        // Local-first: tracks uploaded before CDN was configured (or saved locally by saveChunk)
+        // are served from local storage. This is the safe default that always works.
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
+        }
+
+        // Not found locally — fall back to CDN (artist portal uploads go to CDN only).
         if (getAudioStorageDriver() == 'bunny') {
             $cdnUrl = $this->getBunnyCdnUrl();
             if ($cdnUrl) {
@@ -258,18 +268,11 @@ class Common extends Model
             }
         }
 
-        // Cloudflare R2
         if (getAudioStorageDriver() == 'r2') {
             $url = Config::get('app.r2_public_url', env('R2_PUBLIC_URL', ''));
             if ($url) {
                 return rtrim($url, '/') . '/' . $folder . '/' . $name;
             }
-        }
-
-        // Local storage fallback
-        $appName = Config::get('app.image_url');
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            return $appName . $folder . '/' . $name;
         }
 
         return "";
@@ -287,9 +290,19 @@ class Common extends Model
             // Build stored value — includes artist subfolder if provided
             $storedName = $artistSlug ? ($artistSlug . '/' . $filename) : $filename;
 
-            // JAILAOI: Bunny CDN — upload via Bunny HTTP API.
+            // JAILAOI: Bunny CDN — save locally first (belt-and-suspenders fallback),
+            // then upload to Bunny. Get_Song() will serve the local copy; CDN is backup.
             if (getAudioStorageDriver() == 'bunny') {
-                $this->uploadFileToBunny($file->getRealPath(), $folder . '/' . $storedName);
+                $localDir = base_path('storage/app/public/' . $folder . ($artistSlug ? '/' . $artistSlug : ''));
+                if (!is_dir($localDir)) {
+                    @mkdir($localDir, 0755, true);
+                }
+                $file->move($localDir, $filename);
+                try {
+                    $this->uploadFileToBunny($localDir . '/' . $filename, $folder . '/' . $storedName);
+                } catch (Exception $e) {
+                    Log::error('saveAudioFile Bunny upload failed (local copy kept): ' . $e->getMessage());
+                }
                 return $storedName;
             }
 
