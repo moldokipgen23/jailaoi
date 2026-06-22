@@ -47,6 +47,8 @@ class updateSummary extends Command
 
         foreach ($data as $user_id => $types) {
 
+            if ((int)$user_id === 0) continue;
+
             // --- Get or create user summary ---
             $summary = User_Summary::where('user_id', $user_id)->where('status', 1)->first();
             if (!$summary) {
