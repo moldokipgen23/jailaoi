@@ -73,12 +73,10 @@ class Common extends Model
 
                 if (isset($value[$column]) && $value[$column] != "") {
                     $filePath = $folder . '/' . $value[$column];
-                    // Local-first: files uploaded before CDN was configured live on local disk.
-                    if (Storage::disk('public')->exists($filePath)) {
-                        $value[$column] = $appName . $filePath;
-                    } elseif ($cdnUrl) {
-                        // Not found locally — serve from Bunny CDN.
+                    if ($cdnUrl) {
                         $value[$column] = $cdnUrl . '/' . $filePath;
+                    } elseif (Storage::disk('public')->exists($filePath)) {
+                        $value[$column] = $appName . $filePath;
                     } else {
                         $value[$column] = $default;
                     }
@@ -135,15 +133,13 @@ class Common extends Model
 
         $appName = Config::get('app.image_url');
 
-        // Local-first: images uploaded before CDN was configured live on local disk.
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            return $appName . $folder . '/' . $name;
-        }
-
-        // Not found locally — serve from Bunny CDN (uploaded after CDN was configured).
         $cdnUrl = $this->getBunnyCdnUrl();
         if ($cdnUrl) {
             return $cdnUrl . '/' . $folder . '/' . $name;
+        }
+
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
         }
 
         return $default;
@@ -245,13 +241,6 @@ class Common extends Model
 
         $appName = Config::get('app.image_url');
 
-        // Local-first: tracks uploaded before CDN was configured (or saved locally by saveChunk)
-        // are served from local storage. This is the safe default that always works.
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            return $appName . $folder . '/' . $name;
-        }
-
-        // Not found locally — fall back to CDN (artist portal uploads go to CDN only).
         if (getAudioStorageDriver() == 'bunny') {
             $cdnUrl = $this->getBunnyCdnUrl();
             if ($cdnUrl) {
@@ -264,6 +253,10 @@ class Common extends Model
             if ($url) {
                 return rtrim($url, '/') . '/' . $folder . '/' . $name;
             }
+        }
+
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
         }
 
         return "";
@@ -281,19 +274,8 @@ class Common extends Model
             // Build stored value — includes artist subfolder if provided
             $storedName = $artistSlug ? ($artistSlug . '/' . $filename) : $filename;
 
-            // JAILAOI: Bunny CDN — save locally first (belt-and-suspenders fallback),
-            // then upload to Bunny. Get_Song() will serve the local copy; CDN is backup.
             if (getAudioStorageDriver() == 'bunny') {
-                $localDir = base_path('storage/app/public/' . $folder . ($artistSlug ? '/' . $artistSlug : ''));
-                if (!is_dir($localDir)) {
-                    @mkdir($localDir, 0755, true);
-                }
-                $file->move($localDir, $filename);
-                try {
-                    $this->uploadFileToBunny($localDir . '/' . $filename, $folder . '/' . $storedName);
-                } catch (Exception $e) {
-                    Log::error('saveAudioFile Bunny upload failed (local copy kept): ' . $e->getMessage());
-                }
+                $this->uploadFileToBunny($file->getRealPath(), $folder . '/' . $storedName);
                 return $storedName;
             }
 
