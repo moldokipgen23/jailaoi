@@ -226,9 +226,12 @@
                                 </div>
                             </div>
 
-                            {{-- Audio upload zone (always direct file input — storage backend is transparent to artists) --}}
+                            {{-- Hidden field stores pre-uploaded filename (empty = keep existing) --}}
+                            <input type="hidden" name="music" id="uploadedFilename">
+
+                            {{-- Idle drop zone --}}
                             <div class="jlw-drop" id="jl-drop">
-                                <input type="file" id="audioFileInput" name="music" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
+                                <input type="file" id="audioFileInput" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
                                 <span class="di">🎵</span>
                                 <div class="dt">Drop new audio file to replace</div>
                                 <div class="ds">or click to browse &nbsp;·&nbsp; MP3 · M4A · WAV · FLAC · OGG · AAC</div>
@@ -238,6 +241,22 @@
                                     <div class="jlw-wb"></div>
                                 </div>
                                 <div class="jlw-fname" id="jl-aname"></div>
+                            </div>
+
+                            {{-- Uploading state --}}
+                            <div id="jl-uploading" style="display:none;text-align:center;padding:28px 0">
+                                <div style="font-weight:600;margin-bottom:14px;font-size:15px" id="jl-upname"></div>
+                                <div style="background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;height:10px;max-width:420px;margin:0 auto 10px">
+                                    <div id="jl-upbar" style="height:100%;width:0%;background:var(--primary-color,#4caf50);border-radius:99px;transition:width .2s"></div>
+                                </div>
+                                <div id="jl-uppct" style="font-size:13px;opacity:.7">Uploading…</div>
+                            </div>
+
+                            {{-- Done state --}}
+                            <div id="jl-uploaded" style="display:none;text-align:center;padding:22px 0">
+                                <div style="font-size:36px;color:var(--primary-color,#4caf50)"><i class="fa-solid fa-circle-check"></i></div>
+                                <div style="font-weight:600;margin:8px 0 4px;font-size:15px" id="jl-updone"></div>
+                                <div style="font-size:12px;opacity:.6">Upload complete &nbsp;·&nbsp; <a href="#" id="jl-reupload" style="color:var(--primary-color,#4caf50)">Choose different file</a></div>
                             </div>
 
                             {{-- Duration --}}
@@ -413,16 +432,20 @@
                 });
             }
 
+            // Audio selected → auto-upload immediately
             $('#audioFileInput').on('change', function(){
                 var f = this.files[0]; if(!f) return;
-                $('#jl-aname').text(f.name).show();
-                $('#jl-wave').addClass('on');
                 jlDetectDur(f);
+                jlStartUpload(f);
             });
 
-            $('#uploadFile1').on('change', function(){
-                var f = this.files[0]; if(!f) return;
-                jlDetectDur(f);
+            // "Choose different file" link
+            $('#jl-reupload').on('click', function(e){
+                e.preventDefault();
+                $('#jl-uploaded').hide();
+                $('#jl-drop').show();
+                $('#uploadedFilename').val('');
+                document.getElementById('audioFileInput').value = '';
             });
 
             $('#imageUpload1').on('change', function(){ jlImgPrev(this,'imagePreview1','jl-pz'); });
@@ -431,6 +454,53 @@
             // Pre-fill review on load
             jlReview();
         });
+
+        function jlStartUpload(file){
+            $('#jl-drop').hide();
+            $('#jl-uploaded').hide();
+            $('#jl-upname').text(file.name);
+            $('#jl-upbar').css('width','0%');
+            $('#jl-uppct').text('Uploading…');
+            $('#jl-uploading').show();
+
+            var fd = new FormData();
+            fd.append('audio', file);
+            fd.append('_token', '{{ csrf_token() }}');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route("music.upload.audio") }}', true);
+            xhr.upload.onprogress = function(e){
+                if(e.lengthComputable){
+                    var pct = Math.round(e.loaded/e.total*100);
+                    $('#jl-upbar').css('width', pct+'%');
+                    $('#jl-uppct').text(pct+'% uploaded…');
+                }
+            };
+            xhr.onload = function(){
+                $('#jl-uploading').hide();
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if(resp.status === 200){
+                        $('#uploadedFilename').val(resp.filename);
+                        $('#jl-updone').text(file.name);
+                        $('#jl-uploaded').show();
+                    } else {
+                        var err = Array.isArray(resp.errors) ? resp.errors.join(', ') : resp.errors;
+                        toastr.error(err || 'Upload failed');
+                        $('#jl-drop').show();
+                    }
+                } catch(ex){
+                    toastr.error('Upload failed');
+                    $('#jl-drop').show();
+                }
+            };
+            xhr.onerror = function(){
+                $('#jl-uploading').hide();
+                toastr.error('Upload failed — check your connection');
+                $('#jl-drop').show();
+            };
+            xhr.send(fd);
+        }
 
         function jlDetectDur(file){
             var a = document.createElement('audio'); a.preload = 'metadata';

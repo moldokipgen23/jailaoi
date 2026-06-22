@@ -81,6 +81,25 @@ class MusicController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    // Pre-upload audio file immediately on select — returns stored filename.
+    // store()/update() then just save the filename string; no second upload needed.
+    public function uploadAudio(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'audio' => 'required|file|mimes:mp3,m4a,aac,flac,wav,ogg|max:307200',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+            $artistSlug = Str::slug(User_Data()['name'] ?? 'various', '-');
+            $filename = $this->common->saveAudioFile($request->file('audio'), $this->folder, 'music_', $artistSlug);
+            return response()->json(['status' => 200, 'filename' => $filename]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -99,7 +118,7 @@ class MusicController extends Controller
                 'is_like' => 'required',
             ];
             if ($request['content_upload_type'] == 'server_video') {
-                $rules['music'] = 'required';
+                $rules['music'] = 'required|string'; // pre-uploaded filename from uploadAudio()
             } else {
                 $rules['url'] = 'required';
             }
@@ -137,10 +156,8 @@ class MusicController extends Controller
                 $requestData['landscape_img'] = "";
             }
             if ($requestData['content_upload_type'] == 'server_video') {
-
-                // Artist always submits a real file — saveAudioFile handles Bunny, R2, and local
-                $artistSlug = \Illuminate\Support\Str::slug(User_Data()['name'] ?? 'various', '-');
-                $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_', $artistSlug);
+                // music is a pre-uploaded filename returned by uploadAudio()
+                $requestData['content'] = $requestData['music'];
             } else {
                 $requestData['content'] = $requestData['url'];
             }
@@ -252,9 +269,8 @@ class MusicController extends Controller
                     if ($requestData['music']) {
 
                         $requestData['content_storage_type'] = $storage_type;
-                        // Artist always submits a real file — saveAudioFile handles Bunny, R2, and local
-                        $artistSlug = \Illuminate\Support\Str::slug(User_Data()['name'] ?? 'various', '-');
-                        $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_', $artistSlug);
+                        // music is a pre-uploaded filename from uploadAudio()
+                        $requestData['content'] = $requestData['music'];
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     }
                 } else {
@@ -262,9 +278,8 @@ class MusicController extends Controller
                     $requestData['content_storage_type'] = $storage_type;
                     if ($requestData['music']) {
 
-                        // Artist always submits a real file — saveAudioFile handles Bunny, R2, and local
-                        $artistSlug = \Illuminate\Support\Str::slug(User_Data()['name'] ?? 'various', '-');
-                        $requestData['content'] = $this->common->saveAudioFile($requestData['music'], $this->folder, 'music_', $artistSlug);
+                        // music is a pre-uploaded filename from uploadAudio()
+                        $requestData['content'] = $requestData['music'];
                         $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
                     } else {
                         $requestData['content'] = '';

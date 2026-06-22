@@ -277,13 +277,16 @@
                         <div class="card custom-border-card jlw-card">
                             <div class="jlw-title"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Audio File</div>
 
-                            {{-- Audio upload zone (always direct file input — storage backend is transparent to artists) --}}
+                            {{-- Hidden field stores pre-uploaded filename returned by uploadAudio() --}}
+                            <input type="hidden" name="music" id="uploadedFilename">
+
                             <div id="jlf-audio">
+                                {{-- Idle: drag-drop / click to pick --}}
                                 <div class="jlw-drop" id="jl-drop">
-                                    <input type="file" id="audioFileInput" name="music" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
-                                    <span class="di">🎵</span>
-                                    <div class="dt">Drag &amp; drop your audio file here</div>
-                                    <div class="ds">or click to browse &nbsp;·&nbsp; MP3 · M4A · WAV · FLAC · OGG · AAC</div>
+                                    <input type="file" id="audioFileInput" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
+                                    <span class="di" id="jl-di">🎵</span>
+                                    <div class="dt" id="jl-dt">Drag &amp; drop your audio file here</div>
+                                    <div class="ds" id="jl-ds">or click to browse &nbsp;·&nbsp; MP3 · M4A · WAV · FLAC · OGG · AAC</div>
                                     <div class="jlw-wave" id="jl-wave">
                                         <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
                                         <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
@@ -291,7 +294,24 @@
                                     </div>
                                     <div class="jlw-fname" id="jl-aname"></div>
                                 </div>
-                                <div class="jlw-err" id="jl-aerr" style="margin-top:6px">Please select an audio file to continue</div>
+
+                                {{-- Uploading state --}}
+                                <div id="jl-uploading" style="display:none;text-align:center;padding:28px 0">
+                                    <div style="font-weight:600;margin-bottom:14px;font-size:15px" id="jl-upname"></div>
+                                    <div style="background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;height:10px;max-width:420px;margin:0 auto 10px">
+                                        <div id="jl-upbar" style="height:100%;width:0%;background:var(--primary-color,#4caf50);border-radius:99px;transition:width .2s"></div>
+                                    </div>
+                                    <div id="jl-uppct" style="font-size:13px;opacity:.7">Uploading…</div>
+                                </div>
+
+                                {{-- Done state --}}
+                                <div id="jl-uploaded" style="display:none;text-align:center;padding:22px 0">
+                                    <div style="font-size:36px;color:var(--primary-color,#4caf50)"><i class="fa-solid fa-circle-check"></i></div>
+                                    <div style="font-weight:600;margin:8px 0 4px;font-size:15px" id="jl-updone"></div>
+                                    <div style="font-size:12px;opacity:.6">Upload complete &nbsp;·&nbsp; <a href="#" id="jl-reupload" style="color:var(--primary-color,#4caf50)">Choose different file</a></div>
+                                </div>
+
+                                <div class="jlw-err" id="jl-aerr" style="margin-top:6px">Please upload an audio file to continue</div>
                             </div>
 
                             {{-- Duration --}}
@@ -464,24 +484,74 @@
                 });
             }
 
-            // Bunny audio selected
+            // Audio selected → auto-upload immediately
             $('#audioFileInput').on('change', function(){
                 var f = this.files[0]; if(!f) return;
-                $('#jl-aname').text(f.name).show();
-                $('#jl-wave').addClass('on');
                 jlDetectDur(f);
+                jlStartUpload(f);
             });
 
-            // Local (plupload) audio selected
-            $('#uploadFile1').on('change', function(){
-                var f = this.files[0]; if(!f) return;
-                jlDetectDur(f);
+            // "Choose different file" link
+            $('#jl-reupload').on('click', function(e){
+                e.preventDefault();
+                $('#jl-uploaded').hide();
+                $('#jl-drop').show();
+                $('#uploadedFilename').val('');
+                document.getElementById('audioFileInput').value = '';
             });
 
             // Image previews (page-app.blade already handles this but we add zone class too)
             $('#imageUpload1').on('change', function(){ jlImgPrev(this, 'imagePreview1', 'jl-pz'); });
             $('#imageUpload2').on('change', function(){ jlImgPrev(this, 'imagePreview2', 'jl-lz'); });
         });
+
+        function jlStartUpload(file){
+            $('#jl-drop').hide();
+            $('#jl-uploaded').hide();
+            $('#jl-aerr').hide();
+            $('#jl-upname').text(file.name);
+            $('#jl-upbar').css('width','0%');
+            $('#jl-uppct').text('Uploading…');
+            $('#jl-uploading').show();
+
+            var fd = new FormData();
+            fd.append('audio', file);
+            fd.append('_token', '{{ csrf_token() }}');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route("music.upload.audio") }}', true);
+            xhr.upload.onprogress = function(e){
+                if(e.lengthComputable){
+                    var pct = Math.round(e.loaded/e.total*100);
+                    $('#jl-upbar').css('width', pct+'%');
+                    $('#jl-uppct').text(pct+'% uploaded…');
+                }
+            };
+            xhr.onload = function(){
+                $('#jl-uploading').hide();
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if(resp.status === 200){
+                        $('#uploadedFilename').val(resp.filename);
+                        $('#jl-updone').text(file.name);
+                        $('#jl-uploaded').show();
+                    } else {
+                        var err = Array.isArray(resp.errors) ? resp.errors.join(', ') : resp.errors;
+                        toastr.error(err || 'Upload failed');
+                        $('#jl-drop').show();
+                    }
+                } catch(ex){
+                    toastr.error('Upload failed');
+                    $('#jl-drop').show();
+                }
+            };
+            xhr.onerror = function(){
+                $('#jl-uploading').hide();
+                toastr.error('Upload failed — check your connection');
+                $('#jl-drop').show();
+            };
+            xhr.send(fd);
+        }
 
         function jlDetectDur(file){
             var a = document.createElement('audio'); a.preload = 'metadata';
@@ -539,16 +609,17 @@
                 if(!t || !c || !l) ok = false;
             }
             if(step === 2){
-                var has = document.getElementById('audioFileInput').files.length > 0;
+                var uploaded = $('#uploadedFilename').val();
+                var uploading = $('#jl-uploading').is(':visible');
                 var aerr = document.getElementById('jl-aerr');
-                var azone = document.getElementById('jl-drop');
-                if(!has){
+                if(uploading){
+                    toastr.warning('Please wait for upload to finish');
+                    ok = false;
+                } else if(!uploaded){
                     aerr.style.display = 'block';
-                    if(azone) azone.style.borderColor = '#f55';
                     ok = false;
                 } else {
                     aerr.style.display = 'none';
-                    if(azone) azone.style.borderColor = '';
                 }
             }
             return ok;

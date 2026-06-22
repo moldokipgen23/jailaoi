@@ -64,6 +64,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::resource('password', PasswordController::class)->only(['index', 'update']);
         // Music
         Route::resource('music', MusicController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+        Route::post('music/upload-audio', [MusicController::class, 'uploadAudio'])->name('music.upload.audio');
         // Playlist
         Route::resource('playlist', PlaylistController::class)->only(['index', 'store', 'update']);
         Route::get('playlist/content/{id}', [PlaylistController::class, 'pl_index'])->name('playlist.content.index');
