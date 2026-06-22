@@ -16,7 +16,7 @@ class BannerController extends Controller
 {
     private $folder_song = "radio";
     private $folder_podcast = "podcast";
-    private $folder_music = "music";
+    private $folder_music = "images/music";
     public $common;
     public function __construct()
     {
