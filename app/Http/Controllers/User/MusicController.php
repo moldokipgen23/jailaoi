@@ -379,6 +379,7 @@ class MusicController extends Controller
                     'duration'     => $duration,
                     'upload_type'  => $uploadType,
                     'music'        => $content->content ?? '',
+                    'lyrics'       => $content->lyrics ?? '',
                     'description'  => $content->description ?? '',
                     'portrait_img' => $content->portrait_img ?? '',
                     'landscape_img'=> '',
