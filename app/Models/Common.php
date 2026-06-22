@@ -68,33 +68,24 @@ class Common extends Model
 
             foreach ($array as $key => $value) {
                 $appName = Config::get('app.image_url');
+                $isUser = ($folder == "user" || $folder == "artist");
+                $default = $isUser ? asset('assets/imgs/default.png') : asset('assets/imgs/no_img.png');
+
                 if (isset($value[$column]) && $value[$column] != "") {
-                    if ($cdnUrl) {
-                        // Serve directly from Bunny CDN
-                        $value[$column] = $cdnUrl . '/' . $folder . '/' . $value[$column];
-                        $array[$key] = $value;
-                        continue;
-                    }
-                    if ($folder == "user" or $folder == "artist") {
-                        if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
-                            $value[$column] = $appName . $folder . '/' . $value[$column];
-                        } else {
-                            $value[$column] = asset('assets/imgs/default.png');
-                        }
+                    $filePath = $folder . '/' . $value[$column];
+                    // Local-first: files uploaded before CDN was configured live on local disk.
+                    if (Storage::disk('public')->exists($filePath)) {
+                        $value[$column] = $appName . $filePath;
+                    } elseif ($cdnUrl) {
+                        // Not found locally — serve from Bunny CDN.
+                        $value[$column] = $cdnUrl . '/' . $filePath;
                     } else {
-                        if (Storage::disk('public')->exists($folder . '/' . $value[$column])) {
-                            $value[$column] = $appName . $folder . '/' . $value[$column];
-                        } else {
-                            $value[$column] = asset('assets/imgs/no_img.png');
-                        }
+                        $value[$column] = $default;
                     }
                 } else {
-                    if ($folder == "user" || $folder == "artist") {
-                        $value[$column] = asset('assets/imgs/default.png');
-                    } else {
-                        $value[$column] = asset('assets/imgs/no_img.png');
-                    }
+                    $value[$column] = $default;
                 }
+                $array[$key] = $value;
             }
             return $array;
         } catch (Exception $e) {
