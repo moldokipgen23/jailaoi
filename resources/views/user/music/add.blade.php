@@ -137,7 +137,7 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>Audio Duration<span class="text-danger">*</span></label>
-                                        <input type="text" id="timePicker" name="content_duration" placeholder="Auto-detected from file" class="form-control" readonly>
+                                        <input type="text" id="timePicker" name="content_duration" placeholder="Auto-detected from file" class="form-control">
                                         <small class="text-muted">Filled automatically when you select a file</small>
                                     </div>
                                 </div>

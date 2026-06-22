@@ -750,7 +750,8 @@
                         '</div>' +
                         '</div>' +
                         '<div class="border-top pt-3 text-right">' +
-                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
+                        '<button type="button" id="pin-btn-' + resp.result[i].id + '" class="btn ' + (resp.result[i].is_pinned == 1 ? 'btn-warning' : 'btn-outline-secondary') + ' mw-120" onclick="toggle_pin(' + resp.result[i].id + ')">' + (resp.result[i].is_pinned == 1 ? '&#128204; Pinned' : '&#128204; Pin') + '</button>' +
+                        '<button type="button" data-toggle="modal" data-target="#editsectioneModal" class="btn btn-default mw-120 ml-2" onclick="edit_section(' + resp.result[i].id + ')">{{__("label.update")}}</button>' +
                         '<button type="button" class="btn btn-cancel mw-120 ml-2" onclick="delete_section(' + resp.result[i].id + ')">{{__("label.delete")}}</button>' +
                         '</div>' +
                         '</div>' +
