@@ -417,8 +417,8 @@
 
         $(document).ready(function(){
             var st = "<?php echo Storage_Type(); ?>";
-            if(st == 1){ $('.s3_video_box').hide(); $('.video_box').show(); }
-            else { $('.video_box').hide(); $('.s3_video_box').show(); }
+            if(st == 1){ $('.video_box').hide(); $('.s3_video_box').show(); }
+            else { $('.s3_video_box').hide(); $('.video_box').show(); }
 
             // Drag-drop on audio zone
             var dz = document.getElementById('jl-drop');
