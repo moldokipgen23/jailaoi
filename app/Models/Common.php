@@ -250,16 +250,7 @@ class Common extends Model
             return "";
         }
 
-        $appName = Config::get('app.image_url');
-
-        // If the file already exists on local disk, always serve it from there.
-        // This handles songs imported before CDN was configured — they live
-        // on local storage only and would 404 on Bunny/R2.
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            return $appName . $folder . '/' . $name;
-        }
-
-        // File is not local — try the configured CDN driver.
+        // Bunny CDN — return CDN URL directly (files are uploaded there via saveChunk/saveAudioFile)
         if (getAudioStorageDriver() == 'bunny') {
             $cdnUrl = $this->getBunnyCdnUrl();
             if ($cdnUrl) {
@@ -267,11 +258,18 @@ class Common extends Model
             }
         }
 
+        // Cloudflare R2
         if (getAudioStorageDriver() == 'r2') {
             $url = Config::get('app.r2_public_url', env('R2_PUBLIC_URL', ''));
             if ($url) {
                 return rtrim($url, '/') . '/' . $folder . '/' . $name;
             }
+        }
+
+        // Local storage fallback
+        $appName = Config::get('app.image_url');
+        if (Storage::disk('public')->exists($folder . '/' . $name)) {
+            return $appName . $folder . '/' . $name;
         }
 
         return "";
