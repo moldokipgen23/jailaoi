@@ -1034,6 +1034,29 @@
                 $(".is_title").show();
                 $(".is_category").show();
                 $(".is_artist_name").show();
+            } else if (optionValue == 9) {
+
+                $(".artist_drop").hide();
+                $(".category_drop").hide();
+                $(".language_drop").hide();
+                $(".city_drop").hide();
+                $(".is_paid").hide();
+                $(".is_premium").hide();
+                $(".order_by_upload").hide();
+                $(".order_by_play").hide();
+                $(".is_title").show();
+                $(".is_category").hide();
+                $(".is_artist_name").hide();
+
+                $(".screen_layout").show();
+                $("#screen_layout").children().removeAttr("selected");
+                $("#screen_layout option[value='landscape']").show();
+                $("#screen_layout option[value='square']").show();
+                $("#screen_layout option[value='small_square']").show();
+                $("#screen_layout option[value='round']").hide();
+
+                $(".no_of_content").show();
+                $(".view_all").show();
             } else {
 
                 $(".screen_layout").hide();
@@ -1059,9 +1082,6 @@
             $("#dvloader").show();
             var formData = new FormData($("#section")[0]);
             formData.append('section_type', section_type);
-            if (section_type == 4) {
-                formData.append('type', 2);
-            }
             $.ajax({
                 type: 'POST',
                 url: '{{ route("section.store") }}',
@@ -1100,67 +1120,10 @@
         $(".is_category").hide();
         $(".is_artist_name").hide();
 
-        if (section_type == 1) {
-            $('.type_drop').show();
-            $("#type").children().removeAttr("selected");
-            $("#type option[value='1']").show();
-            $("#type option[value='2']").show();
-            $("#type option[value='3']").show();
-            $("#type option[value='4']").show();
-            $("#type option[value='5']").show();
-            $("#type option[value='6']").show();
-            $("#type option[value='7']").show();
-            $("#type option[value='8']").show();
-            $("#type option[value='9']").show();
-
-        } else if (section_type == 2) {
-            $('.type_drop').show();
-            $("#type").children().removeAttr("selected");
-            $("#type option[value='1']").hide();
-            $("#type option[value='2']").hide();
-            $("#type option[value='3']").hide();
-            $("#type option[value='4']").show();
-            $("#type option[value='5']").hide();
-            $("#type option[value='6']").hide();
-            $("#type option[value='7']").hide();
-            $("#type option[value='8']").show();
-            $("#type option[value='9']").hide();
-
-        } else if (section_type == 3) {
-            $('.type_drop').show();
-            $("#type").children().removeAttr("selected");
-            $("#type option[value='1']").show();
-            $("#type option[value='2']").hide();
-            $("#type option[value='3']").hide();
-            $("#type option[value='4']").show();
-            $("#type option[value='5']").hide();
-            $("#type option[value='6']").hide();
-            $("#type option[value='7']").hide();
-            $("#type option[value='8']").hide();
-            $("#type option[value='9']").hide();
-        } else if (section_type == 4) {
-            $('.type_drop').hide();
-            $(".screen_layout").show();
-            $("#screen_layout").children().removeAttr("selected");
-            $("#screen_layout option[value='landscape']").show();
-            $("#screen_layout option[value='square']").show();
-            $("#screen_layout option[value='small_square']").hide();
-            $("#screen_layout option[value='round']").hide();
-            $(".artist_drop").show();
-            hide_artist([1, 3], '#artist_id');
-            $(".category_drop").show();
-            $(".language_drop").show();
-            $(".city_drop").show();
-            $(".no_of_content").show();
-            $(".view_all").show();
-            $(".is_premium").show();
-            $(".order_by_upload").show();
-            $(".order_by_play").show();
-            $(".is_paid").hide();
-            $(".is_title").show();
-            $(".is_category").show();
-            $(".is_artist_name").show();
-        }
+        // All tabs show all content types — the type dropdown onChange handler controls dependent fields
+        $('.type_drop').show();
+        $("#type").children().removeAttr("selected");
+        $("#type option").show();
 
         $("#dvloader").show();
         $.ajax({
@@ -1411,47 +1374,9 @@
                 $(".edit_is_category").hide();
                 $(".edit_is_artist_name").hide();
 
-                if (resp.result.section_type == 1) {
-                    $(".edit_type_drop").show();
-                    $("#edit_type option[value='1']").show();
-                    $("#edit_type option[value='2']").show();
-                    $("#edit_type option[value='3']").show();
-                    $("#edit_type option[value='4']").show();
-                    $("#edit_type option[value='5']").show();
-                    $("#edit_type option[value='6']").show();
-                    $("#edit_type option[value='7']").show();
-                    $("#edit_type option[value='8']").show();
-                } else if (resp.result.section_type == 2) {
-                    $(".edit_type_drop").show();
-                    $("#edit_type option[value='1']").hide();
-                    $("#edit_type option[value='2']").hide();
-                    $("#edit_type option[value='3']").hide();
-                    $("#edit_type option[value='4']").show();
-                    $("#edit_type option[value='5']").hide();
-                    $("#edit_type option[value='6']").hide();
-                    $("#edit_type option[value='7']").hide();
-                    $("#edit_type option[value='8']").show();
-                } else if (resp.result.section_type == 3) {
-                    $(".edit_type_drop").show();
-                    $("#edit_type option[value='1']").show();
-                    $("#edit_type option[value='2']").hide();
-                    $("#edit_type option[value='3']").hide();
-                    $("#edit_type option[value='4']").show();
-                    $("#edit_type option[value='5']").hide();
-                    $("#edit_type option[value='6']").hide();
-                    $("#edit_type option[value='7']").hide();
-                    $("#edit_type option[value='8']").hide();
-                } else if (resp.result.section_type == 4) {
-                    $(".edit_type_drop").hide();
-                    $("#edit_type option[value='1']").hide();
-                    $("#edit_type option[value='2']").hide();
-                    $("#edit_type option[value='3']").hide();
-                    $("#edit_type option[value='4']").hide();
-                    $("#edit_type option[value='5']").hide();
-                    $("#edit_type option[value='6']").hide();
-                    $("#edit_type option[value='7']").hide();
-                    $("#edit_type option[value='8']").hide();
-                }
+                // All tabs show all content types in edit modal too
+                $(".edit_type_drop").show();
+                $("#edit_type option").show();
 
                 if (resp.result.type == 1) {
 
@@ -1539,6 +1464,16 @@
                     $(".edit_is_title").show();
                     $(".edit_is_category").show();
                     $(".edit_is_artist_name").show();
+                } else if (resp.result.type == 9) {
+
+                    $(".edit_screen_layout").show();
+                    $("#edit_screen_layout option[value='landscape']").show();
+                    $("#edit_screen_layout option[value='square']").show();
+                    $("#edit_screen_layout option[value='small_square']").show();
+                    $("#edit_screen_layout option[value='round']").hide();
+                    $(".edit_no_of_content").show();
+                    $(".edit_view_all").show();
+                    $(".edit_is_title").show();
                 }
 
                 $('#edit_type').change(function() {
@@ -1650,6 +1585,29 @@
                         $(".edit_is_title").show();
                         $(".edit_is_category").show();
                         $(".edit_is_artist_name").show();
+                    } else if (type == 9) {
+
+                        $(".edit_artist_drop").hide();
+                        $(".edit_category_drop").hide();
+                        $(".edit_language_drop").hide();
+                        $(".edit_city_drop").hide();
+                        $(".edit_is_paid").hide();
+                        $(".edit_is_premium").hide();
+                        $(".edit_order_by_upload").hide();
+                        $(".edit_order_by_play").hide();
+                        $(".edit_is_title").show();
+                        $(".edit_is_category").hide();
+                        $(".edit_is_artist_name").hide();
+
+                        $(".edit_screen_layout").show();
+                        $("#edit_screen_layout").children().removeAttr("selected");
+                        $("#edit_screen_layout option[value='landscape']").show();
+                        $("#edit_screen_layout option[value='square']").show();
+                        $("#edit_screen_layout option[value='small_square']").show();
+                        $("#edit_screen_layout option[value='round']").hide();
+
+                        $(".edit_no_of_content").show();
+                        $(".edit_view_all").show();
                     } else {
 
                         $(".edit_screen_layout").hide();

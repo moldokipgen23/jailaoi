@@ -1400,7 +1400,7 @@ class HomeController extends Controller
             $user_id = isset($request->user_id) ? $request->user_id : 0;
             $section_type = $request->section_type;
 
-            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', $section_type)->where('status', 1)->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', $section_type)->where('status', 1)->orderByRaw('CASE WHEN type=9 THEN 0 ELSE 1 END ASC')->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -1695,7 +1695,7 @@ class HomeController extends Controller
             $more_page = false;
 
             // JAILAOI: Podcast tab (section_type=4). Any content type allowed.
-            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', 4)->where('status', 1)->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+            $data = Section::whereIn('user_id', [0, $user_id])->where('section_type', 4)->where('status', 1)->orderByRaw('CASE WHEN type=9 THEN 0 ELSE 1 END ASC')->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -2524,7 +2524,7 @@ class HomeController extends Controller
 
             $data = Section::whereIn('user_id', [0, $user_id])
                 ->where('section_type', 3)->where('status', 1)
-                ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+                ->orderByRaw('CASE WHEN type=9 THEN 0 ELSE 1 END ASC')->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -2565,7 +2565,7 @@ class HomeController extends Controller
 
             $data = Section::whereIn('user_id', [0, $user_id])
                 ->where('section_type', 2)->where('status', 1)
-                ->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
+                ->orderByRaw('CASE WHEN type=9 THEN 0 ELSE 1 END ASC')->orderByRaw('user_id=? DESC', [$user_id])->orderBy('sortable', 'asc');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
