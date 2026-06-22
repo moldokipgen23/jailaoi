@@ -250,8 +250,9 @@
                                     <div class="ds">MP3 · M4A · WAV · FLAC · OGG</div>
                                     <div id="filelist1"></div>
                                     <div id="container1" style="position:relative;display:inline-block">
-                                        <input type="file" id="uploadFile1" name="uploadFile1" class="import-file" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg" style="display:none">
                                         <a id="upload1" class="jlw-pbtn"><i class="fa-solid fa-folder-open"></i> Choose File</a>
+                                        <input type="file" id="uploadFile1" name="uploadFile1" class="import-file" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg"
+                                               style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;width:100%;height:100%">
                                     </div>
                                     <input type="hidden" name="music" id="mp3_file_name1">
                                 </div>
