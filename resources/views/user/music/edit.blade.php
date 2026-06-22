@@ -103,28 +103,17 @@
                     <div class="form-row">
                         <div class="col-md-10">
                             <div class="form-row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>{{__('label.upload_type')}}<span class="text-danger">*</span></label>
-                                        <select class="form-control" name="content_upload_type" id="content_upload_type">
-                                            <option value="server_video" {{ $data['content_upload_type'] == "server_video" ? 'selected' : ''}}>{{__('label.server_audio')}}</option>
-                                            <option value="external_url" {{ $data['content_upload_type'] == "external_url" ? 'selected' : ''}}>{{__('label.external_url')}}</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                {{-- Upload type hidden — always direct upload for artists --}}
+                                <input type="hidden" name="content_upload_type" id="content_upload_type" value="server_video">
                                 <div class="col-md-4 video_box">
                                     <div class="form-group">
-                                        <div style="display: block;">
-                                            <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
-                                            <div id="filelist1"></div>
-                                            <div id="container1" style="position: relative;">
-                                                <div class="form-group">
-                                                    <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2">
-                                                </div>
-                                                <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
-                                                <label class="text-gray">@if($data->content_upload_type == 'server_video'){{ basename($data['content']) }}@endif</label>
-                                            </div>
+                                        <label>{{__('label.upload_music')}}</label>
+                                        <div id="filelist1"></div>
+                                        <div id="container1" style="position: relative;">
+                                            <input type="file" id="uploadFile1" name="uploadFile1" class="form-control import-file p-2" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
+                                            <input type="hidden" name="music" id="mp3_file_name1" class="form-control">
                                         </div>
+                                        @if($data->content_upload_type == 'server_video')<small class="text-muted">Current: {{ basename($data['content']) }}</small>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-2 mt-4 video_box">
@@ -134,21 +123,16 @@
                                 </div>
                                 <div class="col-md-6 s3_video_box">
                                     <div class="form-group">
-                                        <label>{{__('label.upload_music')}}<span class="text-danger">*</span></label>
-                                        <input type="file" name="music" class="form-control import-file" accept=".mp3">
-                                        <label class="text-gray">@if($data->content_upload_type == 'server_video'){{ basename($data['content']) }}@endif</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 url_box">
-                                    <div class="form-group">
-                                        <label>{{__('label.url')}}<span class="text-danger">*</span></label>
-                                        <input type="text" name="url" value="@if($data['content_upload_type'] != 'server_video'){{{$data['content']}}}@endif" class="form-control" placeholder="{{__('label.url_here')}}">
+                                        <label>{{__('label.upload_music')}}</label>
+                                        <input type="file" id="audioFileInput" name="music" class="form-control import-file" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
+                                        @if($data->content_upload_type == 'server_video')<small class="text-muted">Current: {{ basename($data['content']) }}</small>@endif
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>{{__('label.video_duration')}}<span class="text-danger">*</span></label>
-                                        <input type="text" id="timePicker" name="content_duration" placeholder="{{__('label.video_duration_here')}}" class="form-control">
+                                        <label>Audio Duration<span class="text-danger">*</span></label>
+                                        <input type="text" id="timePicker" name="content_duration" placeholder="Auto-detected from file" class="form-control">
+                                        <small class="text-muted">Leave unchanged to keep existing duration</small>
                                     </div>
                                 </div>
                             </div>
@@ -264,36 +248,49 @@
 
         $(document).ready(function() {
             var storage_type = "<?php echo Storage_Type(); ?>";
-            var content_upload_type = "<?php echo $data['content_upload_type']; ?>";
-            if (content_upload_type == "server_video") {
-                if(storage_type == 1){
-                    $(".s3_video_box").hide();
-                } else if(storage_type == 2){
-                    $(".video_box").hide();
-                }
-                $(".url_box").hide();
+            if (storage_type == 1) {
+                $(".s3_video_box").hide();
+                $(".video_box").show();
             } else {
                 $(".video_box").hide();
-                $(".s3_video_box").hide();
+                $(".s3_video_box").show();
             }
-            $('#content_upload_type').change(function() {
 
-                var optionValue = $(this).val();
-                if (optionValue == 'server_video') {
+            // Auto-detect duration from selected audio file (Bunny)
+            $('#audioFileInput').on('change', function() {
+                var file = this.files[0];
+                if (!file) return;
+                var audio = document.createElement('audio');
+                audio.preload = 'metadata';
+                audio.onloadedmetadata = function() {
+                    URL.revokeObjectURL(audio.src);
+                    var secs = Math.floor(audio.duration);
+                    var h = Math.floor(secs / 3600);
+                    var m = Math.floor((secs % 3600) / 60);
+                    var s = secs % 60;
+                    var formatted = (h > 0 ? String(h).padStart(2,'0') + ':' : '')
+                        + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+                    $('#timePicker').val(formatted);
+                };
+                audio.src = URL.createObjectURL(file);
+            });
 
-                    if (storage_type == 1) {
-                        $(".video_box").show();
-                        $(".s3_video_box").hide();
-                    } else if (storage_type == "2") {
-                        $(".video_box").hide();
-                        $(".s3_video_box").show();
-                    }
-                    $(".url_box").hide();
-                } else {
-                    $(".url_box").show();
-                    $(".video_box").hide();
-                    $(".s3_video_box").hide();
-                }
+            $('#uploadFile1').on('change', function() {
+                var file = this.files[0];
+                if (!file) return;
+                var audio = document.createElement('audio');
+                audio.preload = 'metadata';
+                audio.onloadedmetadata = function() {
+                    URL.revokeObjectURL(audio.src);
+                    var secs = Math.floor(audio.duration);
+                    var h = Math.floor(secs / 3600);
+                    var m = Math.floor((secs % 3600) / 60);
+                    var s = secs % 60;
+                    var formatted = (h > 0 ? String(h).padStart(2,'0') + ':' : '')
+                        + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+                    $('#timePicker').val(formatted);
+                };
+                audio.src = URL.createObjectURL(file);
             });
         });
 
