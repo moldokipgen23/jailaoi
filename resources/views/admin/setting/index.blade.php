@@ -244,6 +244,38 @@
                     </div>
                 </div>
                 <div class="form-row">
+                    <!-- Banner Toggle -->
+                    <div class="col-12">
+                        <div class="card custom-border-card">
+                            <h5 class="card-header">Home Banner</h5>
+                            <div class="card-body">
+                                <form id="banner_setting_form">
+                                    <div class="form-row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-0">
+                                                <label class="d-block mb-1">Show Banner on Home Screen</label>
+                                                <small class="text-muted">When enabled, the spotlight carousel appears at the top of the home screen. Manage banner items under <strong>Content → Banner</strong>.</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-md-right mt-2 mt-md-0">
+                                            <div class="custom-control custom-switch d-inline-block">
+                                                <input type="checkbox" class="custom-control-input" id="home_banner_toggle"
+                                                    name="home_banner_enabled" value="1"
+                                                    {{ ($result['home_banner_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="home_banner_toggle">Enable</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="border-top pt-3 text-right mt-3">
+                                        <button type="button" class="btn btn-default mw-120" onclick="save_banner_setting()">{{__('label.save')}}</button>
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
                     <!-- Ai Api Key -->
                     <div class="col-12">
                         <div class="card custom-border-card">
@@ -956,6 +988,36 @@
                     $("html, body").animate({
                         scrollTop: 0
                     }, "swing");
+                    get_responce_message(resp);
+                },
+                error: function(XMLHttpRequest, errorThrown, textStatus) {
+                    $('#dvloader').hide();
+                    toastr.error(textStatus, errorThrown);
+                }
+            });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+        }
+    }
+
+    function save_banner_setting() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin == 1) {
+            $('#dvloader').show();
+            var formData = new FormData($('#banner_setting_form')[0]);
+            if (!$('#home_banner_toggle').is(':checked')) {
+                formData.set('home_banner_enabled', '0');
+            }
+            $.ajax({
+                type: 'POST',
+                url: '{{route("setting.banner")}}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
                     get_responce_message(resp);
                 },
                 error: function(XMLHttpRequest, errorThrown, textStatus) {

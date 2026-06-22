@@ -143,6 +143,21 @@ class SettingController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function saveBannerSetting(Request $request)
+    {
+        try {
+            $value = $request->input('home_banner_enabled', '0');
+            $setting = General_Setting::where('key', 'home_banner_enabled')->first();
+            if ($setting) {
+                $setting->value = $value;
+                $setting->save();
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function screenshot(Request $request)
     {
         try {

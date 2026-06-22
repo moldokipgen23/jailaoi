@@ -143,6 +143,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('setting/currency', [SettingController::class, 'currency'])->name('setting.currency');
         Route::post('setting/dev', [SettingController::class, 'dev'])->name('setting.dev');
         Route::post('setting/screenshot', [SettingController::class, 'screenshot'])->name('setting.screenshot');
+        Route::post('setting/banner', [SettingController::class, 'saveBannerSetting'])->name('setting.banner');
         Route::post('setting/save_key', [SettingController::class, 'save_key'])->name('setting.save_key');
         Route::post('setting/smtp', [SettingController::class, 'smtpSave'])->name('smtp.save');
         Route::post('setting/test_smtp', [SettingController::class, 'testSmtp'])->name('setting.test_smtp');
