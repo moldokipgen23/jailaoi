@@ -277,8 +277,8 @@
                         <div class="card custom-border-card jlw-card">
                             <div class="jlw-title"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Audio File</div>
 
-                            {{-- Bunny / direct upload --}}
-                            <div class="s3_video_box" id="jlf-audio">
+                            {{-- Audio upload zone (always direct file input — storage backend is transparent to artists) --}}
+                            <div id="jlf-audio">
                                 <div class="jlw-drop" id="jl-drop">
                                     <input type="file" id="audioFileInput" name="music" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
                                     <span class="di">🎵</span>
@@ -292,23 +292,6 @@
                                     <div class="jlw-fname" id="jl-aname"></div>
                                 </div>
                                 <div class="jlw-err" id="jl-aerr" style="margin-top:6px">Please select an audio file to continue</div>
-                            </div>
-
-                            {{-- Local / plupload --}}
-                            <div class="video_box">
-                                <div class="jlw-pzone">
-                                    <span class="di">🎵</span>
-                                    <div class="dt">Select your audio file</div>
-                                    <div class="ds">MP3 · M4A · WAV · FLAC · OGG</div>
-                                    <div id="filelist1"></div>
-                                    <div id="container1" style="position:relative;display:inline-block">
-                                        <a id="upload1" class="jlw-pbtn"><i class="fa-solid fa-folder-open"></i> Choose Audio File</a>
-                                        {{-- uploadFile1 must stay visible (not display:none) so plupload can overlay its browse input on it --}}
-                                        <input type="file" id="uploadFile1" name="uploadFile1" class="import-file" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg"
-                                               style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;width:100%;height:100%">
-                                    </div>
-                                    <input type="hidden" name="music" id="mp3_file_name1">
-                                </div>
                             </div>
 
                             {{-- Duration --}}
@@ -466,10 +449,6 @@
         });
 
         $(document).ready(function(){
-            var st = "<?php echo Storage_Type(); ?>";
-            if(st == 1){ $('.video_box').hide(); $('.s3_video_box').show(); }
-            else { $('.s3_video_box').hide(); $('.video_box').show(); }
-
             // Drag-and-drop on audio zone
             var dz = document.getElementById('jl-drop');
             if(dz){
@@ -560,20 +539,16 @@
                 if(!t || !c || !l) ok = false;
             }
             if(step === 2){
-                var st = "<?php echo Storage_Type(); ?>";
-                if(st == 1){
-                    // Bunny: requires a file in the direct-upload input
-                    var has = document.getElementById('audioFileInput').files.length > 0;
-                    var aerr = document.getElementById('jl-aerr');
-                    var azone = document.getElementById('jl-drop');
-                    if(!has){
-                        aerr.style.display = 'block';
-                        if(azone) azone.style.borderColor = '#f55';
-                        ok = false;
-                    } else {
-                        aerr.style.display = 'none';
-                        if(azone) azone.style.borderColor = '';
-                    }
+                var has = document.getElementById('audioFileInput').files.length > 0;
+                var aerr = document.getElementById('jl-aerr');
+                var azone = document.getElementById('jl-drop');
+                if(!has){
+                    aerr.style.display = 'block';
+                    if(azone) azone.style.borderColor = '#f55';
+                    ok = false;
+                } else {
+                    aerr.style.display = 'none';
+                    if(azone) azone.style.borderColor = '';
                 }
             }
             return ok;

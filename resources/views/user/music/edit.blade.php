@@ -226,36 +226,18 @@
                                 </div>
                             </div>
 
-                            {{-- Bunny drop zone --}}
-                            <div class="s3_video_box">
-                                <div class="jlw-drop" id="jl-drop">
-                                    <input type="file" id="audioFileInput" name="music" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
-                                    <span class="di">🎵</span>
-                                    <div class="dt">Drop new audio file to replace</div>
-                                    <div class="ds">or click to browse &nbsp;·&nbsp; MP3 · M4A · WAV · FLAC · OGG · AAC</div>
-                                    <div class="jlw-wave" id="jl-wave">
-                                        <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
-                                        <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
-                                        <div class="jlw-wb"></div>
-                                    </div>
-                                    <div class="jlw-fname" id="jl-aname"></div>
+                            {{-- Audio upload zone (always direct file input — storage backend is transparent to artists) --}}
+                            <div class="jlw-drop" id="jl-drop">
+                                <input type="file" id="audioFileInput" name="music" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg">
+                                <span class="di">🎵</span>
+                                <div class="dt">Drop new audio file to replace</div>
+                                <div class="ds">or click to browse &nbsp;·&nbsp; MP3 · M4A · WAV · FLAC · OGG · AAC</div>
+                                <div class="jlw-wave" id="jl-wave">
+                                    <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
+                                    <div class="jlw-wb"></div><div class="jlw-wb"></div><div class="jlw-wb"></div>
+                                    <div class="jlw-wb"></div>
                                 </div>
-                            </div>
-
-                            {{-- Local plupload zone --}}
-                            <div class="video_box">
-                                <div class="jlw-pzone">
-                                    <span class="di">🎵</span>
-                                    <div class="dt">Select new audio file</div>
-                                    <div class="ds">MP3 · M4A · WAV · FLAC · OGG</div>
-                                    <div id="filelist1"></div>
-                                    <div id="container1" style="position:relative;display:inline-block">
-                                        <a id="upload1" class="jlw-pbtn"><i class="fa-solid fa-folder-open"></i> Choose File</a>
-                                        <input type="file" id="uploadFile1" name="uploadFile1" class="import-file" accept=".mp3,.m4a,.aac,.flac,.wav,.ogg"
-                                               style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;width:100%;height:100%">
-                                    </div>
-                                    <input type="hidden" name="music" id="mp3_file_name1">
-                                </div>
+                                <div class="jlw-fname" id="jl-aname"></div>
                             </div>
 
                             {{-- Duration --}}
@@ -416,10 +398,6 @@
         });
 
         $(document).ready(function(){
-            var st = "<?php echo Storage_Type(); ?>";
-            if(st == 1){ $('.video_box').hide(); $('.s3_video_box').show(); }
-            else { $('.s3_video_box').hide(); $('.video_box').show(); }
-
             // Drag-drop on audio zone
             var dz = document.getElementById('jl-drop');
             if(dz){
