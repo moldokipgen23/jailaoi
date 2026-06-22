@@ -79,17 +79,12 @@
             },
             success: function(response) {
                 $('#content_id').empty();
-
                 $('#content_id').append('<option value=""> {{__("label.select_content")}}</option>');
                 response.content.forEach(function(item) {
-                    if (contentType == 1) {
-                        $('#content_id').append(`<option value="${item.id}">${item.name}</option>`);
-                    } else if (contentType == 2) {
-                        $('#content_id').append(`<option value="${item.id}">${item.title}</option>`);
-                    } else if (contentType == 3) {
-                        $('#content_id').append(`<option value="${item.id}">${item.title}</option>`);
-                    }
+                    var label = (contentType == 1) ? item.name : item.title;
+                    $('#content_id').append(`<option value="${item.id}">${label}</option>`);
                 });
+                $('#content_id').trigger('change.select2');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
                 toastr.error(errorThrown, textStatus);
