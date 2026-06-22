@@ -519,7 +519,7 @@
             fd.append('_token', '{{ csrf_token() }}');
 
             var xhr = new XMLHttpRequest();
-            xhr.open('POST', '{{ route("music.upload.audio") }}', true);
+            xhr.open('POST', '{{ route("user.music.upload.audio") }}', true);
             xhr.upload.onprogress = function(e){
                 if(e.lengthComputable){
                     var pct = Math.round(e.loaded/e.total*100);
