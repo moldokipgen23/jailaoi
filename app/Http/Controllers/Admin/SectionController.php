@@ -11,6 +11,7 @@ use App\Models\Section;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
 class SectionController extends Controller
@@ -205,7 +206,7 @@ class SectionController extends Controller
     {
         try {
 
-            $data = Section::where('section_type', $request->section_type)->where('user_id', $request->user_id)->orderBy('sortable', 'asc')->get();
+            $data = Section::where('section_type', $request->section_type)->where('user_id', $request->user_id)->orderBy('is_pinned', 'desc')->orderBy('sortable', 'asc')->get();
             return response()->json(['status' => 200, 'success' => __('label.data_get_successfully'), 'result' => $data]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -425,6 +426,12 @@ class SectionController extends Controller
             if ($data) {
                 $data->is_pinned = $data->is_pinned == 1 ? 0 : 1;
                 $data->save();
+                // Clear section list cache so API reflects new pin order immediately
+                for ($p = 1; $p <= 10; $p++) {
+                    Cache::forget("section_list_{$data->section_type}_{$p}");
+                    Cache::forget("section_list_radio_{$p}");
+                    Cache::forget("section_list_music_{$p}");
+                }
                 return response()->json(['status' => 200, 'is_pinned' => $data->is_pinned]);
             }
             return response()->json(['status' => 400, 'errors' => __('label.data_not_found')]);
