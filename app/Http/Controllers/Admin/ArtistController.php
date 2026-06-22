@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\ArtistRequest;
 use App\Models\Common;
+use App\Models\General_Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
@@ -274,6 +276,79 @@ class ArtistController extends Controller
             }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function analytics(Request $request)
+    {
+        try {
+            $period   = $request->get('period', '30d');
+            $currency = General_Setting::where('key', 'payout_currency')->value('value') ?? 'USD';
+            $rate     = (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
+
+            $since = match($period) {
+                '7d'  => now()->subDays(7),
+                '30d' => now()->subDays(30),
+                '90d' => now()->subDays(90),
+                '1yr' => now()->subYear(),
+                default => null,
+            };
+
+            // Count music plays per artist via tbl_user_action + tbl_music
+            // FIND_IN_SET handles comma-separated artist_id in tbl_music
+            $query = DB::table('tbl_user_action as ua')
+                ->join('tbl_music as m', 'm.id', '=', 'ua.content_id')
+                ->join('tbl_artist as a', DB::raw('FIND_IN_SET(a.id, m.artist_id)'), '>', DB::raw('0'))
+                ->where('ua.action', 1)
+                ->where('ua.content_type', 8)
+                ->select(
+                    'a.id as artist_id',
+                    'a.name as artist_name',
+                    'a.image as artist_image',
+                    DB::raw('COUNT(ua.id) as play_count')
+                )
+                ->groupBy('a.id', 'a.name', 'a.image')
+                ->orderByDesc('play_count');
+
+            if ($since) {
+                $query->where('ua.created_at', '>=', $since);
+            }
+
+            $rows = $query->limit(100)->get();
+
+            // Attach monetization status
+            $artistIds = $rows->pluck('artist_id')->toArray();
+            $monetizationMap = DB::table('tbl_monetization_applications')
+                ->whereIn('artist_id', $artistIds)
+                ->orderByDesc('id')
+                ->get()
+                ->keyBy('artist_id');
+
+            $common = new Common;
+            $artists = $rows->map(function ($row) use ($rate, $currency, $monetizationMap, $common) {
+                $mon    = $monetizationMap[$row->artist_id] ?? null;
+                $status = $mon ? $mon->status : 'none';
+                return [
+                    'id'           => $row->artist_id,
+                    'name'         => $row->artist_name,
+                    'image'        => $common->Get_Image('artist', $row->artist_image ?? ''),
+                    'play_count'   => (int) $row->play_count,
+                    'est_earnings' => round($row->play_count * $rate, 2),
+                    'mon_status'   => $status,
+                ];
+            });
+
+            // Summary stats for the period
+            $totalPlays    = $artists->sum('play_count');
+            $totalEstimate = round($artists->sum('est_earnings'), 2);
+            $monetizedCount = $artists->where('mon_status', 'approved')->count();
+
+            return view('admin.artist.analytics', compact(
+                'artists', 'period', 'currency', 'rate',
+                'totalPlays', 'totalEstimate', 'monetizedCount'
+            ));
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
     }
 

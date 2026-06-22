@@ -94,6 +94,12 @@
                 <span>Earnings</span>
             </a>
         </li>
+        <li class="side_line {{ request()->routeIs('admin.artist-analytics*') ? 'active' : '' }}">
+            <a href="{{ route('admin.artist-analytics.index') }}">
+                <i class="fa-solid fa-chart-bar fa-2xl menu-icon"></i>
+                <span>Artist Analytics</span>
+            </a>
+        </li>
 
         {{-- JAILAOI: USERS section --}}
         <li class="side-section-label">USERS</li>

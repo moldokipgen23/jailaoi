@@ -176,6 +176,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('withdrawals/show/{id}', [WithdrawalController::class, 'show'])->name('admin.withdrawals.show');
         // JAILAOI: Monetization / Earnings Overview
         Route::get('earnings', [WithdrawalController::class, 'earningsOverview'])->name('admin.earnings.index');
+        Route::get('artist-analytics', [ArtistController::class, 'analytics'])->name('admin.artist-analytics.index');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
