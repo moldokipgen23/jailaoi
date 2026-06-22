@@ -26,6 +26,25 @@
                         <img src="{{ $artistImageUrl }}" alt="{{ $artist->name }}" style="width:150px;height:150px;border-radius:50%;object-fit:cover;border:3px solid #e9ecef;">
                         <h4 class="mt-3">{{ $artist->name }}</h4>
                         <span class="badge badge-{{ $artist->status == 1 ? 'success' : 'danger' }}">{{ $artist->status == 1 ? 'Active' : 'Inactive' }}</span>
+                        @if($monetization)
+                            @php
+                                $mColor = match($monetization->status) {
+                                    'approved' => 'success',
+                                    'pending'  => 'warning',
+                                    'rejected' => 'danger',
+                                    default    => 'secondary',
+                                };
+                                $mLabel = match($monetization->status) {
+                                    'approved' => '💰 Monetized',
+                                    'pending'  => '⏳ Monetization Pending',
+                                    'rejected' => '✗ Monetization Rejected',
+                                    default    => ucfirst($monetization->status),
+                                };
+                            @endphp
+                            <br><span class="badge badge-{{ $mColor }} mt-1">{{ $mLabel }}</span>
+                        @else
+                            <br><span class="badge badge-secondary mt-1">Not Applied for Monetization</span>
+                        @endif
                         <hr>
                         <p class="text-muted">{{ $artist->bio ?? 'No bio' }}</p>
                     </div>

@@ -230,9 +230,11 @@ class WithdrawalController extends Controller
                 ];
             }
 
-            // Per-artist breakdown
+            // Per-artist breakdown — only approved monetized artists
             $artistBreakdown = DB::table('tbl_artist_earnings as ae')
                 ->join('tbl_artist as a', 'a.id', '=', 'ae.artist_id')
+                ->join('tbl_monetization_applications as ma', 'ma.artist_id', '=', 'ae.artist_id')
+                ->where('ma.status', 'approved')
                 ->select(
                     'a.id as artist_id',
                     'a.name as artist_name',

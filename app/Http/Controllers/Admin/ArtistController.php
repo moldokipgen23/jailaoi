@@ -316,10 +316,15 @@ class ArtistController extends Controller
             $kycFrontUrl    = $kyc ? $common->Get_Image('kyc', $kyc->id_front_img) : null;
             $kycBackUrl     = $kyc ? $common->Get_Image('kyc', $kyc->id_back_img) : null;
 
+            $monetization = \DB::table('tbl_monetization_applications')
+                ->where('artist_id', $id)
+                ->orderByDesc('id')
+                ->first();
+
             return view('admin.artist.show', compact(
                 'artist', 'totalPlays', 'totalEarned', 'paidOut', 'pending',
                 'available', 'totalTracks', 'kyc', 'followers',
-                'artistImageUrl', 'kycFrontUrl', 'kycBackUrl'
+                'artistImageUrl', 'kycFrontUrl', 'kycBackUrl', 'monetization'
             ));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
