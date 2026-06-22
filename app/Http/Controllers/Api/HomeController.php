@@ -2660,22 +2660,23 @@ class HomeController extends Controller
             $artistIds = array_unique(array_filter($artistIds));
             if (empty($artistIds)) return;
 
-            // Only credit artists who have been approved for monetization
+            // Approved monetized artists earn real money; others recorded with amount=0 for analytics
             $approvedIds = DB::table('tbl_monetization_applications')
                 ->whereIn('artist_id', $artistIds)
                 ->where('status', 'approved')
                 ->pluck('artist_id')
                 ->toArray();
-            if (empty($approvedIds)) return;
 
-            $share = $rate / count($approvedIds);
-            foreach ($approvedIds as $aid) {
+            $approvedCount = count($approvedIds);
+            $share = $approvedCount > 0 ? $rate / $approvedCount : 0;
+
+            foreach ($artistIds as $aid) {
                 ArtistEarning::create([
-                    'artist_id' => $aid,
-                    'user_id' => $user_id,
-                    'content_id' => $content_id,
+                    'artist_id'    => $aid,
+                    'user_id'      => $user_id,
+                    'content_id'   => $content_id,
                     'content_type' => $type,
-                    'amount' => $share,
+                    'amount'       => in_array($aid, $approvedIds) ? $share : 0,
                 ]);
             }
         } catch (Exception $e) {

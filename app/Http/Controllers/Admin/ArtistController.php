@@ -294,24 +294,22 @@ class ArtistController extends Controller
                 default => null,
             };
 
-            // Count music plays per artist via tbl_user_action + tbl_music
-            // FIND_IN_SET handles comma-separated artist_id in tbl_music
-            $query = DB::table('tbl_user_action as ua')
-                ->join('tbl_music as m', 'm.id', '=', 'ua.content_id')
-                ->join('tbl_artist as a', DB::raw('FIND_IN_SET(a.id, m.artist_id)'), '>', DB::raw('0'))
-                ->where('ua.action', 1)
-                ->where('ua.content_type', 8)
+            // Use tbl_artist_earnings as the source — it's populated from both add_play
+            // and add_user_action, and has artist_id already resolved. amount=0 rows
+            // are non-monetized artist plays (recorded for analytics only).
+            $query = DB::table('tbl_artist_earnings as ae')
+                ->join('tbl_artist as a', 'a.id', '=', 'ae.artist_id')
                 ->select(
                     'a.id as artist_id',
                     'a.name as artist_name',
                     'a.image as artist_image',
-                    DB::raw('COUNT(ua.id) as play_count')
+                    DB::raw('COUNT(ae.id) as play_count')
                 )
                 ->groupBy('a.id', 'a.name', 'a.image')
                 ->orderByDesc('play_count');
 
             if ($since) {
-                $query->where('ua.created_at', '>=', $since);
+                $query->where('ae.created_at', '>=', $since);
             }
 
             $rows = $query->limit(100)->get();

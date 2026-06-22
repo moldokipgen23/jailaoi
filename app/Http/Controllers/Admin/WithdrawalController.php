@@ -197,22 +197,23 @@ class WithdrawalController extends Controller
             $rate           = (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
             $minWithdrawal  = (float) (General_Setting::where('key', 'min_withdrawal_amount')->value('value') ?? 10);
 
-            // Platform-wide totals
-            $totalPlays     = ArtistEarning::count();
+            // Platform-wide totals — only monetized plays (amount > 0)
+            $totalPlays     = ArtistEarning::where('amount', '>', 0)->count();
             $totalEarned    = round((float) ArtistEarning::sum('amount'), 2);
             $totalPaid      = round((float) WithdrawalRequest::where('status', 'paid')->sum('amount'), 2);
             $totalPending   = round((float) WithdrawalRequest::whereIn('status', ['pending', 'approved'])->sum('amount'), 2);
             $totalOwed      = round(max(0, $totalEarned - $totalPaid), 2);
             $pendingCount   = WithdrawalRequest::where('status', 'pending')->count();
-            $activeArtists  = ArtistEarning::distinct('artist_id')->count('artist_id');
+            $activeArtists  = ArtistEarning::where('amount', '>', 0)->distinct('artist_id')->count('artist_id');
 
-            // Monthly trend (last 6 months)
+            // Monthly trend (last 6 months) — monetized plays only
             $monthlyRows = DB::table('tbl_artist_earnings')
                 ->select(
                     DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
                     DB::raw('SUM(amount) as earned'),
                     DB::raw('COUNT(*) as plays')
                 )
+                ->where('amount', '>', 0)
                 ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
                 ->groupBy('month')
                 ->orderBy('month')
