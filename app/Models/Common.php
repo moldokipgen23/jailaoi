@@ -1029,6 +1029,7 @@ class Common extends Model
             $query[$i]['is_buy']        = $this->is_any_package_buy($user_id);
             $query[$i]['is_favorite']   = $this->isFavorite(3, $query[$i]['id'], $user_id);
             $this->get_all_count_for_content(3, $query[$i]);
+            $this->getAllIdByName(array($query[$i]));
         }
         return $query;
     }
