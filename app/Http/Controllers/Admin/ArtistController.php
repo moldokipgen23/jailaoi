@@ -329,7 +329,7 @@ class ArtistController extends Controller
                 return [
                     'id'           => $row->artist_id,
                     'name'         => $row->artist_name,
-                    'image'        => $common->Get_Image('artist', $row->artist_image ?? ''),
+                    'image'        => $common->Get_Image('images/artist', $row->artist_image ?? ''),
                     'play_count'   => (int) $row->play_count,
                     'est_earnings' => round($row->play_count * $rate, 2),
                     'mon_status'   => $status,
@@ -385,7 +385,7 @@ class ArtistController extends Controller
 
             // JAILAOI: resolve image URLs in controller — don't pass $common to view
             $common = new Common;
-            $artistImageUrl = $common->Get_Image('artist', $artist->image ?? '');
+            $artistImageUrl = $common->Get_Image('images/artist', $artist->image ?? '');
             $kycFrontUrl    = $kyc ? $common->Get_Image('kyc', $kyc->id_front_img) : null;
             $kycBackUrl     = $kyc ? $common->Get_Image('kyc', $kyc->id_back_img) : null;
 
