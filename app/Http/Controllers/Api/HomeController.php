@@ -905,7 +905,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = $request->page_no ?? $request->pageno ?? 1;
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -2441,7 +2441,11 @@ class HomeController extends Controller
             $user_id = $request['user_id'];
             $artist_id = $request['artist_id'];
 
-            $follow = Subscriber::where('user_id', $user_id)->where('to_user_id', $artist_id)->first();
+            // JAILAOI: resolve artist's user_id so Subscriber stores consistent to_user_id
+            $artist = \App\Models\Artist::find($artist_id);
+            $target_user_id = $artist && $artist->user_id ? $artist->user_id : $artist_id;
+
+            $follow = Subscriber::where('user_id', $user_id)->where('to_user_id', $target_user_id)->first();
             if ($follow) {
 
                 Subscriber::where('id', $follow['id'])->delete();
@@ -2449,7 +2453,7 @@ class HomeController extends Controller
             } else {
 
                 $insert['user_id'] = $user_id;
-                $insert['to_user_id'] = $artist_id;
+                $insert['to_user_id'] = $target_user_id;
                 Subscriber::insertGetId($insert);
 
                 return $this->common->API_Response(200, __('api_msg.follow_successfully'));
