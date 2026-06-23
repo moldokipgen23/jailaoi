@@ -157,7 +157,7 @@
 <div class="sidebar">
     {{-- Brand --}}
     <div class="side-head">
-        <a href="{{ route('user.earnings.index') }}" class="side-logo">
+        <a href="{{ route('user.dashboard') }}" class="side-logo">
             <div>
                 <h3>{{ App_Name() }}</h3>
                 <small>ARTIST PORTAL</small>
