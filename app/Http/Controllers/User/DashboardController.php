@@ -69,7 +69,7 @@ class DashboardController extends Controller
                 ->where('status', 1)
                 ->orderByDesc('total_play')
                 ->take(5)
-                ->get(['id', 'title', 'image', 'total_play'])
+                ->get(['id', 'name', 'image', 'total_play'])
             : collect();
 
         // --- Monthly plays trend (last 6 months) ---

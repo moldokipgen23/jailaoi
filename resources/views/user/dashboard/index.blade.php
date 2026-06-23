@@ -161,7 +161,7 @@
                             <i class="fa-solid fa-music" style="color:#fff;font-size:14px;"></i>
                         </div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $song->title }}</div>
+                            <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $song->name }}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;color:#6b7280;font-size:13px;flex-shrink:0;">
                             <i class="fa-solid fa-play" style="font-size:11px;"></i>
