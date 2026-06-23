@@ -103,7 +103,7 @@ Rebranded from DTTube / DeepSound.
 ```
 DB: jailaoic_jailaoinew
 User: jailaoic_jailaoinew
-Pass: Moldo@23
+Pass: [see cPanel → MySQL Databases, do NOT commit here]
 Host: localhost
 ```
 
@@ -128,7 +128,7 @@ Host: localhost
 
 ## Admin Login
 - URL: `https://m.jailaoi.com/admin/login`
-- Default: admin@admin.com / admin123 (or from DB)
+- Default credentials: check DB directly, do NOT commit here
 
 ## Migration Script
 - `php artisan migrate:deepsound --old-db=jailaoi_old` — migrates from old DB to current DB

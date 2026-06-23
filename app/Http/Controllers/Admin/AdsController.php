@@ -182,7 +182,7 @@ class AdsController extends Controller
         $datePath = date('Y') . '/' . date('m');
         $targetDir = storage_path('/app/public/ads/' . $datePath);
         if (!file_exists($targetDir)) {
-            @mkdir($targetDir, 0777, true);
+            @mkdir($targetDir, 0755, true);
         }
         $cleanupTargetDir = true; // Remove old files
         $maxFileAge = 5 * 3600; // Temp file age in seconds
