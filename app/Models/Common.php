@@ -211,14 +211,38 @@ class Common extends Model
 
         $url = $endpoint . '/' . $zone . '/' . ltrim($remotePath, '/');
 
-        $response = \Illuminate\Support\Facades\Http::withHeaders([
-            'AccessKey'    => $apiKey,
-            'Content-Type' => 'application/octet-stream',
-        ])->withBody(file_get_contents($localPath), 'application/octet-stream')
-          ->put($url);
+        // Stream the file directly to Bunny — avoids loading entire file into PHP memory.
+        // file_get_contents would OOM or time out on large audio files.
+        $fh = fopen($localPath, 'rb');
+        if ($fh === false) {
+            throw new Exception('Could not open file for Bunny upload: ' . $localPath);
+        }
 
-        if (!$response->successful()) {
-            throw new Exception('Bunny CDN upload failed (HTTP ' . $response->status() . '): ' . $response->body());
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_PUT            => true,
+            CURLOPT_INFILE         => $fh,
+            CURLOPT_INFILESIZE     => filesize($localPath),
+            CURLOPT_HTTPHEADER     => [
+                'AccessKey: ' . $apiKey,
+                'Content-Type: application/octet-stream',
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 300,
+        ]);
+
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+        fclose($fh);
+
+        if ($curlErr) {
+            throw new Exception('Bunny CDN upload curl error: ' . $curlErr);
+        }
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new Exception('Bunny CDN upload failed (HTTP ' . $httpCode . '): ' . $body);
         }
     }
 

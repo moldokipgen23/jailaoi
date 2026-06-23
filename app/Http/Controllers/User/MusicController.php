@@ -85,6 +85,9 @@ class MusicController extends Controller
     // store()/update() then just save the filename string; no second upload needed.
     public function uploadAudio(Request $request)
     {
+        // Large audio files can take several minutes to relay to Bunny CDN
+        set_time_limit(300);
+
         try {
             $validator = Validator::make($request->all(), [
                 'audio' => 'required|file|mimes:mp3,m4a,aac,flac,wav,ogg|max:307200',
