@@ -417,6 +417,69 @@
 
             </div>
 
+            {{-- JAILAOI: Start.io Ads Settings --}}
+            <div class="card custom-border-card mt-3">
+                <div class="card-header">
+                    <h5>Start.io Ads</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3" style="font-size:13px;">
+                        Get your App ID from <a href="https://portal.start.io" target="_blank">portal.start.io</a>.
+                        After saving, add the App ID to <code>AndroidManifest.xml</code> and <code>Info.plist</code> then rebuild the app.
+                    </p>
+                    <form id="startio_form">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>Enabled</label>
+                                <select name="startio_enabled" class="form-control">
+                                    <option value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    <option value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Banner Ads</label>
+                                <select name="startio_banner_enabled" class="form-control">
+                                    <option value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                    <option value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Interstitial Ads</label>
+                                <select name="startio_interstitial_enabled" class="form-control">
+                                    <option value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                    <option value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Rewarded Ads</label>
+                                <select name="startio_rewarded_enabled" class="form-control">
+                                    <option value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                    <option value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row mt-2">
+                            <div class="form-group col-md-6">
+                                <label>Android App ID</label>
+                                <input type="text" name="startio_app_id_android" class="form-control"
+                                    value="{{ $result['startio_app_id_android'] ?? '' }}"
+                                    placeholder="e.g. 204637737">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>iOS App ID</label>
+                                <input type="text" name="startio_app_id_ios" class="form-control"
+                                    value="{{ $result['startio_app_id_ios'] ?? '' }}"
+                                    placeholder="e.g. 204295105">
+                            </div>
+                        </div>
+                        <div class="border-top pt-3 text-right">
+                            <button type="button" class="btn btn-default mw-120" onclick="startio_save()">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             {{-- JAILAOI: Artist Payout Settings --}}
             <div class="tab-pane fade" id="payout-settings" role="tabpanel" aria-labelledby="payout-settings-tab">
                 <div class="card custom-border-card mt-3">
@@ -1120,6 +1183,33 @@
         if (CheckAdmin == 1) {
             $('#dvloader').show();
             var formData = new FormData($('#cdn_storage_form')[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{route("setting.save_key")}}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
+                    get_responce_message(resp);
+                },
+                error: function(XMLHttpRequest, errorThrown, textStatus) {
+                    $('#dvloader').hide();
+                    toastr.error(textStatus, errorThrown);
+                }
+            });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+        }
+    }
+
+    function startio_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin == 1) {
+            $('#dvloader').show();
+            var formData = new FormData($('#startio_form')[0]);
             $.ajax({
                 type: 'POST',
                 url: '{{route("setting.save_key")}}',
