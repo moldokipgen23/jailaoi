@@ -19,196 +19,294 @@
                 </ol>
             </div>
         </div>
-        <!-- android settings  -->
-        <div class="card custom-border-card mt-3">
-            <h5 class="card-header">{{__('label.android_settings')}}</h5>
-            <div class="card-body">
-                <form id="admob_android">
-                    @csrf
-                    <div class="row">
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="banner_ad">{{__('label.banner_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="banner_ad" name="banner_ad" class="custom-control-input" {{ ($result['banner_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="banner_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="banner_ad1" name="banner_ad" class="custom-control-input" {{ ($result['banner_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="banner_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="interstital_ad">{{__('label.interstital_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="interstital_ad" name="interstital_ad" class="custom-control-input" {{ ($result['interstital_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="interstital_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="interstital_ad1" name="interstital_ad" class="custom-control-input" {{ ($result['interstital_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="interstital_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="reward_ad">{{__('label.reward_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="reward_ad" name="reward_ad" class="custom-control-input" {{ ($result['reward_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="reward_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="reward_ad1" name="reward_ad" class="custom-control-input" {{ ($result['reward_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="reward_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.banner_ad_id')}}</label>
-                                <input type="text" name="banner_adid" class="form-control" placeholder="{{__('label.banner_ad_id_here')}}" value="{{$result['banner_adid']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.interstital_ad_id')}}</label>
-                                <input type="text" name="interstital_adid" class="form-control" placeholder="{{__('label.interstital_ad_id_here')}}" value="{{$result['interstital_adid']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.reward_ad_id')}}</label>
-                                <input type="text" name="reward_adid" class="form-control" placeholder="{{__('label.reward_ad_id_here')}}" value="{{$result['reward_adid']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label></label>
-                                &nbsp;
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.interstital_ad_click')}}</label>
-                                <input type="text" name="interstital_adclick" class="form-control" placeholder="{{__('label.interstital_ad_click_here')}}" value="{{$result['interstital_adclick']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.reward_ad_click')}}</label>
-                                <input type="text" name="reward_adclick" class="form-control" placeholder="{{__('label.reward_ad_click_here')}}" value="{{$result['reward_adclick']}}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border-top pt-3 text-right">
-                        <button type="button" class="btn btn-default mw-120" onclick="admob_android()">{{__('label.save')}}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <!-- ios settings  -->
-        <div class="card custom-border-card mt-3">
-            <h5 class="card-header">{{__('label.ios_settings')}}</h5>
-            <div class="card-body">
-                <form id="admob_ios">
-                    @csrf
-                    <div class="row">
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="ios_banner_ad">{{__('label.banner_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_banner_ad" name="ios_banner_ad" class="custom-control-input" {{ ($result['ios_banner_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="ios_banner_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_banner_ad1" name="ios_banner_ad" class="custom-control-input" {{ ($result['ios_banner_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="ios_banner_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="ios_interstital_ad">{{__('label.interstital_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_interstital_ad" name="ios_interstital_ad" class="custom-control-input" {{ ($result['ios_interstital_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="ios_interstital_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_interstital_ad1" name="ios_interstital_ad" class="custom-control-input" {{ ($result['ios_interstital_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="ios_interstital_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label for="ios_reward_ad">{{__('label.reward_ad')}}</label>
-                                <div class="radio-group">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_reward_ad" name="ios_reward_ad" class="custom-control-input" {{ ($result['ios_reward_ad']=='1')? "checked" : "" }} value="1">
-                                        <label class="custom-control-label" for="ios_reward_ad">{{__('label.yes')}}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="ios_reward_ad1" name="ios_reward_ad" class="custom-control-input" {{ ($result['ios_reward_ad']=='0')? "checked" : "" }} value="0">
-                                        <label class="custom-control-label" for="ios_reward_ad1">{{__('label.no')}}</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.banner_ad_id')}}</label>
-                                <input type="text" name="ios_banner_adid" class="form-control" placeholder="{{__('label.banner_ad_id_here')}}" value="{{$result['ios_banner_adid']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.interstital_ad_id')}}</label>
-                                <input type="text" name="ios_interstital_adid" class="form-control" placeholder="{{__('label.interstital_ad_id_here')}}" value="{{$result['ios_interstital_adid']}}">
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.reward_ad_id')}}</label>
-                                <input type="text" name="ios_reward_adid" class="form-control" placeholder="{{__('label.reward_ad_id_here')}}" value="{{$result['ios_reward_adid']}}">
-                            </div>
-                        </div>
 
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label></label>
-                                &nbsp;
+        <!-- Tabs -->
+        <ul class="nav nav-pills custom-tabs inline-tabs mb-3" id="ads-tab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="admob-tab" data-toggle="tab" href="#admob" role="tab" aria-controls="admob" aria-selected="true">AdMob</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="startio-tab" data-toggle="tab" href="#startio" role="tab" aria-controls="startio" aria-selected="false">Start.io</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="custom-tab" data-toggle="tab" href="#custom" role="tab" aria-controls="custom" aria-selected="false">Custom Ads</a>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="ads-tabContent">
+
+            {{-- Tab 1: AdMob --}}
+            <div class="tab-pane fade show active" id="admob" role="tabpanel" aria-labelledby="admob-tab">
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">{{__('label.android_settings')}}</h5>
+                    <div class="card-body">
+                        <form id="admob_android">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="banner_ad">{{__('label.banner_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="banner_ad" name="banner_ad" class="custom-control-input" {{ ($result['banner_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="banner_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="banner_ad1" name="banner_ad" class="custom-control-input" {{ ($result['banner_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="banner_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="interstital_ad">{{__('label.interstital_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="interstital_ad" name="interstital_ad" class="custom-control-input" {{ ($result['interstital_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="interstital_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="interstital_ad1" name="interstital_ad" class="custom-control-input" {{ ($result['interstital_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="interstital_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="reward_ad">{{__('label.reward_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="reward_ad" name="reward_ad" class="custom-control-input" {{ ($result['reward_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="reward_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="reward_ad1" name="reward_ad" class="custom-control-input" {{ ($result['reward_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="reward_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.banner_ad_id')}}</label>
+                                        <input type="text" name="banner_adid" class="form-control" placeholder="{{__('label.banner_ad_id_here')}}" value="{{$result['banner_adid']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.interstital_ad_id')}}</label>
+                                        <input type="text" name="interstital_adid" class="form-control" placeholder="{{__('label.interstital_ad_id_here')}}" value="{{$result['interstital_adid']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.reward_ad_id')}}</label>
+                                        <input type="text" name="reward_adid" class="form-control" placeholder="{{__('label.reward_ad_id_here')}}" value="{{$result['reward_adid']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label></label>
+                                        &nbsp;
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.interstital_ad_click')}}</label>
+                                        <input type="text" name="interstital_adclick" class="form-control" placeholder="{{__('label.interstital_ad_click_here')}}" value="{{$result['interstital_adclick']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.reward_ad_click')}}</label>
+                                        <input type="text" name="reward_adclick" class="form-control" placeholder="{{__('label.reward_ad_click_here')}}" value="{{$result['reward_adclick']}}">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('interstital_ad_click')}}</label>
-                                <input type="text" name="ios_interstital_adclick" class="form-control" placeholder="{{__('label.interstital_ad_click_here')}}" value="{{$result['ios_interstital_adclick']}}">
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="admob_android()">{{__('label.save')}}</button>
                             </div>
-                        </div>
-                        <div class="col-12 col-sm-6 col-md-4">
-                            <div class="form-group">
-                                <label>{{__('label.reward_ad_click')}}</label>
-                                <input type="text" name="ios_reward_adclick" class="form-control" placeholder="{{__('label.reward_ad_click_here')}}" value="{{$result['ios_reward_adclick']}}">
-                            </div>
-                        </div>
+                        </form>
                     </div>
-                    <div class="border-top pt-3 text-right">
-                        <button type="button" class="btn btn-default mw-120" onclick="admob_ios()">{{__('label.save')}}</button>
+                </div>
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">{{__('label.ios_settings')}}</h5>
+                    <div class="card-body">
+                        <form id="admob_ios">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="ios_banner_ad">{{__('label.banner_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_banner_ad" name="ios_banner_ad" class="custom-control-input" {{ ($result['ios_banner_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="ios_banner_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_banner_ad1" name="ios_banner_ad" class="custom-control-input" {{ ($result['ios_banner_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="ios_banner_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="ios_interstital_ad">{{__('label.interstital_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_interstital_ad" name="ios_interstital_ad" class="custom-control-input" {{ ($result['ios_interstital_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="ios_interstital_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_interstital_ad1" name="ios_interstital_ad" class="custom-control-input" {{ ($result['ios_interstital_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="ios_interstital_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label for="ios_reward_ad">{{__('label.reward_ad')}}</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_reward_ad" name="ios_reward_ad" class="custom-control-input" {{ ($result['ios_reward_ad']=='1')? "checked" : "" }} value="1">
+                                                <label class="custom-control-label" for="ios_reward_ad">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_reward_ad1" name="ios_reward_ad" class="custom-control-input" {{ ($result['ios_reward_ad']=='0')? "checked" : "" }} value="0">
+                                                <label class="custom-control-label" for="ios_reward_ad1">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.banner_ad_id')}}</label>
+                                        <input type="text" name="ios_banner_adid" class="form-control" placeholder="{{__('label.banner_ad_id_here')}}" value="{{$result['ios_banner_adid']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.interstital_ad_id')}}</label>
+                                        <input type="text" name="ios_interstital_adid" class="form-control" placeholder="{{__('label.interstital_ad_id_here')}}" value="{{$result['ios_interstital_adid']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.reward_ad_id')}}</label>
+                                        <input type="text" name="ios_reward_adid" class="form-control" placeholder="{{__('label.reward_ad_id_here')}}" value="{{$result['ios_reward_adid']}}">
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label></label>
+                                        &nbsp;
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('interstital_ad_click')}}</label>
+                                        <input type="text" name="ios_interstital_adclick" class="form-control" placeholder="{{__('label.interstital_ad_click_here')}}" value="{{$result['ios_interstital_adclick']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>{{__('label.reward_ad_click')}}</label>
+                                        <input type="text" name="ios_reward_adclick" class="form-control" placeholder="{{__('label.reward_ad_click_here')}}" value="{{$result['ios_reward_adclick']}}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="admob_ios()">{{__('label.save')}}</button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
+
+            {{-- Tab 2: Start.io --}}
+            <div class="tab-pane fade" id="startio" role="tabpanel" aria-labelledby="startio-tab">
+                <div class="card custom-border-card mt-3">
+                    <div class="card-header">
+                        <h5>Start.io</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            Get your App ID from <a href="https://portal.start.io" target="_blank">portal.start.io</a>.
+                            After saving, add the App ID to <code>AndroidManifest.xml</code> and <code>Info.plist</code> then rebuild the app.
+                        </p>
+                        <form id="startio_form">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label>Enabled</label>
+                                    <select name="startio_enabled" class="form-control">
+                                        <option value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                        <option value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Banner Ads</label>
+                                    <select name="startio_banner_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Interstitial Ads</label>
+                                    <select name="startio_interstitial_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Rewarded Ads</label>
+                                    <select name="startio_rewarded_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row mt-2">
+                                <div class="form-group col-md-6">
+                                    <label>Android App ID</label>
+                                    <input type="text" name="startio_app_id_android" class="form-control"
+                                        value="{{ $result['startio_app_id_android'] ?? '' }}"
+                                        placeholder="e.g. 204637737">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>iOS App ID</label>
+                                    <input type="text" name="startio_app_id_ios" class="form-control"
+                                        value="{{ $result['startio_app_id_ios'] ?? '' }}"
+                                        placeholder="e.g. 204295105">
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="startio_save()">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tab 3: Custom Ads (placeholder for future) --}}
+            <div class="tab-pane fade" id="custom" role="tabpanel" aria-labelledby="custom-tab">
+                <div class="card custom-border-card mt-3">
+                    <div class="card-header">
+                        <h5>Custom Ads</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-0" style="font-size:13px;">
+                            <em>Custom ad settings will be available here in a future update.</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -220,10 +318,8 @@
     sidebar_down($(document).height());
 
     function admob_android() {
-
         var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
         if (Check_Admin == 1) {
-
             var formData = new FormData($("#admob_android")[0]);
             $("#dvloader").show();
             $.ajax({
@@ -235,9 +331,7 @@
                 processData: false,
                 success: function(resp) {
                     $("#dvloader").hide();
-                    $("html, body").animate({
-                        scrollTop: 0
-                    }, "swing");
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
                     get_responce_message(resp);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -251,10 +345,8 @@
     }
 
     function admob_ios() {
-
         var Check_Admin = '<?php echo Check_Admin_Access(); ?>';
         if (Check_Admin == 1) {
-
             var formData = new FormData($("#admob_ios")[0]);
             $("#dvloader").show();
             $.ajax({
@@ -266,9 +358,7 @@
                 processData: false,
                 success: function(resp) {
                     $("#dvloader").hide();
-                    $("html, body").animate({
-                        scrollTop: 0
-                    }, "swing");
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
                     get_responce_message(resp);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -278,6 +368,32 @@
             });
         } else {
             toastr.error('You have no right to add, edit, and delete.');
+        }
+    }
+
+    function startio_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin == 1) {
+            $('#dvloader').show();
+            var formData = new FormData($('#startio_form')[0]);
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("setting.save_key") }}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $('#dvloader').hide();
+                    get_responce_message(resp);
+                },
+                error: function(XMLHttpRequest, errorThrown, textStatus) {
+                    $('#dvloader').hide();
+                    toastr.error(textStatus, errorThrown);
+                }
+            });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
         }
     }
 </script>
