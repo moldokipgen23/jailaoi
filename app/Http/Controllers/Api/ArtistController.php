@@ -434,11 +434,9 @@ class ArtistController extends Controller
                 ->where('status', 'approved')
                 ->exists() ? 1 : 0;
 
-            // Earnings balance
-            $total_earned  = round((float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'), 2);
-            $paid_out      = round((float) WithdrawalRequest::where('artist_id', $artist->id)->where('status', 'approved')->sum('amount'), 2);
-            $pending_payout = round((float) WithdrawalRequest::where('artist_id', $artist->id)->where('status', 'pending')->sum('amount'), 2);
-            $available_balance = round(max(0, $total_earned - $paid_out - $pending_payout), 2);
+            // Earnings balance — wallet_balance is the single source of truth (deducted at request time)
+            $total_earned      = round((float) ArtistEarning::where('artist_id', $artist->id)->whereNotNull('settled_month')->sum('amount'), 2);
+            $available_balance = round((float) $artist->wallet_balance, 2);
 
             // Monetization — full status
             $monetization_row = MonetizationApplication::where('artist_id', $artist->id)

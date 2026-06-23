@@ -199,8 +199,9 @@
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label small fw-semibold">Payment Method</label>
                                             <select name="payment_method" class="form-control" required>
+                                                <option value="upi">UPI</option>
+                                                <option value="bank">Bank Transfer (NEFT/IMPS)</option>
                                                 <option value="paypal">PayPal</option>
-                                                <option value="bank">Bank Transfer</option>
                                                 <option value="mobile_money">Mobile Money</option>
                                             </select>
                                         </div>
