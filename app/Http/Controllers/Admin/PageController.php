@@ -12,7 +12,7 @@ use Exception;
 
 class PageController extends Controller
 {
-    private $folder_app = "app";
+    private $folder_app = "images/app";
     public $common;
     public function __construct()
     {
