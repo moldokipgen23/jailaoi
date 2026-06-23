@@ -13,7 +13,7 @@ use Exception;
 
 class AdsController extends Controller
 {
-    private $folder = "ads";
+    private $folder = "images/ads";
     public $common;
     public function __construct()
     {
@@ -99,13 +99,15 @@ class AdsController extends Controller
             $requestData['video_storage_type'] = $storage_type;
 
             $file = $requestData['image'];
-            $requestData['image'] = $this->common->saveImage($file, $this->folder, 'ads_', $requestData['image_storage_type']);
+            // JAILAOI: folder is images/ads so saveImage mirrors to Bunny CDN.
+            // Do NOT pass storage_type as 4th arg — that slot is $artistSlug now.
+            $requestData['image'] = $this->common->saveImage($file, $this->folder, 'ads_');
             if ($requestData['type'] == 3) {
 
                 if ($requestData['video_storage_type'] == 1) {
                     $requestData['video'] = $requestData['video'];
                 } else {
-                    $requestData['video'] = $this->common->saveImage($requestData['video'], $this->folder, 'vid_', $requestData['video_storage_type']);
+                    $requestData['video'] = $this->common->saveImage($requestData['video'], $this->folder, 'vid_');
                 }
             } else {
                 $requestData['video'] = "";
