@@ -182,9 +182,9 @@
     <ul class="side-menu">
 
         <li><span class="side-section-label">Overview</span></li>
-        <li class="side_line {{ request()->routeIs('user.earnings*') ? 'active' : '' }}">
-            <a href="{{ route('user.earnings.index') }}">
-                <i class="fa-solid fa-wallet menu-icon"></i><span>Earnings & Wallet</span>
+        <li class="side_line {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('user.dashboard') }}">
+                <i class="fa-solid fa-chart-line menu-icon"></i><span>Dashboard</span>
             </a>
         </li>
 
@@ -203,7 +203,7 @@
         <li><span class="side-section-label">Monetization</span></li>
         <li class="side_line {{ request()->routeIs('user.earnings*') ? 'active' : '' }}">
             <a href="{{ route('user.earnings.index') }}">
-                <i class="fa-solid fa-coins menu-icon"></i><span>Earnings & Wallet</span>
+                <i class="fa-solid fa-wallet menu-icon"></i><span>Earnings & Wallet</span>
             </a>
         </li>
         <li class="side_line {{ request()->routeIs('user.monetization*') ? 'active' : '' }}">
