@@ -39,6 +39,10 @@
             <li class="nav-item">
                 <a class="nav-link" id="payout-settings-tab" data-toggle="tab" href="#payout-settings" role="tab" aria-controls="payout-settings" aria-selected="false">💰 Payouts</a>
             </li>
+            {{-- JAILAOI: Marketing / Ads tab --}}
+            <li class="nav-item">
+                <a class="nav-link" id="marketing-tab" data-toggle="tab" href="#marketing" role="tab" aria-controls="marketing" aria-selected="false">📱 Marketing</a>
+            </li>
         </ul>
         <!-- custom tab panels  -->
         <div class="tab-content" id="pills-tabContent">
@@ -417,70 +421,82 @@
 
             </div>
 
-            {{-- JAILAOI: Start.io Ads Settings --}}
-            <div class="card custom-border-card mt-3">
-                <div class="card-header">
-                    <h5>Start.io Ads</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3" style="font-size:13px;">
-                        Get your App ID from <a href="https://portal.start.io" target="_blank">portal.start.io</a>.
-                        After saving, add the App ID to <code>AndroidManifest.xml</code> and <code>Info.plist</code> then rebuild the app.
-                    </p>
-                    <form id="startio_form">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <div class="form-row">
-                            <div class="form-group col-md-3">
-                                <label>Enabled</label>
-                                <select name="startio_enabled" class="form-control">
-                                    <option value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
-                                    <option value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
-                                </select>
+            {{-- JAILAOI: Marketing / Ads tab-pane --}}
+            <div class="tab-pane fade" id="marketing" role="tabpanel" aria-labelledby="marketing-tab">
+                <div class="card custom-border-card mt-3">
+                    <div class="card-header">
+                        <h5>📱 Ads &amp; Marketing</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            Get your Start.io App ID from <a href="https://portal.start.io" target="_blank">portal.start.io</a>.
+                            After saving, add the App ID to <code>AndroidManifest.xml</code> and <code>Info.plist</code> then rebuild the app.
+                        </p>
+
+                        {{-- Start.io --}}
+                        <h6 class="mb-3">Start.io</h6>
+                        <form id="startio_form">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <div class="form-row">
+                                <div class="form-group col-md-3">
+                                    <label>Enabled</label>
+                                    <select name="startio_enabled" class="form-control">
+                                        <option value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                        <option value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Banner Ads</label>
+                                    <select name="startio_banner_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Interstitial Ads</label>
+                                    <select name="startio_interstitial_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label>Rewarded Ads</label>
+                                    <select name="startio_rewarded_enabled" class="form-control">
+                                        <option value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
+                                        <option value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group col-md-3">
-                                <label>Banner Ads</label>
-                                <select name="startio_banner_enabled" class="form-control">
-                                    <option value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
-                                    <option value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
-                                </select>
+                            <div class="form-row mt-2">
+                                <div class="form-group col-md-6">
+                                    <label>Android App ID</label>
+                                    <input type="text" name="startio_app_id_android" class="form-control"
+                                        value="{{ $result['startio_app_id_android'] ?? '' }}"
+                                        placeholder="e.g. 204637737">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>iOS App ID</label>
+                                    <input type="text" name="startio_app_id_ios" class="form-control"
+                                        value="{{ $result['startio_app_id_ios'] ?? '' }}"
+                                        placeholder="e.g. 204295105">
+                                </div>
                             </div>
-                            <div class="form-group col-md-3">
-                                <label>Interstitial Ads</label>
-                                <select name="startio_interstitial_enabled" class="form-control">
-                                    <option value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
-                                    <option value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
-                                </select>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="startio_save()">Save</button>
                             </div>
-                            <div class="form-group col-md-3">
-                                <label>Rewarded Ads</label>
-                                <select name="startio_rewarded_enabled" class="form-control">
-                                    <option value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
-                                    <option value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row mt-2">
-                            <div class="form-group col-md-6">
-                                <label>Android App ID</label>
-                                <input type="text" name="startio_app_id_android" class="form-control"
-                                    value="{{ $result['startio_app_id_android'] ?? '' }}"
-                                    placeholder="e.g. 204637737">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label>iOS App ID</label>
-                                <input type="text" name="startio_app_id_ios" class="form-control"
-                                    value="{{ $result['startio_app_id_ios'] ?? '' }}"
-                                    placeholder="e.g. 204295105">
-                            </div>
-                        </div>
-                        <div class="border-top pt-3 text-right">
-                            <button type="button" class="btn btn-default mw-120" onclick="startio_save()">Save</button>
-                        </div>
-                    </form>
+                        </form>
+
+                        <hr>
+
+                        {{-- Placeholder for future ad networks (AdMob settings, Custom Ads, etc.) --}}
+                        <p class="text-muted mb-0" style="font-size:13px;">
+                            <em>AdMob and custom ad settings will appear here in a future update.</em>
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            {{-- JAILAOI: Artist Payout Settings --}}
+            {{-- JAILAOI: Payout settings tab-pane --}}
             <div class="tab-pane fade" id="payout-settings" role="tabpanel" aria-labelledby="payout-settings-tab">
                 <div class="card custom-border-card mt-3">
                     <h5 class="card-header">💰 Artist Payout Settings</h5>
