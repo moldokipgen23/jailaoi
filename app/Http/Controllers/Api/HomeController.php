@@ -1418,7 +1418,7 @@ class HomeController extends Controller
                 for ($i = 0; $i < count($data); $i++) {
 
                     $data[$i]['data'] = [];
-                    if (in_array($data[$i]['type'], [1, 2, 8, 9, 10, 11, 12, 13])) {
+                    if (in_array($data[$i]['type'], [1, 2, 8, 9, 10, 11, 12, 13, 14])) {
 
                         $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
 

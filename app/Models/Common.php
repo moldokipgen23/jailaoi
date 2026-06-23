@@ -898,6 +898,17 @@ class Common extends Model
                 return $this->formatMusicCollection($query, $user_id);
             }
 
+            // TYPE 14 — Hidden Gems: music with moderate plays (50–5000), ranked by velocity (plays/age)
+            if ($type == 14) {
+                $query = Music::where('status', 1)
+                    ->whereBetween('total_play', [50, 5000])
+                    ->orderByRaw('total_play / GREATEST(DATEDIFF(NOW(), created_at), 1) DESC')
+                    ->take((int) $no_of_content * 3) // fetch extra for diversity cap
+                    ->get();
+                $query = $this->applyArtistDiversityCap($query, (int) $no_of_content, 8);
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
             if ($type == 1) {
                 $content = Song::with('artist')->where('status', 1);
             } else if ($type == 2) {
@@ -978,7 +989,9 @@ class Common extends Model
                 $content->orderBy('id', 'asc');
             }
 
-            $query = $content->take($no_of_content)->get();
+            // Fetch extra rows so the diversity cap can still fill the section
+            $query = $content->take((int) $no_of_content * 3)->get();
+            $query = $this->applyArtistDiversityCap($query, (int) $no_of_content, $type);
 
             $this->getAllIdByName($query);
             for ($i = 0; $i < count($query); $i++) {
@@ -1042,6 +1055,24 @@ class Common extends Model
             $this->getAllIdByName(array($query[$i]));
         }
         return $query;
+    }
+
+    private function applyArtistDiversityCap($collection, int $limit, int $type): \Illuminate\Support\Collection
+    {
+        $counts = [];
+        $result = collect();
+        foreach ($collection as $item) {
+            // For Music (type 8), artist_id is comma-separated — use primary artist only
+            $primaryArtist = ($type == 8)
+                ? (int) explode(',', $item->artist_id ?? '0')[0]
+                : (int) ($item->artist_id ?? 0);
+            $counts[$primaryArtist] = ($counts[$primaryArtist] ?? 0) + 1;
+            if ($counts[$primaryArtist] <= 2) {
+                $result->push($item);
+            }
+            if ($result->count() >= $limit) break;
+        }
+        return $result;
     }
 
     public function section_query_detail($type, $artist_id, $category_id, $language_id, $city_id, $order_by_upload, $order_by_play, $is_premium)
