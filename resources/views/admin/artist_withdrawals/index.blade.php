@@ -216,9 +216,9 @@ $(document).on('click', '.view_withdrawal', function() {
                         </div>
                         <div class="col-md-6">
                             <h6>Artist Earnings Stats</h6>
-                            <p><strong>Total Earned:</strong> ${parseFloat(d.total_earned).toFixed(2)}</p>
+                            <p><strong>Wallet Balance:</strong> ${parseFloat(d.wallet_balance).toFixed(2)}</p>
                             <p><strong>Paid Out:</strong> ${parseFloat(d.paid_out).toFixed(2)}</p>
-                            <p><strong>Available Balance:</strong> ${parseFloat(d.available).toFixed(2)}</p>
+                            <p><strong>Available for Withdrawal:</strong> ${parseFloat(d.available).toFixed(2)}</p>
                         </div>
                     </div>
                     ${idImgHtml ? '<hr><div class="row">' + idImgHtml + '</div>' : ''}

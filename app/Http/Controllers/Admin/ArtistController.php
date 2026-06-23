@@ -393,7 +393,7 @@ class ArtistController extends Controller
 
             $paidOut = round((float) ($withdrawals['paid'] ?? 0), 2);
             $pending = round((float) (($withdrawals['pending'] ?? 0) + ($withdrawals['approved'] ?? 0)), 2);
-            $available = round(max(0, $totalEarned - $paidOut - $pending), 2);
+            $available = round((float) $artist->wallet_balance, 2);
 
             $songs = \App\Models\Song::where('artist_id', $id)->count();
             $podcasts = \App\Models\Podcast::where('artist_id', $id)->count();

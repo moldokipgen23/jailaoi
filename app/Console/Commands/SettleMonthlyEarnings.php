@@ -112,8 +112,29 @@ class SettleMonthlyEarnings extends Command
                 return 0;
             }
 
-            // --- Step 5: Execute settlement in a transaction ---
-            DB::transaction(function () use ($month, $monthStart, $monthEnd, $ratePerStream) {
+            if ($force && $existing) {
+                $this->warn("Reverting previous settlement for {$month} (inside transaction)...");
+            }
+
+            // --- Step 5 & 6: Revert (if --force) + execute settlement atomically ---
+            DB::transaction(function () use ($month, $monthStart, $monthEnd, $ratePerStream, $force, $existing) {
+                // If re-settling, revert previous wallet credits first (inside same transaction)
+                if ($force && $existing) {
+                    DB::update("
+                        UPDATE tbl_artist a
+                        INNER JOIN (
+                            SELECT artist_id, SUM(amount) as earned
+                            FROM tbl_artist_earnings
+                            WHERE settled_month = ? AND amount > 0
+                            GROUP BY artist_id
+                        ) e ON e.artist_id = a.id
+                        SET a.wallet_balance = GREATEST(0, a.wallet_balance - e.earned)
+                    ", [$month]);
+                    DB::table('tbl_artist_earnings')
+                        ->where('settled_month', $month)
+                        ->update(['settled_month' => null, 'amount' => 0]);
+                }
+
                 // Update approved artists: backfill amount and mark settled
                 DB::update("
                     UPDATE tbl_artist_earnings ae
@@ -136,6 +157,19 @@ class SettleMonthlyEarnings extends Command
                           SELECT artist_id FROM tbl_monetization_applications WHERE status = 'approved'
                       )
                 ", [$month, $monthStart, $monthEnd]);
+
+                // Credit each artist's wallet balance with their settled earnings
+                DB::update("
+                    UPDATE tbl_artist a
+                    INNER JOIN (
+                        SELECT artist_id, SUM(amount) as earned
+                        FROM tbl_artist_earnings
+                        WHERE settled_month = ?
+                          AND amount > 0
+                        GROUP BY artist_id
+                    ) e ON e.artist_id = a.id
+                    SET a.wallet_balance = a.wallet_balance + e.earned
+                ", [$month]);
             });
 
             // --- Step 6: Record settlement audit ---

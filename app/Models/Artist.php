@@ -21,6 +21,7 @@ class Artist extends Model
         'sort_order' => 'integer',
         'status' => 'integer',
         'user_id' => 'integer',
+        'wallet_balance' => 'float',
     ];
 
     public function user()

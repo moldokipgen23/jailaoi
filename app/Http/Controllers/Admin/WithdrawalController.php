@@ -87,13 +87,11 @@ class WithdrawalController extends Controller
                 ->latest()
                 ->first();
 
-            // Get artist earnings stats
-            $totalEarned = (float) ArtistEarning::where('artist_id', $wr->artist_id)->sum('amount');
+            // Wallet balance is the source of truth
+            $artistModel = Artist::find($wr->artist_id);
+            $walletBalance = $artistModel ? round((float) $artistModel->wallet_balance, 4) : 0;
             $paidOut = (float) WithdrawalRequest::where('artist_id', $wr->artist_id)
                 ->where('status', 'paid')->sum('amount');
-            $pendingWds = (float) WithdrawalRequest::where('artist_id', $wr->artist_id)
-                ->whereIn('status', ['pending', 'approved'])->sum('amount');
-            $available = round(max(0, $totalEarned - $paidOut - $pendingWds), 4);
 
             // KYC payment details are already cast as array by the model
             $paymentDetails = $kyc ? $kyc->payment_details : null;
@@ -110,9 +108,9 @@ class WithdrawalController extends Controller
                     'payment_details' => $paymentDetails,
                     'id_front_img_url' => $idFrontUrl,
                     'id_back_img_url' => $idBackUrl,
-                    'total_earned' => $totalEarned,
+                    'wallet_balance' => $walletBalance,
                     'paid_out' => $paidOut,
-                    'available' => $available,
+                    'available' => $walletBalance,
                 ]
             ]);
         } catch (Exception $e) {
@@ -127,16 +125,100 @@ class WithdrawalController extends Controller
 
     public function reject(Request $request)
     {
-        return $this->setStatus($request, 'rejected');
+        try {
+            $validator = Validator::make($request->all(), [
+                'request_id' => 'required|numeric',
+                'admin_note' => 'nullable|string',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+
+            DB::beginTransaction();
+            try {
+                $wr = WithdrawalRequest::where('id', $request->request_id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->lockForUpdate()
+                    ->first();
+                if (!$wr) {
+                    DB::rollBack();
+                    return response()->json(['status' => 400, 'errors' => 'Withdrawal request not found or already processed']);
+                }
+
+                // Restore wallet balance (atomic, row-locked)
+                $artist = Artist::where('id', $wr->artist_id)->lockForUpdate()->first();
+                if ($artist) {
+                    $artist->wallet_balance = round((float) $artist->wallet_balance + (float) $wr->amount, 4);
+                    $artist->save();
+                }
+
+                $wr->status = 'rejected';
+                if ($request->filled('admin_note')) {
+                    $wr->admin_note = $request->admin_note;
+                }
+                $wr->processed_at = now();
+                $wr->save();
+
+                DB::commit();
+                return response()->json(['status' => 200, 'success' => 'Withdrawal rejected. Balance restored to artist wallet.']);
+            } catch (Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
     }
 
     public function markPaid(Request $request)
     {
-        return $this->setStatus($request, 'paid');
+        try {
+            $validator = Validator::make($request->all(), [
+                'request_id' => 'required|numeric',
+                'admin_note' => 'nullable|string',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+            $wr = WithdrawalRequest::find($request->request_id);
+            if (!$wr) return response()->json(['status' => 400, 'errors' => 'Request not found']);
+
+            $wr->status = 'paid';
+            if ($request->filled('admin_note')) {
+                $wr->payment_note = $request->admin_note;
+            }
+            $wr->paid_at = now();
+            $wr->processed_at = now();
+            $wr->save();
+
+            // Send email
+            try {
+                $user = $wr->user;
+                if ($user) {
+                    $common = new Common;
+                    $common->SetSmtpConfig();
+                    Mail::to($user->email)->send(
+                        new \App\Mail\WithdrawalPaidMail(
+                            $user->full_name ?? 'there',
+                            $wr->amount,
+                            $wr->payment_method ?? 'bank',
+                            $wr->id
+                        )
+                    );
+                }
+            } catch (Exception $e) {
+                Log::error('Withdrawal paid email failed: ' . $e->getMessage());
+            }
+
+            return response()->json(['status' => 200, 'success' => 'Withdrawal marked as paid']);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
     }
 
     private function setStatus(Request $request, $status)
     {
+        // Only used for approve now; reject and markPaid have their own methods
         try {
             $validator = Validator::make($request->all(), [
                 'request_id' => 'required|numeric',
@@ -150,38 +232,10 @@ class WithdrawalController extends Controller
 
             $wr->status = $status;
             if ($request->filled('admin_note')) {
-                if ($status === 'paid') {
-                    $wr->payment_note = $request->admin_note;
-                } else {
-                    $wr->admin_note = $request->admin_note;
-                }
-            }
-            if ($status === 'paid') {
-                $wr->paid_at = now();
+                $wr->admin_note = $request->admin_note;
             }
             $wr->processed_at = now();
             $wr->save();
-
-            // Send email when marked as paid
-            if ($status === 'paid') {
-                try {
-                    $user = $wr->user;
-                    if ($user) {
-                        $common = new Common;
-                        $common->SetSmtpConfig();
-                        Mail::to($user->email)->send(
-                            new \App\Mail\WithdrawalPaidMail(
-                                $user->full_name ?? 'there',
-                                $wr->amount,
-                                $wr->payment_method ?? 'bank',
-                                $wr->id
-                            )
-                        );
-                    }
-                } catch (Exception $e) {
-                    Log::error('Withdrawal paid email failed: ' . $e->getMessage());
-                }
-            }
 
             return response()->json(['status' => 200, 'success' => 'Withdrawal ' . $status]);
         } catch (Exception $e) {

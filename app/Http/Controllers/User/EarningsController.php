@@ -160,7 +160,7 @@ class EarningsController extends Controller
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
 
-            // JAILAOI: Check monetization + KYC approval
+            // Check monetization + KYC approval
             $monetizationApproved = MonetizationApplication::where('artist_id', $artist->id)->where('status', 'approved')->exists();
             $kycApproved = ArtistKyc::where('user_id', $user->id)->where('status', 'approved')->exists();
 
@@ -171,27 +171,70 @@ class EarningsController extends Controller
                 return response()->json(['status' => 400, 'errors' => 'KYC not approved. Please complete KYC verification first.']);
             }
 
-            $stats = $this->getStats($artist);
-            $min = (float) $this->setting('min_withdrawal_amount', 10);
+            // Enforce min streams threshold
+            $minStreams = (int) $this->setting('min_streams_for_payout', 1000);
+            $totalPlays = ArtistEarning::where('artist_id', $artist->id)->count();
+            if ($totalPlays < $minStreams) {
+                return response()->json(['status' => 400, 'errors' => 'You need at least ' . number_format($minStreams) . ' streams to withdraw. You have ' . number_format($totalPlays) . '.']);
+            }
+
+            // Enforce min earnings threshold (settled only in pool mode)
+            $minEarnings = (float) $this->setting('min_earnings_for_payout', 200);
+            $earningsModel = $this->setting('earnings_model', 'pool');
+            $totalEarned = $earningsModel === 'pool'
+                ? (float) ArtistEarning::where('artist_id', $artist->id)->whereNotNull('settled_month')->sum('amount')
+                : (float) ArtistEarning::where('artist_id', $artist->id)->sum('amount');
+            if ($totalEarned < $minEarnings) {
+                return response()->json(['status' => 400, 'errors' => 'You need at least ₹' . number_format($minEarnings, 0) . ' in settled earnings to withdraw. You have ₹' . number_format($totalEarned, 2) . '.']);
+            }
+
             $amount = (float) $request->amount;
+            $min = (float) $this->setting('min_withdrawal_amount', 200);
 
             if ($amount < $min) {
-                return response()->json(['status' => 400, 'errors' => 'Minimum withdrawal is ' . $min]);
-            }
-            if ($amount > $stats['available']) {
-                return response()->json(['status' => 400, 'errors' => 'Amount exceeds available balance']);
+                return response()->json(['status' => 400, 'errors' => 'Minimum withdrawal is ₹' . number_format($min, 0)]);
             }
 
-            WithdrawalRequest::create([
-                'artist_id' => $artist->id,
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'payment_method' => $request->payment_method,
-                'payment_details' => $request->payment_details,
-                'status' => 'pending',
-            ]);
+            // Atomic hold: lock row, check balance, deduct, create request
+            DB::beginTransaction();
+            try {
+                // Lock the artist row to prevent race conditions
+                $artist = Artist::where('id', $artist->id)->lockForUpdate()->first();
 
-            return response()->json(['status' => 200, 'success' => 'Withdrawal request submitted']);
+                if ((float) $artist->wallet_balance < $amount) {
+                    DB::rollBack();
+                    return response()->json(['status' => 400, 'errors' => 'Insufficient wallet balance']);
+                }
+
+                // Block if there's already a pending or approved withdrawal
+                $existing = WithdrawalRequest::where('artist_id', $artist->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->exists();
+                if ($existing) {
+                    DB::rollBack();
+                    return response()->json(['status' => 400, 'errors' => 'You already have a pending withdrawal request. Complete or cancel it first.']);
+                }
+
+                // Deduct from wallet (atomic)
+                $artist->wallet_balance = round((float) $artist->wallet_balance - $amount, 4);
+                $artist->save();
+
+                // Create withdrawal request
+                WithdrawalRequest::create([
+                    'artist_id' => $artist->id,
+                    'user_id' => $user->id,
+                    'amount' => $amount,
+                    'payment_method' => $request->payment_method,
+                    'payment_details' => $request->payment_details,
+                    'status' => 'pending',
+                ]);
+
+                DB::commit();
+                return response()->json(['status' => 200, 'success' => 'Withdrawal request submitted. Balance held.']);
+            } catch (Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
@@ -203,13 +246,15 @@ class EarningsController extends Controller
         $stats = [
             'currency' => $this->setting('payout_currency', 'USD'),
             'rate' => (float) $this->setting('payout_rate_per_stream', 0),
-            'min_withdrawal' => (float) $this->setting('min_withdrawal_amount', 10),
+            'min_withdrawal' => (float) $this->setting('min_withdrawal_amount', 200),
             'total_plays' => 0,
             'total_earned' => 0.0,
+            'wallet_balance' => 0.0,
             'paid_out' => 0.0,
             'pending' => 0.0,
             'available' => 0.0,
             'pending_plays' => 0,
+            'has_pending_withdrawal' => false,
             'earnings_model' => $model,
         ];
         if (!$artist) return $stats;
@@ -217,7 +262,6 @@ class EarningsController extends Controller
         $stats['total_plays'] = ArtistEarning::where('artist_id', $artist->id)->count();
 
         if ($model === 'pool') {
-            // Pool mode: only count settled earnings
             $stats['total_earned'] = round((float) ArtistEarning::where('artist_id', $artist->id)
                 ->whereNotNull('settled_month')
                 ->sum('amount'), 4);
@@ -225,9 +269,11 @@ class EarningsController extends Controller
                 ->whereNull('settled_month')
                 ->count();
         } else {
-            // Per-stream mode: all earnings are settled immediately
             $stats['total_earned'] = round((float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'), 4);
         }
+
+        // Wallet balance is the single source of truth for withdrawable funds
+        $stats['wallet_balance'] = round((float) $artist->wallet_balance, 4);
 
         $stats['paid_out'] = round((float) WithdrawalRequest::where('artist_id', $artist->id)
             ->where('status', 'paid')->sum('amount'), 2);
@@ -235,7 +281,12 @@ class EarningsController extends Controller
         $stats['pending'] = round((float) WithdrawalRequest::where('artist_id', $artist->id)
             ->whereIn('status', ['pending', 'approved'])->sum('amount'), 2);
 
-        $stats['available'] = round(max(0, $stats['total_earned'] - $stats['paid_out'] - $stats['pending']), 4);
+        $stats['has_pending_withdrawal'] = WithdrawalRequest::where('artist_id', $artist->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->exists();
+
+        // available = wallet_balance (pending/approved already deducted from wallet at request time)
+        $stats['available'] = round(max(0, $stats['wallet_balance']), 4);
 
         return $stats;
     }
