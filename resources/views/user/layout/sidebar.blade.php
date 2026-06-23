@@ -184,7 +184,7 @@
         <li><span class="side-section-label">Overview</span></li>
         <li class="side_line {{ request()->routeIs('user.earnings*') ? 'active' : '' }}">
             <a href="{{ route('user.earnings.index') }}">
-                <i class="fa-solid fa-chart-line menu-icon"></i><span>Dashboard</span>
+                <i class="fa-solid fa-wallet menu-icon"></i><span>Earnings & Wallet</span>
             </a>
         </li>
 
@@ -201,6 +201,11 @@
         </li>
 
         <li><span class="side-section-label">Monetization</span></li>
+        <li class="side_line {{ request()->routeIs('user.earnings*') ? 'active' : '' }}">
+            <a href="{{ route('user.earnings.index') }}">
+                <i class="fa-solid fa-coins menu-icon"></i><span>Earnings & Wallet</span>
+            </a>
+        </li>
         <li class="side_line {{ request()->routeIs('user.monetization*') ? 'active' : '' }}">
             <a href="{{ route('user.monetization.index') }}">
                 <i class="fa-solid fa-rocket menu-icon"></i><span>Apply to Monetize</span>
