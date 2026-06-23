@@ -62,21 +62,14 @@ function Tab_Icon()
 {
     $settingData = Setting_Data();
     $name = $settingData['app_logo'] ?? '';
-    $folder = "app";
 
-    if ($name != "" && $folder != "") {
-
-        $appName = Config::get('app.image_url');
-
-        if (Storage::disk('public')->exists($folder . '/' . $name)) {
-            $data = $appName . $folder . '/' . $name;
-        } else {
-            $data = asset('assets/imgs/no_img.png');
+    if ($name != '') {
+        $url = (new \App\Models\Common)->Get_Image('images/app', $name);
+        if ($url && !str_contains($url, 'no_img.png') && !str_contains($url, 'default.png')) {
+            return $url;
         }
-    } else {
-        $data = asset('/assets/imgs/no_img.png');
     }
-    return ($data);
+    return asset('assets/imgs/no_img.png');
 }
 
 // Basic
@@ -153,11 +146,13 @@ function Item_Code()
 function login_image()
 {
     $setting_data = Setting_Data();
-    $login_image = $setting_data['login_page_image'] ?? '';
+    // Try login-specific image first, then fall back to app logo
+    $name = $setting_data['login_page_image'] ?? $setting_data['app_logo'] ?? '';
 
-    if ($login_image != "") {
-        if (Storage::disk('public')->exists('app/' . $login_image)) {
-            return Config::get('app.image_url') . '/app/' . $login_image;
+    if ($name != '') {
+        $url = (new \App\Models\Common)->Get_Image('images/app', $name);
+        if ($url && !str_contains($url, 'no_img.png') && !str_contains($url, 'default.png')) {
+            return $url;
         }
     }
     return asset('assets/imgs/login.png');
