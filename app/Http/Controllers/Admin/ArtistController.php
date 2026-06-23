@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
+use App\Models\ArtistEarning;
 use App\Models\ArtistRequest;
 use App\Models\Common;
 use App\Models\General_Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -325,15 +327,33 @@ class ArtistController extends Controller
                 ->keyBy('artist_id');
 
             $common = new Common;
-            $artists = $rows->map(function ($row) use ($rate, $currency, $monetizationMap, $common) {
+            $earningsModel = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
+
+            // Pre-aggregate settled earnings in one query — avoids N+1 inside the map loop
+            $settledEarningsMap = [];
+            if ($earningsModel === 'pool') {
+                $settledEarningsMap = ArtistEarning::whereIn('artist_id', $artistIds)
+                    ->whereNotNull('settled_month')
+                    ->groupBy('artist_id')
+                    ->selectRaw('artist_id, SUM(amount) as total')
+                    ->pluck('total', 'artist_id')
+                    ->toArray();
+            }
+
+            $artists = $rows->map(function ($row) use ($rate, $monetizationMap, $common, $earningsModel, $settledEarningsMap) {
                 $mon    = $monetizationMap[$row->artist_id] ?? null;
                 $status = $mon ? $mon->status : 'none';
+
+                $earnings = $earningsModel === 'pool'
+                    ? round((float) ($settledEarningsMap[$row->artist_id] ?? 0), 2)
+                    : round($row->play_count * $rate, 2);
+
                 return [
                     'id'           => $row->artist_id,
                     'name'         => $row->artist_name,
                     'image'        => $common->Get_Image('images/artist', $row->artist_image ?? ''),
                     'play_count'   => (int) $row->play_count,
-                    'est_earnings' => round($row->play_count * $rate, 2),
+                    'est_earnings' => $earnings,
                     'mon_status'   => $status,
                 ];
             });
@@ -358,8 +378,13 @@ class ArtistController extends Controller
             $artist = Artist::with(['artistRequest', 'user'])->findOrFail($id);
 
             $earnings = \App\Models\ArtistEarning::where('artist_id', $id)->get();
+            $earningsModel = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
             $totalPlays = $earnings->count();
-            $totalEarned = round((float) $earnings->sum('amount'), 2);
+            if ($earningsModel === 'pool') {
+                $totalEarned = round((float) $earnings->whereNotNull('settled_month')->sum('amount'), 2);
+            } else {
+                $totalEarned = round((float) $earnings->sum('amount'), 2);
+            }
 
             $withdrawals = \App\Models\WithdrawalRequest::where('artist_id', $id)
                 ->selectRaw('status, SUM(amount) as total')
@@ -401,6 +426,92 @@ class ArtistController extends Controller
                 'available', 'totalTracks', 'kyc', 'followers',
                 'artistImageUrl', 'kycFrontUrl', 'kycBackUrl', 'monetization'
             ));
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    // JAILAOI: Revenue Pool Settlement — index page
+    public function settleIndex()
+    {
+        try {
+            $model = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
+
+            // Past settlements
+            $settlements = DB::table('tbl_earnings_settlements')
+                ->orderByDesc('month')
+                ->limit(12)
+                ->get();
+
+            // Current month stats (unsettled)
+            $currentMonth = now()->format('Y-m');
+            $currentMonthStart = $currentMonth . '-01 00:00:00';
+            $unsettledPlays = DB::table('tbl_artist_earnings')
+                ->whereNull('settled_month')
+                ->where('created_at', '>=', $currentMonthStart)
+                ->count();
+
+            // Previous month ready for settlement
+            $prevMonth = now()->subMonth()->format('Y-m');
+            $alreadySettled = DB::table('tbl_earnings_settlements')
+                ->where('month', $prevMonth)
+                ->exists();
+
+            $prevMonthPlays = 0;
+            $prevMonthRevenue = 0;
+            if (!$alreadySettled) {
+                $prevMonthStart = $prevMonth . '-01 00:00:00';
+                $prevMonthEnd = date('Y-m-d H:i:s', strtotime($prevMonth . '-01 +1 month'));
+
+                $prevMonthPlays = DB::table('tbl_artist_earnings as ae')
+                    ->join('tbl_monetization_applications as ma', 'ma.artist_id', '=', 'ae.artist_id')
+                    ->where('ma.status', 'approved')
+                    ->where('ae.created_at', '>=', $prevMonthStart)
+                    ->where('ae.created_at', '<', $prevMonthEnd)
+                    ->whereNull('ae.settled_month')
+                    ->count();
+
+                $prevMonthRevenue = (float) \App\Models\Transaction::where('status', 1)
+                    ->where('created_at', '>=', $prevMonthStart)
+                    ->where('created_at', '<', $prevMonthEnd)
+                    ->sum(DB::raw('CAST(price AS DECIMAL(12,2))'));
+            }
+
+            return view('admin.earnings.settlement', compact(
+                'model', 'settlements', 'unsettledPlays',
+                'prevMonth', 'alreadySettled', 'prevMonthPlays', 'prevMonthRevenue'
+            ));
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    // JAILAOI: Revenue Pool Settlement — run settlement
+    public function runSettlement(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'month' => 'required|string|max:7',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            }
+
+            $month = $request->month;
+
+            // Run the Artisan command
+            $exitCode = Artisan::call('earnings:settle', [
+                '--month' => $month,
+                '--force' => $request->has('force'),
+            ]);
+
+            $output = Artisan::output();
+
+            if ($exitCode === 0) {
+                return response()->json(['status' => 200, 'success' => 'Settlement complete', 'output' => $output]);
+            } else {
+                return response()->json(['status' => 400, 'errors' => 'Settlement failed', 'output' => $output]);
+            }
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

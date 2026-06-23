@@ -2636,17 +2636,14 @@ class HomeController extends Controller
         try {
             if ($user_id <= 0 || $content_id <= 0) return;
 
-            $rateSetting = General_Setting::where('key', 'payout_rate_per_stream')->first();
-            $rate = $rateSetting ? (float) $rateSetting->value : 0.0;
-            if ($rate <= 0) return;
-
-            // Already credited this user for this content? skip.
+            // Already credited this user for this content? skip (once-ever dedup).
             $exists = ArtistEarning::where('user_id', $user_id)
                 ->where('content_id', $content_id)
                 ->where('content_type', $type)
                 ->exists();
             if ($exists) return;
 
+            // Resolve artist IDs from the content
             $artistIds = [];
             if ($type == 1) {
                 $song = Song::where('id', $content_id)->first();
@@ -2664,24 +2661,47 @@ class HomeController extends Controller
             $artistIds = array_unique(array_filter($artistIds));
             if (empty($artistIds)) return;
 
-            // Approved monetized artists earn real money; others recorded with amount=0 for analytics
-            $approvedIds = DB::table('tbl_monetization_applications')
-                ->whereIn('artist_id', $artistIds)
-                ->where('status', 'approved')
-                ->pluck('artist_id')
-                ->toArray();
+            // Cache earnings_model for 5 min — called on every play, no need to hit DB each time
+            $model = Cache::remember('earnings_model', 300, function () {
+                return General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
+            });
 
-            $approvedCount = count($approvedIds);
-            $share = $approvedCount > 0 ? $rate / $approvedCount : 0;
+            if ($model === 'pool') {
+                // Pool mode: record play with amount=0. Settlement job fills real amounts monthly.
+                foreach ($artistIds as $aid) {
+                    ArtistEarning::create([
+                        'artist_id'    => $aid,
+                        'user_id'      => $user_id,
+                        'content_id'   => $content_id,
+                        'content_type' => $type,
+                        'amount'       => 0,
+                    ]);
+                }
+            } else {
+                // Legacy per-stream mode: pay fixed rate immediately
+                $rate = Cache::remember('payout_rate_per_stream', 300, function () {
+                    return (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
+                });
+                if ($rate <= 0) return;
 
-            foreach ($artistIds as $aid) {
-                ArtistEarning::create([
-                    'artist_id'    => $aid,
-                    'user_id'      => $user_id,
-                    'content_id'   => $content_id,
-                    'content_type' => $type,
-                    'amount'       => in_array($aid, $approvedIds) ? $share : 0,
-                ]);
+                $approvedIds = DB::table('tbl_monetization_applications')
+                    ->whereIn('artist_id', $artistIds)
+                    ->where('status', 'approved')
+                    ->pluck('artist_id')
+                    ->toArray();
+
+                $approvedCount = count($approvedIds);
+                $share = $approvedCount > 0 ? $rate / $approvedCount : 0;
+
+                foreach ($artistIds as $aid) {
+                    ArtistEarning::create([
+                        'artist_id'    => $aid,
+                        'user_id'      => $user_id,
+                        'content_id'   => $content_id,
+                        'content_type' => $type,
+                        'amount'       => in_array($aid, $approvedIds) ? $share : 0,
+                    ]);
+                }
             }
         } catch (Exception $e) {
             // silent — don't break play if earnings credit fails
