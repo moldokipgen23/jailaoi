@@ -14,8 +14,8 @@ use Exception;
 
 class BannerController extends Controller
 {
-    private $folder_song = "radio";
-    private $folder_podcast = "podcast";
+    private $folder_song = "images/radio";
+    private $folder_podcast = "images/podcast";
     private $folder_music = "images/music";
     public $common;
     public function __construct()
