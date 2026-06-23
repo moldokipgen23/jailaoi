@@ -181,8 +181,14 @@ class SettingController extends Controller
             $data["ai_api_key"] = isset($data['ai_api_key']) ? $data['ai_api_key'] : '';
             $data["ai_section"] = isset($data['ai_section']) ? $data['ai_section'] : 0;
             $data["ai_section_count"] = max(1, (int) ($data['ai_section_count'] ?? 2));
-            if ($data['ai_section'] == 0) {
-                $data['ai_api_key'] = '';
+            // Never wipe the API key just because AI section is toggled off —
+            // the admin may want to disable temporarily without losing their key.
+            // If the submitted key is blank, keep whatever is already stored.
+            if (empty($data['ai_api_key'])) {
+                $existing = General_Setting::where('key', 'ai_api_key')->value('value');
+                if ($existing) {
+                    $data['ai_api_key'] = $existing;
+                }
             }
             foreach ($data as $key => $value) {
                 if (is_null($value)) continue; // JAILAOI: skip null — tbl_general_setting.value NOT NULL
