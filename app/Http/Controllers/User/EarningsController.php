@@ -9,6 +9,7 @@ use App\Models\ArtistKyc;
 use App\Models\General_Setting;
 use App\Models\MonetizationApplication;
 use App\Models\Music;
+use App\Models\Transaction;
 use App\Models\WithdrawalRequest;
 use Exception;
 use Illuminate\Http\Request;
@@ -33,14 +34,22 @@ class EarningsController extends Controller
                 ? ArtistKyc::where('user_id', $user->id)->where('status', 'approved')->exists()
                 : false;
 
+            $earningsModel = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
+
             // JAILAOI: Per-song earnings breakdown
             $songBreakdown = [];
             if ($artist) {
-                $rows = DB::table('tbl_artist_earnings')
+                $query = DB::table('tbl_artist_earnings')
                     ->select('content_id', 'content_type',
                         DB::raw('COUNT(*) as play_count'),
                         DB::raw('SUM(amount) as earned'))
-                    ->where('artist_id', $artist->id)
+                    ->where('artist_id', $artist->id);
+
+                if ($earningsModel === 'pool') {
+                    $query->whereNotNull('settled_month');
+                }
+
+                $rows = $query
                     ->groupBy('content_id', 'content_type')
                     ->orderByDesc('play_count')
                     ->limit(20)
@@ -69,14 +78,20 @@ class EarningsController extends Controller
             // JAILAOI: Monthly earnings trend (last 6 months)
             $monthlyTrend = [];
             if ($artist) {
-                $rows = DB::table('tbl_artist_earnings')
+                $mq = DB::table('tbl_artist_earnings')
                     ->select(
                         DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
                         DB::raw('SUM(amount) as earned'),
                         DB::raw('COUNT(*) as plays')
                     )
                     ->where('artist_id', $artist->id)
-                    ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+                    ->where('created_at', '>=', now()->subMonths(5)->startOfMonth());
+
+                if ($earningsModel === 'pool') {
+                    $mq->whereNotNull('settled_month');
+                }
+
+                $rows = $mq
                     ->groupBy('month')
                     ->orderBy('month')
                     ->get()
@@ -97,6 +112,15 @@ class EarningsController extends Controller
                 ? WithdrawalRequest::where('artist_id', $artist->id)->orderByDesc('id')->get()
                 : collect();
 
+            $currentStreamValue = 0;
+            $currentMonthStr = now()->format('Y-m');
+            if ($earningsModel === 'pool') {
+                $lastSettlement = DB::table('tbl_earnings_settlements')
+                    ->orderByDesc('month')
+                    ->first();
+                $currentStreamValue = $lastSettlement ? (float) $lastSettlement->rate_per_stream : 0;
+            }
+
             return view('user.earnings.index', [
                 'artist'        => $artist,
                 'stats'         => $stats,
@@ -107,6 +131,9 @@ class EarningsController extends Controller
                 'kycApproved'    => $kycApproved,
                 'eligibility'   => $monetizationApproved && $kycApproved ? ['eligible' => true] : ['eligible' => false, 'monetizationApproved' => $monetizationApproved, 'kycApproved' => $kycApproved],
                 'user'          => $user,
+                'earningsModel' => $earningsModel,
+                'currentStreamValue' => $currentStreamValue,
+                'rate'          => $stats['rate'] ?? 0,
             ]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -172,6 +199,7 @@ class EarningsController extends Controller
 
     private function getStats($artist)
     {
+        $model = $this->setting('earnings_model', 'pool');
         $stats = [
             'currency' => $this->setting('payout_currency', 'USD'),
             'rate' => (float) $this->setting('payout_rate_per_stream', 0),
@@ -181,11 +209,25 @@ class EarningsController extends Controller
             'paid_out' => 0.0,
             'pending' => 0.0,
             'available' => 0.0,
+            'pending_plays' => 0,
+            'earnings_model' => $model,
         ];
         if (!$artist) return $stats;
 
         $stats['total_plays'] = ArtistEarning::where('artist_id', $artist->id)->count();
-        $stats['total_earned'] = round((float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'), 4);
+
+        if ($model === 'pool') {
+            // Pool mode: only count settled earnings
+            $stats['total_earned'] = round((float) ArtistEarning::where('artist_id', $artist->id)
+                ->whereNotNull('settled_month')
+                ->sum('amount'), 4);
+            $stats['pending_plays'] = ArtistEarning::where('artist_id', $artist->id)
+                ->whereNull('settled_month')
+                ->count();
+        } else {
+            // Per-stream mode: all earnings are settled immediately
+            $stats['total_earned'] = round((float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'), 4);
+        }
 
         $stats['paid_out'] = round((float) WithdrawalRequest::where('artist_id', $artist->id)
             ->where('status', 'paid')->sum('amount'), 2);

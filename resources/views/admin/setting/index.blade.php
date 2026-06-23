@@ -425,7 +425,38 @@
                         <form id="payout_settings_form">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
                             <div class="form-row">
-                                <div class="form-group col-md-3">
+                                <div class="form-group col-md-4">
+                                    <label>Earnings Model</label>
+                                    <select name="earnings_model" class="form-control" id="earnings_model">
+                                        <option value="pool" {{ ($result['earnings_model'] ?? 'pool') == 'pool' ? 'selected' : '' }}>
+                                            Revenue Pool (55% to Artists)
+                                        </option>
+                                        <option value="per_stream" {{ ($result['earnings_model'] ?? 'pool') == 'per_stream' ? 'selected' : '' }}>
+                                            Per Stream (Fixed Rate)
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        <strong>Revenue Pool:</strong> 55% of subscription revenue distributed monthly by stream share.
+                                        <strong>Per Stream:</strong> Fixed rate per play, paid immediately.
+                                    </small>
+                                </div>
+                                <div class="form-group col-md-3" id="platform_cut_group">
+                                    <label>Platform Cut (%)</label>
+                                    <input type="number" step="1" min="0" max="100" name="platform_cut_pct"
+                                        class="form-control"
+                                        value="{{ $result['platform_cut_pct'] ?? '45' }}"
+                                        placeholder="45">
+                                    <small class="text-muted">% kept by platform. Remaining goes to artist pool.</small>
+                                </div>
+                                <div class="form-group col-md-2" id="settlement_day_group">
+                                    <label>Settlement Day</label>
+                                    <input type="number" min="1" max="28" name="settlement_day"
+                                        class="form-control"
+                                        value="{{ $result['settlement_day'] ?? '5' }}"
+                                        placeholder="5">
+                                    <small class="text-muted">Auto-run settlement on this day.</small>
+                                </div>
+                                <div class="form-group col-md-3" id="per_stream_fields">
                                     <label>Rate Per Stream <span class="text-danger">*</span></label>
                                     <input type="number" step="0.0001" min="0" name="payout_rate_per_stream"
                                         class="form-control"
@@ -433,6 +464,8 @@
                                         placeholder="e.g. 0.001">
                                     <small class="text-muted">Amount paid to artist per 1 play. Default: $0.001</small>
                                 </div>
+                            </div>
+                            <div class="form-row">
                                 <div class="form-group col-md-3">
                                     <label>Currency</label>
                                     <input type="text" name="payout_currency" class="form-control"
@@ -593,9 +626,17 @@
                                     <small class="text-muted">Select which ID types are accepted for KYC.</small>
                                 </div>
                             </div>
-                            <div class="alert alert-info py-2 mt-2">
-                                <strong>How it works:</strong>
-                                Every time a listener plays a song, the artist earns <strong>Rate Per Stream</strong> amount.
+                            <div class="alert alert-info py-2 mt-2" id="pool_info">
+                                <strong>Revenue Pool:</strong>
+                                55% of monthly subscription revenue goes to the artist pool.
+                                Each artist earns based on their share of total streams.
+                                Settlements run automatically on the
+                                <strong>{{ $result['settlement_day'] ?? '5' }}th</strong> of each month.
+                                <a href="{{ route('admin.earnings.settlement') }}">Manage Settlements</a>
+                            </div>
+                            <div class="alert alert-info py-2 mt-2" id="per_stream_info" style="display:none;">
+                                <strong>Per Stream:</strong>
+                                Every time a listener plays a song, the artist earns the fixed rate.
                                 If a song has multiple artists, the rate is split equally.
                                 Artists can request withdrawal once their balance reaches the minimum.
                             </div>
@@ -1335,6 +1376,22 @@
     // remove step ot main step
     $(document).on('click', '.remove_step', function() {
         $(this).closest('.step, .main_step').remove();
+    });
+
+    // JAILAOI: Toggle pool vs per_stream fields
+    function toggleEarningsModel() {
+        var model = $('#earnings_model').val();
+        if (model === 'pool') {
+            $('#platform_cut_group, #settlement_day_group, #pool_info').show();
+            $('#per_stream_fields, #per_stream_info').hide();
+        } else {
+            $('#platform_cut_group, #settlement_day_group, #pool_info').hide();
+            $('#per_stream_fields, #per_stream_info').show();
+        }
+    }
+    $(document).ready(function() {
+        $('#earnings_model').on('change', toggleEarningsModel);
+        toggleEarningsModel();
     });
 
     // JAILAOI: Payout settings save

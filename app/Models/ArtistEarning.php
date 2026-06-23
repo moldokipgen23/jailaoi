@@ -19,6 +19,7 @@ class ArtistEarning extends Model
         'content_id' => 'integer',
         'content_type' => 'integer',
         'amount' => 'float',
+        'settled_month' => 'string',
     ];
 
     public function artist()

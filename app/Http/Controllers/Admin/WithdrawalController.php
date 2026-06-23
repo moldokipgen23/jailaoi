@@ -196,10 +196,16 @@ class WithdrawalController extends Controller
             $currency       = General_Setting::where('key', 'payout_currency')->value('value') ?? 'USD';
             $rate           = (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
             $minWithdrawal  = (float) (General_Setting::where('key', 'min_withdrawal_amount')->value('value') ?? 10);
+            $earningsModel  = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
 
-            // Platform-wide totals — only monetized plays (amount > 0)
-            $totalPlays     = ArtistEarning::where('amount', '>', 0)->count();
-            $totalEarned    = round((float) ArtistEarning::sum('amount'), 2);
+            // Platform-wide totals — only settled/monetized plays
+            if ($earningsModel === 'pool') {
+                $totalPlays     = ArtistEarning::whereNotNull('settled_month')->count();
+                $totalEarned    = round((float) ArtistEarning::whereNotNull('settled_month')->sum('amount'), 2);
+            } else {
+                $totalPlays     = ArtistEarning::where('amount', '>', 0)->count();
+                $totalEarned    = round((float) ArtistEarning::sum('amount'), 2);
+            }
             $totalPaid      = round((float) WithdrawalRequest::where('status', 'paid')->sum('amount'), 2);
             $totalPending   = round((float) WithdrawalRequest::whereIn('status', ['pending', 'approved'])->sum('amount'), 2);
             $totalOwed      = round(max(0, $totalEarned - $totalPaid), 2);
@@ -270,7 +276,7 @@ class WithdrawalController extends Controller
             });
 
             return view('admin.withdrawal.earnings', compact(
-                'currency', 'rate', 'minWithdrawal',
+                'currency', 'rate', 'minWithdrawal', 'earningsModel',
                 'totalPlays', 'totalEarned', 'totalPaid', 'totalPending',
                 'totalOwed', 'pendingCount', 'activeArtists',
                 'monthlyTrend', 'artistStats'

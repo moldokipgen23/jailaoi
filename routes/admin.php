@@ -177,6 +177,8 @@ Route::group(['middleware' => 'installation'], function () {
         // JAILAOI: Monetization / Earnings Overview
         Route::get('earnings', [WithdrawalController::class, 'earningsOverview'])->name('admin.earnings.index');
         Route::get('artist-analytics', [ArtistController::class, 'analytics'])->name('admin.artist-analytics.index');
+        // JAILAOI: Revenue Pool Settlement
+        Route::get('earnings/settlement', [ArtistController::class, 'settleIndex'])->name('admin.earnings.settlement');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
@@ -242,6 +244,8 @@ Route::group(['middleware' => 'installation'], function () {
             Route::post('withdrawals/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
             Route::post('withdrawals/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
             Route::post('withdrawals/mark-paid', [WithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
+            // JAILAOI: Revenue Pool Settlement
+            Route::post('earnings/settlement/run', [ArtistController::class, 'runSettlement'])->name('admin.earnings.run-settlement');
             // JAILAOI: Play Errors
             Route::get('play-errors', [PlayErrorController::class, 'index'])->name('admin.play-errors');
         });

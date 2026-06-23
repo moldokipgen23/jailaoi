@@ -33,8 +33,14 @@
                             <div style="color:#a78bfa;font-weight:700;font-size:16px;margin-bottom:6px;">Active Monetization Rules</div>
                             <div class="row">
                                 <div class="col-auto me-4">
-                                    <span style="color:#6b7280;font-size:13px;">Per-stream rate:</span>
-                                    <strong style="color:#fff;font-size:15px;margin-left:6px;">{{ $currency }} {{ number_format($rate, 4) }}</strong>
+                                    <span style="color:#6b7280;font-size:13px;">Model:</span>
+                                    <strong style="color:#fff;font-size:15px;margin-left:6px;">
+                                        @if(($earningsModel ?? 'pool') === 'pool')
+                                            Revenue Pool (55% to Artists)
+                                        @else
+                                            Per Stream ({{ $currency }} {{ number_format($rate, 4) }})
+                                        @endif
+                                    </strong>
                                 </div>
                                 <div class="col-auto me-4">
                                     <span style="color:#6b7280;font-size:13px;">Currency:</span>
@@ -45,6 +51,13 @@
                                     <strong style="color:#fff;font-size:15px;margin-left:6px;">{{ $currency }} {{ number_format($minWithdrawal, 2) }}</strong>
                                 </div>
                             </div>
+                            @if(($earningsModel ?? 'pool') === 'pool')
+                            <div class="mt-2">
+                                <a href="{{ route('admin.earnings.settlement') }}" class="btn btn-sm" style="background:#059669;color:#fff;border:none;padding:4px 14px;border-radius:6px;">
+                                    <i class="fa-solid fa-calculator"></i> Run Settlement
+                                </a>
+                            </div>
+                            @endif
                         </div>
                         <div class="col-auto">
                             <a href="{{ route('setting') }}#payout-settings"
