@@ -124,19 +124,25 @@ class MusicController extends Controller
             } else {
                 $requestData['artist_id'] = "";
             }
+            $artistSlug = 'various';
+            $firstArtistId = intval(explode(',', $requestData['artist_id'])[0] ?? 0);
+            if ($firstArtistId > 0) {
+                $artist = \App\Models\Artist::find($firstArtistId);
+                if ($artist) $artistSlug = \Illuminate\Support\Str::slug($artist->name, '-') ?: 'various';
+            }
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
             }
             if (isset($requestData['ogtag_img'])) {
                 $files = $requestData['ogtag_img'];
-                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
             } else {
                 $requestData['ogtag_img'] = "";
             }
             if (isset($requestData['landscape_img'])) {
                 $files = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
             } else {
                 $requestData['landscape_img'] = "";
             }
@@ -255,6 +261,13 @@ class MusicController extends Controller
                 $requestData['artist_id'] = implode(',', $requestData['artist_id']);
             }
 
+            $artistSlug = 'various';
+            $firstArtistId = intval(explode(',', $requestData['artist_id'] ?? '')[0] ?? 0);
+            if ($firstArtistId > 0) {
+                $artist = \App\Models\Artist::find($firstArtistId);
+                if ($artist) $artistSlug = \Illuminate\Support\Str::slug($artist->name, '-') ?: 'various';
+            }
+
             $requestData['duration'] = TimeToMilliseconds($requestData['duration']);
 
             $requestData['description'] = isset($requestData['description'])  ? $requestData['description'] : "";
@@ -264,23 +277,23 @@ class MusicController extends Controller
             // potrait_image
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['portrait_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']));
+                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_portrait_img']);
             }
             // ogtag_image
             if (isset($requestData['ogtag_img'])) {
                 $files = $requestData['ogtag_img'];
-                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['ogtag_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_ogtag_img']));
+                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_ogtag_img']);
             }
             // landscape_image
             if (isset($requestData['landscape_img'])) {
                 $files = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_");
+                $requestData['landscape_img'] = $this->common->saveImage($files, $this->folder_img, "music_", $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']));
+                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_landscape_img']);
             }
             // music URL
             if ($requestData['upload_type'] == 1) {
@@ -288,7 +301,7 @@ class MusicController extends Controller
                     if ($requestData['music']) {
                         $requestData['music'] = $requestData['music'];
                         if ($requestData['music'] != basename($requestData['old_music'])) {
-                            $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
+                            $this->common->deleteImageToFolder($this->folder, $requestData['old_music']);
                         }
                     } else {
                         $requestData['music'] = basename($requestData['old_music']);
@@ -296,14 +309,14 @@ class MusicController extends Controller
                 } else {
                     if ($requestData['music']) {
                         $requestData['music'] = $requestData['music'];
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
+                        $this->common->deleteImageToFolder($this->folder, $requestData['old_music']);
                     } else {
                         $requestData['music'] = "";
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
+                        $this->common->deleteImageToFolder($this->folder, $requestData['old_music']);
                     }
                 }
             } else {
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_music']));
+                $this->common->deleteImageToFolder($this->folder, $requestData['old_music']);
                 $requestData['music'] = "";
                 if ($requestData['url']) {
                     $requestData['music'] = $requestData['url'];

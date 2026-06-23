@@ -126,9 +126,10 @@ class ArtistController extends Controller
             }
 
             $requestData = $request->all();
+            $artistSlug = \Illuminate\Support\Str::slug($requestData['name'] ?? '', '-') ?: 'various';
             if (isset($requestData['image'])) {
                 $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_');
+                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_', $artistSlug);
             }
 
             $artist_data = Artist::updateOrCreate(['id' => $requestData['id']], $requestData);
@@ -156,12 +157,13 @@ class ArtistController extends Controller
             }
 
             $requestData = $request->all();
+            $artistSlug = \Illuminate\Support\Str::slug($requestData['name'] ?? '', '-') ?: 'various';
 
             if (isset($requestData['image'])) {
                 $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_');
+                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'artist_', $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_image']));
+                $this->common->deleteImageToFolder($this->folder, $requestData['old_image']);
             }
             unset($requestData['old_image']);
 

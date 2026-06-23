@@ -92,7 +92,9 @@ class MusicController extends Controller
             if ($validator->fails()) {
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
-            $artistSlug = Str::slug(User_Data()['name'] ?? 'various', '-');
+            $user = User_Data();
+            $artist = \App\Models\Artist::where('user_id', $user['id'] ?? 0)->first();
+            $artistSlug = $artist ? (Str::slug($artist->name, '-') ?: 'various') : 'various';
             $filename = $this->common->saveAudioFile($request->file('audio'), $this->folder, 'music_', $artistSlug);
             return response()->json(['status' => 200, 'filename' => $filename]);
         } catch (Exception $e) {
@@ -143,15 +145,17 @@ class MusicController extends Controller
                 $hashtagId = implode(',', $hashtag_id);
             }
             $requestData['hashtag_id'] = $hashtagId;
+            $artistObj = \App\Models\Artist::where('user_id', $user['id'] ?? 0)->first();
+            $artistSlug = $artistObj ? (Str::slug($artistObj->name, '-') ?: 'various') : 'various';
             if (isset($requestData['portrait_img'])) {
                 $file1 = $requestData['portrait_img'];
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $requestData['portrait_img_storage_type']);
+                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $artistSlug);
             } else {
                 $requestData['portrait_img'] = "";
             }
             if (isset($requestData['landscape_img'])) {
                 $file2 = $requestData['landscape_img'];
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $requestData['landscape_img_storage_type']);
+                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $artistSlug);
             } else {
                 $requestData['landscape_img'] = "";
             }
@@ -248,19 +252,21 @@ class MusicController extends Controller
                 $hashtagId = implode(',', $hashtag_id);
             }
             $requestData['hashtag_id'] = $hashtagId;
+            $artistObj = \App\Models\Artist::where('user_id', $user['id'] ?? 0)->first();
+            $artistSlug = $artistObj ? (Str::slug($artistObj->name, '-') ?: 'various') : 'various';
             if (isset($requestData['portrait_img'])) {
                 $file1 = $requestData['portrait_img'];
                 $requestData['portrait_img_storage_type'] = $storage_type;
-                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $requestData['portrait_img_storage_type']);
+                $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_portrait_img']), $request['old_portrait_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_portrait_img']);
             }
             if (isset($requestData['landscape_img'])) {
                 $file2 = $requestData['landscape_img'];
                 $requestData['landscape_img_storage_type'] = $storage_type;
-                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $requestData['landscape_img_storage_type']);
+                $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, basename($requestData['old_landscape_img']), $request['old_landscape_img_storage_type']);
+                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_landscape_img']);
             }
             if ($requestData['content_upload_type'] == 'server_video') {
 
@@ -271,7 +277,7 @@ class MusicController extends Controller
                         $requestData['content_storage_type'] = $storage_type;
                         // music is a pre-uploaded filename from uploadAudio()
                         $requestData['content'] = $requestData['music'];
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
+                        $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
                     }
                 } else {
 
@@ -280,7 +286,7 @@ class MusicController extends Controller
 
                         // music is a pre-uploaded filename from uploadAudio()
                         $requestData['content'] = $requestData['music'];
-                        $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $request['old_content_storage_type']);
+                        $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
                     } else {
                         $requestData['content'] = '';
                     }
@@ -288,7 +294,7 @@ class MusicController extends Controller
             } else {
 
                 $requestData['content_storage_type'] = $storage_type;
-                $this->common->deleteImageToFolder($this->folder, basename($requestData['old_content']), $requestData['old_content_storage_type']);
+                $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
 
                 $requestData['content'] = "";
                 if ($requestData['url']) {

@@ -69,13 +69,13 @@ class SettingController extends Controller
                 $files = $data['app_logo'];
                 $data['app_logo'] = $this->common->saveImage($files, $this->folder, "app_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($data['old_app_logo']));
+                $this->common->deleteImageToFolder($this->folder, $data['old_app_logo']);
             }
             if (isset($data['company_logo'])) {
                 $files = $data['company_logo'];
                 $data['company_logo'] = $this->common->saveImage($files, $this->folder, "app_");
 
-                $this->common->deleteImageToFolder($this->folder, basename($data['old_company_logo']));
+                $this->common->deleteImageToFolder($this->folder, $data['old_company_logo']);
             }
 
             foreach ($data as $key => $value) {
@@ -129,7 +129,7 @@ class SettingController extends Controller
             if (isset($data['dev_logo'])) {
                 $files = $data['dev_logo'];
                 $data['dev_logo'] = $this->common->saveImage($files, $this->folder, 'app_');
-                $this->common->deleteImageToFolder($this->folder, basename($data['old_dev_logo']));
+                $this->common->deleteImageToFolder($this->folder, $data['old_dev_logo']);
             }
             foreach ($data as $key => $value) {
                 $setting = General_Setting::where('key', $key)->first();
@@ -315,7 +315,7 @@ class SettingController extends Controller
                         $stepimagepath = $this->common->saveImage($stepimage, $this->folder, 'app_');
                         $stepdata['image'] = $stepimagepath;
 
-                        $this->common->deleteImageToFolder($this->folder, basename($oldstepimage));
+                        $this->common->deleteImageToFolder($this->folder, $oldstepimage);
                     }
                     unset($request['old_step_image' . $i]);
 
@@ -335,7 +335,7 @@ class SettingController extends Controller
 
                     // delete if any fildes are missing 
                     Social_Link::where('id', $stepid)->delete();
-                    $this->common->deleteImageToFolder($this->folder, basename($oldstepimage));
+                    $this->common->deleteImageToFolder($this->folder, $oldstepimage);
                 }
             }
             return response()->json(['status' => 200, 'success' => __('label.save_setting')]);

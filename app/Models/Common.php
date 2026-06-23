@@ -25,15 +25,18 @@ class Common extends Model
     public $folder_user_img    = "images/user";
 
     // Image Functions
-    public function saveImage($org_name, $folder, $prefix = "")
+    public function saveImage($org_name, $folder, $prefix = "", $artistSlug = "")
     {
         try {
 
             $img_ext = $org_name->getClientOriginalExtension();
             $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
 
+            // Build stored value — includes artist subfolder if provided (mirrors saveAudioFile)
+            $storedName = $artistSlug ? ($artistSlug . '/' . $filename) : $filename;
+
             // JAILAOI: Ensure local dir exists (supports nested paths like images/artist/)
-            $localDir = base_path('storage/app/public/' . $folder);
+            $localDir = base_path('storage/app/public/' . $folder . ($artistSlug ? '/' . $artistSlug : ''));
             if (!is_dir($localDir)) @mkdir($localDir, 0755, true);
 
             // Save locally first (kept as backup + for FFmpeg/etc operations)
@@ -45,14 +48,14 @@ class Common extends Model
             if (str_starts_with($folder, 'images/') || $folder === 'images') {
                 try {
                     if ($this->getBunnyCdnUrl()) {
-                        $this->uploadFileToBunny($localPath, $folder . '/' . $filename);
+                        $this->uploadFileToBunny($localPath, $folder . '/' . $storedName);
                     }
                 } catch (Exception $e) {
                     Log::error('Bunny upload for image failed (continuing): ' . $e->getMessage());
                 }
             }
 
-            return $filename;
+            return $storedName;
         } catch (Exception $e) {
             return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
         }
@@ -93,6 +96,16 @@ class Common extends Model
     public function deleteImageToFolder($folder, $name)
     {
         try {
+            // $name may be a full CDN URL — extract relative path within folder
+            $cdnUrl = $this->getBunnyCdnUrl();
+            if ($cdnUrl && str_starts_with($name, $cdnUrl)) {
+                // Strip "https://cdn.net/images/music/" → "artist-slug/filename.jpg"
+                $name = ltrim(substr($name, strlen(rtrim($cdnUrl, '/') . '/' . $folder . '/')), '/');
+            } elseif (str_contains($name, '/storage/')) {
+                // Legacy local URL — extract just filename
+                $name = basename($name);
+            }
+            if (empty($name)) return;
 
             // Remove local copy
             Storage::disk('public')->delete($folder . '/' . $name);
