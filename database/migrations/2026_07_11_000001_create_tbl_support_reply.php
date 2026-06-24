@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('tbl_support_reply', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('ticket_id');
+            $table->unsignedBigInteger('ticket_id');
             $table->enum('sender_type', ['user', 'admin']);
             $table->unsignedInteger('sender_id');
             $table->text('message');
