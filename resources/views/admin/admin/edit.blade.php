@@ -58,7 +58,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Role <span class="text-danger">*</span></label>
-                                    <select name="role" class="form-control" {{ $admin->isSuperAdmin() && $admin->id !== auth('admin')->id() ? 'disabled' : '' }}>
+                                    <select name="role" id="role-select" class="form-control" {{ $admin->isSuperAdmin() && $admin->id !== auth('admin')->id() ? 'disabled' : '' }}>
                                         <option value="">-- Select Role --</option>
                                         @foreach($roles as $key => $label)
                                             <option value="{{ $key }}" {{ old('role', $admin->role) === $key ? 'selected' : '' }}>{{ $label }}</option>
@@ -82,6 +82,29 @@
                     </div>
                 </div>
 
+                @if(!$admin->isSuperAdmin() || $admin->id === auth('admin')->id())
+                <div class="border-top pt-3 mt-3">
+                    <h5 class="mb-3">Permissions <small class="text-muted">(auto-loaded from role; uncheck to restrict, check to grant extra)</small></h5>
+                    <div class="row" id="permissions-container">
+                        @foreach($permissionGroups as $section => $items)
+                        <div class="col-md-6 mb-3">
+                            <div class="card" style="background:#f8f9fa;border:1px solid #e9ecef;">
+                                <div class="card-header py-2 px-3" style="background:#e9ecef;font-weight:600;font-size:13px;">{{ $section }}</div>
+                                <div class="card-body py-2 px-3">
+                                    @foreach($items as $item)
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input perm-checkbox" id="perm-{{ Str::slug($item['label']) }}" name="permissions[]" value="{{ $item['label'] }}" {{ in_array($item['label'], $savedPermissionLabels) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="perm-{{ Str::slug($item['label']) }}">{{ $item['label'] }}</label>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <div class="border-top pt-3">
                     <button type="submit" class="btn btn-default mw-120">Update</button>
                     <a href="{{ route('admin.index') }}" class="btn btn-cancel mw-120">Cancel</a>
@@ -91,3 +114,36 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+var rolePermissionsMap = @json($rolePermissionsMap);
+var savedLabels = @json($savedPermissionLabels);
+
+function checkPermissionsForRole(role) {
+    var perms = rolePermissionsMap[role] || [];
+    document.querySelectorAll('.perm-checkbox').forEach(function(cb) {
+        cb.checked = false;
+    });
+    perms.forEach(function(p) {
+        var cb = document.querySelector('.perm-checkbox[value="' + p.label.replace(/"/g, '\\"') + '"]');
+        if (cb) cb.checked = p.checked;
+    });
+    savedLabels.forEach(function(label) {
+        var cb = document.querySelector('.perm-checkbox[value="' + label.replace(/"/g, '\\"') + '"]');
+        if (cb) cb.checked = true;
+    });
+}
+
+document.getElementById('role-select').addEventListener('change', function() {
+    checkPermissionsForRole(this.value);
+});
+
+(function() {
+    var preselected = '{{ old('role', $admin->role) }}';
+    if (preselected) {
+        checkPermissionsForRole(preselected);
+    }
+})();
+</script>
+@endpush

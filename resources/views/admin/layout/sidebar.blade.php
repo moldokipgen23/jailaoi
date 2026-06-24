@@ -23,17 +23,6 @@
             </a>
         </li>
 
-        {{-- ADMIN section (super_admin only) --}}
-        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.index'))
-        <li class="side-section-label">ADMIN</li>
-        <li class="side_line {{ in_array(request()->route()->getName(), ['admin.index','admin.create','admin.edit','admin.store','admin.update','admin.destroy','admin.status']) ? 'active' : '' }}">
-            <a href="{{ route('admin.index') }}">
-                <i class="fa-solid fa-user-shield fa-2xl menu-icon"></i>
-                <span>Manage Admins</span>
-            </a>
-        </li>
-        @endif
-
         {{-- JAILAOI: CONTENT section --}}
         @if(\App\Http\Middleware\RoleMiddleware::canAccess('music.index'))
         <li class="side-section-label">CONTENT</li>
@@ -266,6 +255,17 @@
                     </a>
                 </li>
             </ul>
+        </li>
+        @endif
+
+        {{-- ADMIN section (super_admin only) — moved below Settings --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.index'))
+        <li class="side-section-label">ADMIN</li>
+        <li class="side_line {{ in_array(request()->route()->getName(), ['admin.index','admin.create','admin.edit','admin.store','admin.update','admin.destroy','admin.status']) ? 'active' : '' }}">
+            <a href="{{ route('admin.index') }}">
+                <i class="fa-solid fa-user-shield fa-2xl menu-icon"></i>
+                <span>Manage Admins</span>
+            </a>
         </li>
         @endif
 

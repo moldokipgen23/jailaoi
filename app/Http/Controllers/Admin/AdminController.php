@@ -20,7 +20,9 @@ class AdminController extends Controller
     public function create()
     {
         $roles = RoleMiddleware::getRoleLabels();
-        return view('admin.admin.add', compact('roles'));
+        $permissionGroups = RoleMiddleware::getPermissionGroups();
+        $rolePermissionsMap = $this->buildRolePermissionsMap($roles, $permissionGroups);
+        return view('admin.admin.add', compact('roles', 'permissionGroups', 'rolePermissionsMap'));
     }
 
     public function store(Request $request)
@@ -43,22 +45,28 @@ class AdminController extends Controller
             }
         }
 
+        $permissions = $this->resolvePermissions($request->role, $request->input('permissions', []));
+
         Admin::create([
             'user_name' => $request->user_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'permissions' => $permissions,
             'status' => $request->has('status') ? 1 : 0,
         ]);
 
-        return redirect()->route('admin.admin.index')->with('success', __('label.admin_created_successfully'));
+        return redirect()->route('admin.index')->with('success', __('label.admin_created_successfully'));
     }
 
     public function edit($id)
     {
         $admin = Admin::findOrFail($id);
         $roles = RoleMiddleware::getRoleLabels();
-        return view('admin.admin.edit', compact('admin', 'roles'));
+        $permissionGroups = RoleMiddleware::getPermissionGroups();
+        $rolePermissionsMap = $this->buildRolePermissionsMap($roles, $permissionGroups);
+        $savedPermissionLabels = $this->getSavedPermissionLabels($admin);
+        return view('admin.admin.edit', compact('admin', 'roles', 'permissionGroups', 'rolePermissionsMap', 'savedPermissionLabels'));
     }
 
     public function update(Request $request, $id)
@@ -83,10 +91,13 @@ class AdminController extends Controller
             }
         }
 
+        $permissions = $this->resolvePermissions($request->role, $request->input('permissions', []));
+
         $data = [
             'user_name' => $request->user_name,
             'email' => $request->email,
             'role' => $request->role,
+            'permissions' => $permissions,
             'status' => $request->has('status') ? 1 : 0,
         ];
 
@@ -96,7 +107,7 @@ class AdminController extends Controller
 
         $admin->update($data);
 
-        return redirect()->route('admin.admin.index')->with('success', __('label.admin_updated_successfully'));
+        return redirect()->route('admin.index')->with('success', __('label.admin_updated_successfully'));
     }
 
     public function destroy($id)
@@ -111,7 +122,7 @@ class AdminController extends Controller
         }
 
         $admin->delete();
-        return redirect()->route('admin.admin.index')->with('success', __('label.admin_deleted_successfully'));
+        return redirect()->route('admin.index')->with('success', __('label.admin_deleted_successfully'));
     }
 
     public function changeStatus($id)
@@ -122,6 +133,85 @@ class AdminController extends Controller
         }
         $admin->status = $admin->status ? 0 : 1;
         $admin->save();
-        return redirect()->route('admin.admin.index')->with('success', __('label.status_updated_successfully'));
+        return redirect()->route('admin.index')->with('success', __('label.status_updated_successfully'));
+    }
+
+    private function buildRolePermissionsMap(array $roles, array $permissionGroups): array
+    {
+        $map = [];
+        foreach (array_keys($roles) as $role) {
+            $map[$role] = [];
+            foreach ($permissionGroups as $group) {
+                foreach ($group as $item) {
+                    $map[$role][] = [
+                        'label' => $item['label'],
+                        'checked' => RoleMiddleware::getRolePatternsForLabel($role, $item['label']),
+                    ];
+                }
+            }
+        }
+        return $map;
+    }
+
+    private function getSavedPermissionLabels(Admin $admin): array
+    {
+        if (!$admin->permissions || !is_array($admin->permissions)) {
+            return [];
+        }
+        $savedPatterns = $admin->permissions;
+        $labels = [];
+        $groups = RoleMiddleware::getPermissionGroups();
+        foreach ($groups as $group) {
+            foreach ($group as $item) {
+                $hasAll = true;
+                foreach ($item['routes'] as $route) {
+                    if (!in_array($route, $savedPatterns)) {
+                        $hasAll = false;
+                        break;
+                    }
+                }
+                if ($hasAll) {
+                    $labels[] = $item['label'];
+                }
+            }
+        }
+        return $labels;
+    }
+
+    private function resolvePermissions(string $role, array $checkedLabels): ?array
+    {
+        $roleDefaults = RoleMiddleware::getDefaultPatterns($role);
+
+        if ($role === 'super_admin') {
+            return null;
+        }
+
+        $patterns = [];
+        $groups = RoleMiddleware::getPermissionGroups();
+        foreach ($groups as $group) {
+            foreach ($group as $item) {
+                if (in_array($item['label'], $checkedLabels)) {
+                    foreach ($item['routes'] as $route) {
+                        $patterns[] = $route;
+                    }
+                }
+            }
+        }
+
+        if (empty($patterns)) {
+            return null;
+        }
+
+        $patterns = array_values(array_unique($patterns));
+        sort($patterns);
+
+        $sortedDefaults = $roleDefaults;
+        sort($sortedDefaults);
+
+        if ($patterns === $sortedDefaults) {
+            return null;
+        }
+
+        return $patterns;
     }
 }

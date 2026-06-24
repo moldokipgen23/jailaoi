@@ -68,6 +68,52 @@ class RoleMiddleware
         ],
     ];
 
+    private static array $permissionGroups = [
+        'DASHBOARD' => [
+            ['label' => 'Dashboard', 'routes' => ['dashboard']],
+        ],
+        'USERS & ARTISTS' => [
+            ['label' => 'Users — Full Access', 'routes' => ['user.*']],
+            ['label' => 'Artists — Full Access', 'routes' => ['artist.*']],
+            ['label' => 'Artist Requests', 'routes' => ['admin.artist-requests.*']],
+        ],
+        'CONTENT' => [
+            ['label' => 'Music / Songs', 'routes' => ['music.*']],
+            ['label' => 'Radio Stations', 'routes' => ['song.*']],
+            ['label' => 'Podcasts', 'routes' => ['podcast.*']],
+            ['label' => 'Live Events', 'routes' => ['liveevent.*']],
+            ['label' => 'Sections', 'routes' => ['section.*']],
+            ['label' => 'Categories', 'routes' => ['category.*']],
+            ['label' => 'Languages', 'routes' => ['language.*']],
+            ['label' => 'Cities', 'routes' => ['city.*']],
+        ],
+        'MARKETING' => [
+            ['label' => 'Banners', 'routes' => ['banner.*']],
+            ['label' => 'Notifications', 'routes' => ['notification.*']],
+            ['label' => 'Admob & Ads', 'routes' => ['admob.*', 'fbads.*', 'ads_setting.*', 'ads.*']],
+        ],
+        'FINANCE' => [
+            ['label' => 'Packages', 'routes' => ['package.*']],
+            ['label' => 'Transactions', 'routes' => ['transaction.*']],
+            ['label' => 'Payments & Invoices', 'routes' => ['payment.*', 'invoice.*']],
+            ['label' => 'Withdrawals', 'routes' => ['admin.withdrawals.*']],
+            ['label' => 'Earnings & Analytics', 'routes' => ['admin.earnings.*', 'admin.artist-analytics.*']],
+            ['label' => 'Monetization Applications', 'routes' => ['admin.monetization.*']],
+            ['label' => 'KYC Requests', 'routes' => ['admin.kyc.*']],
+        ],
+        'SETTINGS' => [
+            ['label' => 'App Settings', 'routes' => ['setting*']],
+            ['label' => 'System Settings', 'routes' => ['system.setting.*']],
+            ['label' => 'Panel Settings', 'routes' => ['panel_setting.*']],
+            ['label' => 'Notification Config', 'routes' => ['notification_configuration.*']],
+            ['label' => 'Pages', 'routes' => ['page.*']],
+        ],
+        'COMMUNITY' => [
+            ['label' => 'Comments', 'routes' => ['comment.*']],
+            ['label' => 'Play Errors', 'routes' => ['admin.play-errors']],
+        ],
+    ];
+
     private static array $roleLabels = [
         'super_admin' => 'Super Admin',
         'staff' => 'Staff / Operations',
@@ -83,6 +129,36 @@ class RoleMiddleware
     public static function getRoleAccess(): array
     {
         return self::$roleAccess;
+    }
+
+    public static function getPermissionGroups(): array
+    {
+        return self::$permissionGroups;
+    }
+
+    public static function getDefaultPatterns(string $role): array
+    {
+        return self::$roleAccess[$role] ?? [];
+    }
+
+    public static function getRolePatternsForLabel(string $role, string $label): bool
+    {
+        $groupPatterns = self::$roleAccess[$role] ?? [];
+        foreach (self::$permissionGroups as $group) {
+            foreach ($group as $item) {
+                if ($item['label'] === $label) {
+                    foreach ($item['routes'] as $pattern) {
+                        foreach ($groupPatterns as $rolePattern) {
+                            if ($rolePattern === '*' || $rolePattern === $pattern || fnmatch($rolePattern, $pattern)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
     public function handle(Request $request, Closure $next)
