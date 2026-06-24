@@ -120,9 +120,9 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
                                     <div class="form-group">
-                                        <label>Interstitial Cooldown (sec)</label>
+                                        <label>AdMob Interstitial Cooldown (sec)</label>
                                         <input type="number" name="interstital_cooldown" class="form-control" min="0" placeholder="60" value="{{$result['interstital_cooldown'] ?? '60'}}">
-                                        <small class="text-muted">Min seconds between interstitial ads (0 = no limit)</small>
+                                        <small class="text-muted">Min seconds between AdMob interstitial ads (0 = no limit)</small>
                                     </div>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
@@ -222,9 +222,9 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
                                     <div class="form-group">
-                                        <label>Interstitial Cooldown (sec)</label>
+                                        <label>AdMob Interstitial Cooldown (sec)</label>
                                         <input type="number" name="ios_interstital_cooldown" class="form-control" min="0" placeholder="60" value="{{$result['ios_interstital_cooldown'] ?? '60'}}">
-                                        <small class="text-muted">Min seconds between interstitial ads (0 = no limit)</small>
+                                        <small class="text-muted">Min seconds between AdMob interstitial ads (0 = no limit)</small>
                                     </div>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
@@ -244,63 +244,177 @@
 
             {{-- Tab 2: Start.io --}}
             <div class="tab-pane fade" id="startio" role="tabpanel" aria-labelledby="startio-tab">
+
+                {{-- Android --}}
                 <div class="card custom-border-card mt-3">
-                    <div class="card-header">
-                        <h5>Start.io</h5>
-                    </div>
+                    <h5 class="card-header">{{__('label.android_settings')}}</h5>
                     <div class="card-body">
                         <p class="text-muted mb-3" style="font-size:13px;">
                             Get your App ID from <a href="https://portal.start.io" target="_blank">portal.start.io</a>.
-                            After saving, add the App ID to <code>AndroidManifest.xml</code> and <code>Info.plist</code> then rebuild the app.
+                            The App ID is baked into <code>AndroidManifest.xml</code> — update it there and rebuild if you change it.
                         </p>
-                        <form id="startio_form">
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <div class="form-row">
-                                <div class="form-group col-md-3">
-                                    <label>Enabled</label>
-                                    <select name="startio_enabled" class="form-control">
-                                        <option value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
-                                        <option value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
-                                    </select>
+                        <form id="startio_android_form">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Start.io Enabled</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_enabled_1" name="startio_enabled" class="custom-control-input" value="1" {{ ($result['startio_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_enabled_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_enabled_0" name="startio_enabled" class="custom-control-input" value="0" {{ ($result['startio_enabled'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_enabled_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group col-md-3">
-                                    <label>Banner Ads</label>
-                                    <select name="startio_banner_enabled" class="form-control">
-                                        <option value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
-                                        <option value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
-                                    </select>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Banner Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_banner_1" name="startio_banner_enabled" class="custom-control-input" value="1" {{ ($result['startio_banner_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_banner_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_banner_0" name="startio_banner_enabled" class="custom-control-input" value="0" {{ ($result['startio_banner_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_banner_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group col-md-3">
-                                    <label>Interstitial Ads</label>
-                                    <select name="startio_interstitial_enabled" class="form-control">
-                                        <option value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled</option>
-                                        <option value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled</option>
-                                    </select>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_inter_1" name="startio_interstitial_enabled" class="custom-control-input" value="1" {{ ($result['startio_interstitial_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_inter_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_inter_0" name="startio_interstitial_enabled" class="custom-control-input" value="0" {{ ($result['startio_interstitial_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_inter_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group col-md-3">
-                                    <label>Rewarded Ads</label>
-                                    <select name="startio_rewarded_enabled" class="form-control">
-                                        <option value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled</option>
-                                        <option value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled</option>
-                                    </select>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Rewarded Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_reward_1" name="startio_rewarded_enabled" class="custom-control-input" value="1" {{ ($result['startio_rewarded_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_reward_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="startio_reward_0" name="startio_rewarded_enabled" class="custom-control-input" value="0" {{ ($result['startio_rewarded_enabled'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="startio_reward_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-row mt-2">
-                                <div class="form-group col-md-6">
-                                    <label>Android App ID</label>
-                                    <input type="text" name="startio_app_id_android" class="form-control"
-                                        value="{{ $result['startio_app_id_android'] ?? '' }}"
-                                        placeholder="e.g. 204637737">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label>iOS App ID</label>
-                                    <input type="text" name="startio_app_id_ios" class="form-control"
-                                        value="{{ $result['startio_app_id_ios'] ?? '' }}"
-                                        placeholder="e.g. 204295105">
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>Android App ID</label>
+                                        <input type="text" name="startio_app_id_android" class="form-control"
+                                            value="{{ $result['startio_app_id_android'] ?? '' }}"
+                                            placeholder="e.g. 204637737">
+                                        <small class="text-muted">Set in AndroidManifest.xml — rebuild app after changing</small>
+                                    </div>
                                 </div>
                             </div>
                             <div class="border-top pt-3 text-right">
-                                <button type="button" class="btn btn-default mw-120" onclick="startio_save()">Save</button>
+                                <button type="button" class="btn btn-default mw-120" onclick="startio_android_save()">{{__('label.save')}}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- iOS --}}
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">{{__('label.ios_settings')}}</h5>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            The iOS App ID is set in <code>Info.plist</code> — update it there and rebuild if you change it.
+                        </p>
+                        <form id="startio_ios_form">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Start.io Enabled</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_enabled_1" name="ios_startio_enabled" class="custom-control-input" value="1" {{ ($result['ios_startio_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_enabled_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_enabled_0" name="ios_startio_enabled" class="custom-control-input" value="0" {{ ($result['ios_startio_enabled'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_enabled_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Banner Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_banner_1" name="ios_startio_banner_enabled" class="custom-control-input" value="1" {{ ($result['ios_startio_banner_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_banner_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_banner_0" name="ios_startio_banner_enabled" class="custom-control-input" value="0" {{ ($result['ios_startio_banner_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_banner_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_inter_1" name="ios_startio_interstitial_enabled" class="custom-control-input" value="1" {{ ($result['ios_startio_interstitial_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_inter_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_inter_0" name="ios_startio_interstitial_enabled" class="custom-control-input" value="0" {{ ($result['ios_startio_interstitial_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_inter_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Rewarded Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_reward_1" name="ios_startio_rewarded_enabled" class="custom-control-input" value="1" {{ ($result['ios_startio_rewarded_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_reward_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_startio_reward_0" name="ios_startio_rewarded_enabled" class="custom-control-input" value="0" {{ ($result['ios_startio_rewarded_enabled'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_startio_reward_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>iOS App ID</label>
+                                        <input type="text" name="startio_app_id_ios" class="form-control"
+                                            value="{{ $result['startio_app_id_ios'] ?? '' }}"
+                                            placeholder="e.g. 204295105">
+                                        <small class="text-muted">Set in Info.plist — rebuild app after changing</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="startio_ios_save()">{{__('label.save')}}</button>
                             </div>
                         </form>
                     </div>
@@ -385,30 +499,32 @@
         }
     }
 
-    function startio_save() {
+    function startio_android_save() {
         var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
-        if (CheckAdmin == 1) {
-            $('#dvloader').show();
-            var formData = new FormData($('#startio_form')[0]);
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("setting.save_key") }}',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(resp) {
-                    $('#dvloader').hide();
-                    get_responce_message(resp);
-                },
-                error: function(XMLHttpRequest, errorThrown, textStatus) {
-                    $('#dvloader').hide();
-                    toastr.error(textStatus, errorThrown);
-                }
-            });
-        } else {
-            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
-        }
+        if (CheckAdmin != 1) { toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}'); return; }
+        $('#dvloader').show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("admob.startio.android") }}',
+            data: new FormData($('#startio_android_form')[0]),
+            cache: false, contentType: false, processData: false,
+            success: function(resp) { $('#dvloader').hide(); $("html,body").animate({scrollTop:0},"swing"); get_responce_message(resp); },
+            error: function(x, t, e) { $('#dvloader').hide(); toastr.error(e, t); }
+        });
+    }
+
+    function startio_ios_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin != 1) { toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}'); return; }
+        $('#dvloader').show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("admob.startio.ios") }}',
+            data: new FormData($('#startio_ios_form')[0]),
+            cache: false, contentType: false, processData: false,
+            success: function(resp) { $('#dvloader').hide(); $("html,body").animate({scrollTop:0},"swing"); get_responce_message(resp); },
+            error: function(x, t, e) { $('#dvloader').hide(); toastr.error(e, t); }
+        });
     }
 </script>
 @endsection

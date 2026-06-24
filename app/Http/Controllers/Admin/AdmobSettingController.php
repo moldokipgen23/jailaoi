@@ -54,6 +54,50 @@ class AdmobSettingController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function startioAndroid(Request $request)
+    {
+        try {
+            $keys = [
+                'startio_enabled', 'startio_banner_enabled',
+                'startio_interstitial_enabled', 'startio_rewarded_enabled',
+                'startio_app_id_android',
+            ];
+            foreach ($keys as $key) {
+                $value = $request->input($key, '0');
+                $setting = General_Setting::where('key', $key)->first();
+                if ($setting) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function startioIos(Request $request)
+    {
+        try {
+            $keys = [
+                'ios_startio_enabled', 'ios_startio_banner_enabled',
+                'ios_startio_interstitial_enabled', 'ios_startio_rewarded_enabled',
+                'startio_app_id_ios',
+            ];
+            foreach ($keys as $key) {
+                $value = $request->input($key, '0');
+                $setting = General_Setting::where('key', $key)->first();
+                if ($setting) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function admobIos(Request $request)
     {
         try {

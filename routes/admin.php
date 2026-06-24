@@ -247,6 +247,8 @@ Route::group(['middleware' => 'installation'], function () {
             // Admob
             Route::post('admob/android', [AdmobSettingController::class, 'admobAndroid'])->name('admob.android');
             Route::post('admob/ios', [AdmobSettingController::class, 'admobIos'])->name('admob.ios');
+            Route::post('admob/startio/android', [AdmobSettingController::class, 'startioAndroid'])->name('admob.startio.android');
+            Route::post('admob/startio/ios', [AdmobSettingController::class, 'startioIos'])->name('admob.startio.ios');
             // FaceBook Ads
             Route::post('fbads/android', [FaceBookAdsSettingController::class, 'facebookadAndroid'])->name('fbads.android');
             Route::post('fbads/ios', [FaceBookAdsSettingController::class, 'facebookadIos'])->name('fbads.ios');
