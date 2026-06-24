@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('tbl_support_ticket', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedInteger('user_id');
             $table->string('type', 50);
             $table->string('subject');
             $table->text('message');
