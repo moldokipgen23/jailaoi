@@ -13,7 +13,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">{{__('label.dashboard')}}</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.support-tickets.index') }}">Support Tickets</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Ticket #{{ $ticket->id }}</li>
+                    <li class="breadcrumb-item active">Ticket #{{ $ticket->id }}</li>
                 </ol>
             </div>
             <div class="col-sm-2 d-flex align-items-center justify-content-end">
@@ -27,26 +27,38 @@
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
+        @if($errors->any())
+            <div class="alert alert-danger">{{ $errors->first() }}</div>
+        @endif
 
         <div class="row">
+            {{-- LEFT: Ticket info + Thread --}}
             <div class="col-md-8">
+
+                {{-- Ticket info card --}}
                 <div class="card custom-border-card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">{{ $ticket->subject }}</h5>
-                        <div>
-                            @php
-                                $statusMap = ['open' => 'warning', 'in_progress' => 'primary', 'resolved' => 'success'];
-                                $statusLabels = ['open' => 'Open', 'in_progress' => 'In Progress', 'resolved' => 'Resolved'];
-                            @endphp
-                            <span class="badge badge-{{ $statusMap[$ticket->status] ?? 'secondary' }}" style="font-size:14px;">
-                                {{ $statusLabels[$ticket->status] ?? $ticket->status }}
-                            </span>
-                        </div>
+                        @php
+                            $statusMap    = ['open' => 'warning', 'in_progress' => 'primary', 'resolved' => 'success', 'closed' => 'secondary'];
+                            $statusLabels = ['open' => 'Open', 'in_progress' => 'In Progress', 'resolved' => 'Resolved', 'closed' => 'Closed'];
+                            $typeLabels   = [
+                                'account'  => 'Account & Login',
+                                'billing'  => 'Subscription & Billing',
+                                'playback' => 'Playback / Technical',
+                                'content'  => 'Artist / Content Report',
+                                'refund'   => 'Refund Request',
+                                'other'    => 'Other',
+                            ];
+                        @endphp
+                        <span class="badge badge-{{ $statusMap[$ticket->status] ?? 'secondary' }}" style="font-size:13px;padding:6px 12px;">
+                            {{ $statusLabels[$ticket->status] ?? $ticket->status }}
+                        </span>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm table-borderless mb-3">
+                        <table class="table table-sm table-borderless mb-0">
                             <tr>
-                                <td style="width:120px;color:#888;">User</td>
+                                <td style="width:110px;color:#888;">User</td>
                                 <td><strong>{{ $ticket->user ? ($ticket->user->full_name ?: $ticket->user->user_name) : 'Deleted User' }}</strong></td>
                             </tr>
                             <tr>
@@ -55,78 +67,134 @@
                             </tr>
                             <tr>
                                 <td style="color:#888;">Type</td>
-                                <td>
-                                    @php
-                                        $typeLabels = [
-                                            'account' => 'Account & Login',
-                                            'billing' => 'Subscription & Billing',
-                                            'playback' => 'Playback / Technical',
-                                            'content' => 'Artist / Content Report',
-                                            'refund' => 'Refund Request',
-                                            'other' => 'Other',
-                                        ];
-                                    @endphp
-                                    {{ $typeLabels[$ticket->type] ?? ucfirst($ticket->type) }}
-                                </td>
+                                <td>{{ $typeLabels[$ticket->type] ?? ucfirst($ticket->type) }}</td>
                             </tr>
                             <tr>
-                                <td style="color:#888;">Submitted</td>
+                                <td style="color:#888;">Opened</td>
                                 <td>{{ $ticket->created_at->format('d M Y, h:i A') }}</td>
                             </tr>
-                            @if($ticket->replied_at)
-                            <tr>
-                                <td style="color:#888;">Replied</td>
-                                <td>{{ $ticket->replied_at->format('d M Y, h:i A') }}</td>
-                            </tr>
-                            @endif
                         </table>
-
-                        <hr>
-                        <h6 class="mb-2">User Message:</h6>
-                        <div style="background:#f8f9fa;border-radius:8px;padding:16px;color:#333;line-height:1.7;white-space:pre-wrap;">{{ $ticket->message }}</div>
-
-                        @if($ticket->admin_reply)
-                        <hr>
-                        <h6 class="mb-2">Admin Reply:</h6>
-                        <div style="background:#f0f4ff;border-radius:8px;padding:16px;color:#333;line-height:1.7;white-space:pre-wrap;">{{ $ticket->admin_reply }}</div>
-                        @endif
                     </div>
+                </div>
+
+                {{-- Conversation thread --}}
+                <div class="card custom-border-card mb-3">
+                    <div class="card-header"><h5 class="mb-0">Conversation</h5></div>
+                    <div class="card-body" style="max-height:520px;overflow-y:auto;" id="thread-container">
+                        @forelse($ticket->replies as $reply)
+                            @if($reply->sender_type === 'user')
+                            {{-- User bubble (left) --}}
+                            <div class="d-flex mb-3">
+                                <div style="width:36px;height:36px;border-radius:50%;background:#E01E75;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">
+                                    {{ strtoupper(substr($ticket->user->user_name ?? 'U', 0, 1)) }}
+                                </div>
+                                <div style="margin-left:10px;max-width:80%;">
+                                    <div style="background:#f0f0f0;border-radius:0 12px 12px 12px;padding:12px 16px;">
+                                        <p style="margin:0;color:#333;line-height:1.6;white-space:pre-wrap;font-size:14px;">{{ $reply->message }}</p>
+                                    </div>
+                                    <small style="color:#aaa;font-size:11px;margin-left:4px;">{{ $ticket->user ? ($ticket->user->full_name ?: $ticket->user->user_name) : 'User' }} &bull; {{ $reply->created_at->format('d M, h:i A') }}</small>
+                                </div>
+                            </div>
+                            @else
+                            {{-- Admin bubble (right) --}}
+                            <div class="d-flex mb-3 justify-content-end">
+                                <div style="margin-right:10px;max-width:80%;text-align:right;">
+                                    <div style="background:#E01E75;border-radius:12px 0 12px 12px;padding:12px 16px;display:inline-block;text-align:left;">
+                                        <p style="margin:0;color:#fff;line-height:1.6;white-space:pre-wrap;font-size:14px;">{{ $reply->message }}</p>
+                                    </div>
+                                    <div><small style="color:#aaa;font-size:11px;margin-right:4px;">Support Team &bull; {{ $reply->created_at->format('d M, h:i A') }}</small></div>
+                                </div>
+                                <div style="width:36px;height:36px;border-radius:50%;background:#333;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">A</div>
+                            </div>
+                            @endif
+                        @empty
+                            <p class="text-muted text-center py-3">No messages yet.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Reply form --}}
+                    @if($ticket->status !== 'closed')
+                    <div class="card-footer" style="background:#fafafa;">
+                        <form action="{{ route('admin.support-tickets.reply', $ticket->id) }}" method="POST">
+                            @csrf
+                            <div class="form-row align-items-end">
+                                <div class="col">
+                                    <textarea name="message" class="form-control" rows="3" placeholder="Type your reply..." required></textarea>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="mb-2">
+                                        <select name="status" class="form-control form-control-sm">
+                                            <option value="in_progress" {{ $ticket->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                            <option value="resolved" {{ $ticket->status === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-default btn-block">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    @else
+                    <div class="card-footer text-center text-muted">
+                        This ticket is closed. <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}">Reopen it</a> to reply.
+                    </div>
+                    @endif
                 </div>
             </div>
 
+            {{-- RIGHT: Actions --}}
             <div class="col-md-4">
-                @if($ticket->status !== 'resolved')
                 <div class="card custom-border-card mb-3">
-                    <div class="card-header"><h5 class="mb-0">Reply</h5></div>
+                    <div class="card-header"><h5 class="mb-0">Ticket Actions</h5></div>
                     <div class="card-body">
-                        <form action="{{ route('admin.support-tickets.reply', $ticket->id) }}" method="POST">
-                            @csrf
-                            <div class="form-group">
-                                <textarea name="admin_reply" class="form-control" rows="6" placeholder="Type your reply..." required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Status after reply:</label>
-                                <select name="status" class="form-control">
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-default btn-block">Send Reply</button>
-                        </form>
+                        <p class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">Change Status</p>
+                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}"
+                           class="btn btn-sm btn-warning btn-block mb-2 {{ $ticket->status === 'open' ? 'disabled' : '' }}">
+                            <i class="fa-solid fa-circle-dot"></i> Mark Open
+                        </a>
+                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'in_progress']) }}"
+                           class="btn btn-sm btn-primary btn-block mb-2 {{ $ticket->status === 'in_progress' ? 'disabled' : '' }}">
+                            <i class="fa-solid fa-spinner"></i> Mark In Progress
+                        </a>
+                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'resolved']) }}"
+                           class="btn btn-sm btn-success btn-block mb-2 {{ $ticket->status === 'resolved' ? 'disabled' : '' }}">
+                            <i class="fa-solid fa-check"></i> Mark Resolved
+                        </a>
+
+                        <hr>
+                        <p class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">Close Ticket</p>
+                        @if($ticket->status === 'closed')
+                            <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}"
+                               class="btn btn-sm btn-outline-secondary btn-block">
+                                <i class="fa-solid fa-lock-open"></i> Reopen Ticket
+                            </a>
+                        @else
+                            <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'closed']) }}"
+                               class="btn btn-sm btn-secondary btn-block"
+                               onclick="return confirm('Close this ticket? The user will not be able to reply until it is reopened.')">
+                                <i class="fa-solid fa-lock"></i> Close Ticket
+                            </a>
+                        @endif
                     </div>
                 </div>
-                @endif
 
                 <div class="card custom-border-card">
-                    <div class="card-header"><h5 class="mb-0">Change Status</h5></div>
+                    <div class="card-header"><h5 class="mb-0">Summary</h5></div>
                     <div class="card-body">
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}" class="btn btn-sm btn-warning btn-block mb-2 {{ $ticket->status === 'open' ? 'disabled' : '' }}">Mark Open</a>
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'in_progress']) }}" class="btn btn-sm btn-primary btn-block mb-2 {{ $ticket->status === 'in_progress' ? 'disabled' : '' }}">Mark In Progress</a>
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'resolved']) }}" class="btn btn-sm btn-success btn-block {{ $ticket->status === 'resolved' ? 'disabled' : '' }}">Mark Resolved</a>
+                        <p class="mb-1"><span style="color:#888;font-size:12px;">TICKET ID</span><br><strong>#{{ $ticket->id }}</strong></p>
+                        <p class="mb-1"><span style="color:#888;font-size:12px;">REPLIES</span><br><strong>{{ $ticket->replies->count() }}</strong></p>
+                        <p class="mb-0"><span style="color:#888;font-size:12px;">LAST ACTIVITY</span><br><strong>{{ $ticket->updated_at->format('d M Y, h:i A') }}</strong></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // auto-scroll thread to bottom
+    var tc = document.getElementById('thread-container');
+    if (tc) tc.scrollTop = tc.scrollHeight;
+</script>
+@endpush
 @endsection

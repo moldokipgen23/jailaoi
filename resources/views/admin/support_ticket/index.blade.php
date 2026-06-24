@@ -26,6 +26,7 @@
                             <option value="open" {{ request('status') === 'open' ? 'selected' : '' }}>Open</option>
                             <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="resolved" {{ request('status') === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed</option>
                         </select>
                     </div>
                 </div>

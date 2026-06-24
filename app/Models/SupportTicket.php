@@ -28,4 +28,9 @@ class SupportTicket extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function replies()
+    {
+        return $this->hasMany(SupportReply::class, 'ticket_id')->orderBy('created_at', 'asc');
+    }
 }

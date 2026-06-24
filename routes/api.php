@@ -90,4 +90,6 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     // -------------------- SupportController --------------------
     Route::post('support/submit', [SupportController::class, 'submit']);
     Route::post('support/tickets', [SupportController::class, 'tickets']);
+    Route::post('support/reply', [SupportController::class, 'reply']);
+    Route::post('support/thread', [SupportController::class, 'thread']);
 });
