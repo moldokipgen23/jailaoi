@@ -39,6 +39,7 @@ class AdmobSettingController extends Controller
             $data["interstital_adid"] = isset($data['interstital_adid']) ? $data['interstital_adid'] : '';
             $data["reward_adid"] = isset($data['reward_adid']) ? $data['reward_adid'] : '';
             $data["interstital_adclick"] = isset($data['interstital_adclick']) ? $data['interstital_adclick'] : '';
+            $data["interstital_cooldown"] = isset($data['interstital_cooldown']) ? $data['interstital_cooldown'] : '60';
             $data["reward_adclick"] = isset($data['reward_adclick']) ? $data['reward_adclick'] : '';
 
             foreach ($data as $key => $value) {
@@ -62,6 +63,7 @@ class AdmobSettingController extends Controller
             $data["ios_interstital_adid"] = isset($data['ios_interstital_adid']) ? $data['ios_interstital_adid'] : '';
             $data["ios_reward_adid"] = isset($data['ios_reward_adid']) ? $data['ios_reward_adid'] : '';
             $data["ios_interstital_adclick"] = isset($data['ios_interstital_adclick']) ? $data['ios_interstital_adclick'] : '';
+            $data["ios_interstital_cooldown"] = isset($data['ios_interstital_cooldown']) ? $data['ios_interstital_cooldown'] : '60';
             $data["ios_reward_adclick"] = isset($data['ios_reward_adclick']) ? $data['ios_reward_adclick'] : '';
 
             foreach ($data as $key => $value) {

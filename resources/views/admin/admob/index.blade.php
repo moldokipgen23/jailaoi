@@ -120,6 +120,13 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
                                     <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="interstital_cooldown" class="form-control" min="0" placeholder="60" value="{{$result['interstital_cooldown'] ?? '60'}}">
+                                        <small class="text-muted">Min seconds between interstitial ads (0 = no limit)</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
                                         <label>{{__('label.reward_ad_click')}}</label>
                                         <input type="text" name="reward_adclick" class="form-control" placeholder="{{__('label.reward_ad_click_here')}}" value="{{$result['reward_adclick']}}">
                                     </div>
@@ -211,6 +218,13 @@
                                     <div class="form-group">
                                         <label>{{__('interstital_ad_click')}}</label>
                                         <input type="text" name="ios_interstital_adclick" class="form-control" placeholder="{{__('label.interstital_ad_click_here')}}" value="{{$result['ios_interstital_adclick']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="ios_interstital_cooldown" class="form-control" min="0" placeholder="60" value="{{$result['ios_interstital_cooldown'] ?? '60'}}">
+                                        <small class="text-muted">Min seconds between interstitial ads (0 = no limit)</small>
                                     </div>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4">
