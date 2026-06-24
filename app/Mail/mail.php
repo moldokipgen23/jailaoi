@@ -30,7 +30,16 @@ class mail extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->details['title'])
+        $mail = $this->subject($this->details['title'])
             ->view($this->details['view']);
+
+        if (isset($this->details['attachment']) && file_exists($this->details['attachment'])) {
+            $mail->attach($this->details['attachment'], [
+                'as' => $this->details['attachment_name'] ?? 'invoice.pdf',
+                'mime' => 'application/pdf',
+            ]);
+        }
+
+        return $mail;
     }
 }

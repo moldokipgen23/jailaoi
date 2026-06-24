@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:check-status')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('app:create-sections')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('earnings:settle')->monthlyOn(5, '08:00')->withoutOverlapping();
+        $schedule->command('app:send-subscription-notifications')->dailyAt('09:00')->withoutOverlapping();
     }
 
     /**

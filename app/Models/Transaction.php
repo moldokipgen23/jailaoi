@@ -21,6 +21,8 @@ class Transaction extends Model
         'description' => 'string',
         'expiry_date' => 'string',
         'status' => 'integer',
+        'renewal_reminder_sent' => 'boolean',
+        'expiry_notified' => 'boolean',
     ];
 
     public function user()

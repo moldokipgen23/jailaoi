@@ -28,6 +28,7 @@ use App\Models\Notification;
 use App\Models\Onboarding_Screen;
 use App\Models\Page;
 use App\Models\Play;
+use App\Services\InvoiceService;
 use App\Models\Podcast;
 use App\Models\Section;
 use App\Models\Social_Link;
@@ -125,7 +126,7 @@ class HomeController extends Controller
     {
         try {
 
-            $data = Page::select('title', 'description', 'icon')->get();
+            $data = Page::select('title', 'description', 'icon')->where('status', 1)->get();
 
             for ($i = 0; $i < count($data); $i++) {
                 $data[$i]['url'] = env('APP_URL') . '/pages/' . rawurlencode($data[$i]['title']);
@@ -763,13 +764,21 @@ class HomeController extends Controller
                 foreach ($transactions as $data) {
                     $data->update(['status' => 0]);
                 }
+
+                $invoicePath = null;
+                try {
+                    $invoicePath = (new InvoiceService)->generate($insert);
+                } catch (\Exception $e) {
+                    // Invoice generation failed — log silently
+                }
+
                 // Send Mail (Type = 1- Register Mail, 2 Transaction Mail)
                 $user_data = User::where('id', $user_id)->first();
                 if (isset($user_data)) {
                     $check = $this->common->basic_notification_configuration('package-buy');
 
                     if ($check['status'] == 1 && $check['send_mail'] == 1) {
-                        $this->common->Send_Mail(2, $user_data->email, $user_data->full_name, $Pdata->name, $price, $transaction_id, $Edate);
+                        $this->common->Send_Mail(2, $user_data->email, $user_data->full_name, $Pdata->name, $price, $transaction_id, $Edate, $invoicePath);
                     }
 
                     if ($check['status'] == 1 && $check['send_notification'] == 1) {

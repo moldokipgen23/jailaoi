@@ -706,7 +706,7 @@ class Common extends Model
         }
         return true;
     }
-    public function Send_Mail($type, $email, $full_name = '', $package_name = '', $price = 0, $transaction_id = '', $expiry_date = '') // Type = 1- Register, 2- Transaction
+    public function Send_Mail($type, $email, $full_name = '', $package_name = '', $price = 0, $transaction_id = '', $expiry_date = '', $attachment = null) // Type = 1- Register, 2- Transaction
     {
         try {
 
@@ -730,6 +730,10 @@ class Common extends Model
                         'expiry_date' => $expiry_date,
                         'view' => 'mail.transaction',
                     ];
+                    if ($attachment) {
+                        $details['attachment'] = $attachment;
+                        $details['attachment_name'] = 'invoice.pdf';
+                    }
                 } else if ($type == 3) {
                     $details = [
                         'title' => App_Name() . " - Login",

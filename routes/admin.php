@@ -44,6 +44,8 @@ use App\Http\Controllers\Admin\KycController;
 use App\Http\Controllers\Admin\MonetizationController;
 use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Admin\PlayErrorController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\InvoiceController;
 
 // Artisan
 Route::get('artisan', function () {
@@ -78,8 +80,18 @@ Route::group(['middleware' => 'installation'], function () {
 
     Route::group(['middleware' => 'authadmin'], function () {
 
+        Route::group(['middleware' => 'role'], function () {
+
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        // Admin Management (super_admin only via role middleware)
+        Route::get('admins', [AdminController::class, 'index'])->name('admin.index');
+        Route::get('admins/create', [AdminController::class, 'create'])->name('admin.create');
+        Route::post('admins', [AdminController::class, 'store'])->name('admin.store');
+        Route::get('admins/{admin}/edit', [AdminController::class, 'edit'])->name('admin.edit');
+        Route::put('admins/{admin}', [AdminController::class, 'update'])->name('admin.update');
+        Route::delete('admins/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
+        Route::post('admins/status/{id}', [AdminController::class, 'changeStatus'])->name('admin.status');
         // Profile
         Route::resource('profile', ProfileController::class)->only(['index']);
         // Category
@@ -135,6 +147,9 @@ Route::group(['middleware' => 'installation'], function () {
         // Transaction
         Route::resource('transaction', TransactionController::class)->only(['index', 'create']);
         Route::any('searchuser', [TransactionController::class, 'searchUser'])->name('searchUser');
+        // Invoice
+        Route::get('transaction/{id}/invoice', [InvoiceController::class, 'download'])->name('invoice.download');
+        Route::get('transaction/{id}/invoice/view', [InvoiceController::class, 'view'])->name('invoice.view');
         // Payment
         Route::resource('payment', PaymentController::class)->only(['index']);
         // App Setting
@@ -249,5 +264,6 @@ Route::group(['middleware' => 'installation'], function () {
             // JAILAOI: Play Errors
             Route::get('play-errors', [PlayErrorController::class, 'index'])->name('admin.play-errors');
         });
-    });
-});
+        }); // end role
+    }); // end authadmin
+}); // end installation

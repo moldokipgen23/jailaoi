@@ -21,7 +21,20 @@ class Admin extends Authenticatable
         'user_name' => 'string',
         'email' => 'string',
         'password' => 'string',
-        'type' => 'integer',
+        'role' => 'string',
+        'permissions' => 'array',
         'status' => 'integer',
     ];
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function hasAccess(string $routeName): bool
+    {
+        return \App\Http\Middleware\RoleMiddleware::adminHasAccess(
+            $this->role, $routeName, $this->permissions
+        );
+    }
 }

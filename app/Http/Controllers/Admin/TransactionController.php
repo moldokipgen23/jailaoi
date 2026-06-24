@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\Package;
 use App\Models\User;
 use App\Models\Common;
+use App\Services\InvoiceService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Exception;
@@ -61,12 +62,14 @@ class TransactionController extends Controller
                 return DataTables()::of($data)
                     ->addIndexColumn()
                     ->addColumn('action', function ($row) {
+                        $invoice = '<a href="' . route('invoice.download', [$row->id]) . '" class="edit-delete-btn" title="' . __('label.invoice') . '" target="_blank"><i class="fa-solid fa-file-invoice fa-xl"></i></a>';
                         $delete = '<form onsubmit="return confirm(\'' . __('label.delete_transaction') . '\');" method="POST"  action="' . route('transaction.destroy', [$row->id]) . '">
                                 <input type="hidden" name="_token" value="' . csrf_token() . '">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="edit-delete-btn"  title=' . __('label.delete') . ' ><i class="fa-solid fa-trash-can fa-xl"></i></button></form>';
 
                         $btn = '<div class="d-flex justify-content-around">';
+                        $btn .= $invoice;
                         $btn .= $delete;
                         $btn .= '</div>';
                         return $btn;
@@ -133,13 +136,20 @@ class TransactionController extends Controller
             $Transction->status = 1;
             if ($Transction->save()) {
 
+                $invoicePath = null;
+                try {
+                    $invoicePath = (new InvoiceService)->generate($Transction);
+                } catch (\Exception $e) {
+                    // Invoice generation failed — log silently
+                }
+
                 // Send Mail (Type = 1- Register Mail, 2 Transaction Mail)
                 $user_data = User::where('id', $Transction->user_id)->first();
                 if (isset($user_data)) {
                     $check = $this->common->basic_notification_configuration('package-buy');
 
                     if ($check['status'] == 1 && $check['send_mail'] == 1) {
-                        $this->common->Send_Mail(2, $user_data->email, $user_data->full_name, $package->name, $package->price, 'admin', $expiry_date);
+                        $this->common->Send_Mail(2, $user_data->email, $user_data->full_name, $package->name, $package->price, 'admin', $expiry_date, $invoicePath);
                     }
 
                     if ($check['status'] == 1 && $check['send_notification'] == 1) {

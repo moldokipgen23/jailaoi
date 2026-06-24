@@ -52,11 +52,6 @@ class LoginController extends Controller
             $requestData = $request->all();
             if (Auth()->guard('admin')->attempt(['email' => $requestData['email'], 'password' => $requestData['password']])) {
 
-                $user = auth()->guard('admin')->user();
-                if ($user->type == 1) {
-                    $this->middleware('checkadmin');
-                }
-
                 return response()->json(['status' => 200, 'success' => __('label.success_login')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_login')]);

@@ -23,7 +23,19 @@
             </a>
         </li>
 
+        {{-- ADMIN section (super_admin only) --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.index'))
+        <li class="side-section-label">ADMIN</li>
+        <li class="side_line {{ in_array(request()->route()->getName(), ['admin.index','admin.create','admin.edit','admin.store','admin.update','admin.destroy','admin.status']) ? 'active' : '' }}">
+            <a href="{{ route('admin.index') }}">
+                <i class="fa-solid fa-user-shield fa-2xl menu-icon"></i>
+                <span>Manage Admins</span>
+            </a>
+        </li>
+        @endif
+
         {{-- JAILAOI: CONTENT section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('music.index'))
         <li class="side-section-label">CONTENT</li>
         <li class="side_line {{ request()->routeIs('music.*') ? 'active' : '' }}">
             <a href="{{ route('music.index') }}">
@@ -31,44 +43,58 @@
                 <span>{{__('label.music')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('song.index'))
         <li class="side_line {{ request()->routeIs('song*') ? 'active' : '' }}">
             <a href="{{ route('song.index') }}">
                 <i class="fa-solid fa-radio fa-2xl menu-icon"></i>
                 <span>{{__('label.radio_station')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('podcast.index'))
         <li class="side_line {{ request()->routeIs('podcast.*') ? 'active' : '' }}">
             <a href="{{ route('podcast.index') }}">
                 <i class="fa-solid fa-podcast fa-2xl menu-icon"></i>
                 <span>{{__('label.podcast')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('liveevent.index'))
         <li class="side_line {{ request()->routeIs('liveevent*') ? 'active' : '' }}">
             <a href="{{ route('liveevent.index') }}">
                 <i class="fa-solid fa-calendar-week fa-2xl menu-icon"></i>
                 <span>{{__('label.live_event')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('section.index'))
         <li class="side_line {{ request()->routeIs('section*') ? 'active' : '' }}">
             <a href="{{ route('section.index') }}">
                 <i class="fa-solid fa-bars-staggered fa-2xl menu-icon"></i>
                 <span>{{__('label.section')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('category.index'))
         <li class="side_line {{ request()->routeIs('category*') ? 'active' : '' }}">
             <a href="{{ route('category.index') }}">
                 <i class="fa-solid fa-list fa-2xl menu-icon"></i>
                 <span>{{__('label.category')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('language.index'))
         <li class="side_line {{ request()->routeIs('language*') ? 'active' : '' }}">
             <a href="{{ route('language.index') }}">
                 <i class="fa-solid fa-globe fa-2xl menu-icon"></i>
                 <span>{{__('label.language')}}</span>
             </a>
         </li>
+        @endif
 
         {{-- JAILAOI: MONETIZATION section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.withdrawals.index'))
         <li class="side-section-label">MONETIZATION</li>
         <li class="side_line {{ request()->routeIs('admin.withdrawals*') ? 'active' : '' }}">
             <a href="{{ route('admin.withdrawals.index') }}">
@@ -76,32 +102,42 @@
                 <span>{{__('label.artist_withdrawals')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.kyc.index'))
         <li class="side_line {{ request()->routeIs('admin.kyc*') ? 'active' : '' }}">
             <a href="{{ route('admin.kyc.index') }}">
                 <i class="fa-solid fa-shield-halved fa-2xl menu-icon"></i>
                 <span>KYC Requests</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.monetization.index'))
         <li class="side_line {{ request()->routeIs('admin.monetization*') ? 'active' : '' }}">
             <a href="{{ route('admin.monetization.index') }}">
                 <i class="fa-solid fa-rocket fa-2xl menu-icon"></i>
                 <span>Monetization Apps</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.earnings.index'))
         <li class="side_line {{ request()->routeIs('admin.earnings*') ? 'active' : '' }}">
             <a href="{{ route('admin.earnings.index') }}">
                 <i class="fa-solid fa-chart-line fa-2xl menu-icon"></i>
                 <span>Earnings</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.artist-analytics.index'))
         <li class="side_line {{ request()->routeIs('admin.artist-analytics*') ? 'active' : '' }}">
             <a href="{{ route('admin.artist-analytics.index') }}">
                 <i class="fa-solid fa-chart-bar fa-2xl menu-icon"></i>
                 <span>Artist Analytics</span>
             </a>
         </li>
+        @endif
 
         {{-- JAILAOI: USERS section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('user.index'))
         <li class="side-section-label">USERS</li>
         <li class="side_line {{ request()->routeIs('user*') ? 'active' : '' }}">
             <a href="{{ route('user.index') }}">
@@ -109,26 +145,34 @@
                 <span>{{__('label.users')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('artist.index'))
         <li class="side_line {{ request()->routeIs('artist*') && !request()->routeIs('artist-requests*') ? 'active' : '' }}">
             <a href="{{ route('artist.index') }}">
                 <i class="fa-solid fa-user-tie fa-2xl menu-icon"></i>
                 <span>{{__('label.artist_rj')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.artist-requests.index'))
         <li class="side_line {{ request()->routeIs('admin.artist-requests*') ? 'active' : '' }}">
             <a href="{{ route('admin.artist-requests.index') }}">
                 <i class="fa-solid fa-user-plus fa-2xl menu-icon"></i>
                 <span>{{__('label.artist_requests')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('comment.index'))
         <li class="side_line {{ request()->routeIs('comment*') ? 'active' : '' }}">
             <a href="{{ route('comment.index') }}">
                 <i class="fa-solid fa-comments fa-2xl menu-icon"></i>
                 <span>{{__('label.comment')}}</span>
             </a>
         </li>
+        @endif
 
         {{-- JAILAOI: MARKETING section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('banner.index'))
         <li class="side-section-label">MARKETING</li>
         <li class="side_line {{ request()->routeIs('banner*') ? 'active' : '' }}">
             <a href="{{ route('banner.index') }}">
@@ -136,20 +180,26 @@
                 <span>{{__('label.banner')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('notification.index'))
         <li class="side_line {{ (request()->routeIs('notification.*')) ? 'active' : '' }}">
             <a href="{{ route('notification.index') }}">
                 <i class="fa-solid fa-bell fa-2xl menu-icon"></i>
                 <span>{{__('label.notification')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admob.index'))
         <li class="side_line {{ request()->routeIs('admob*') ? 'active' : '' }}">
             <a href="{{ route('admob.index') }}">
                 <i class="fa-brands fa-square-google-plus fa-2xl menu-icon"></i>
                 <span>{{__('label.admob')}}</span>
             </a>
         </li>
+        @endif
 
         {{-- JAILAOI: SETTINGS section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('setting'))
         <li class="side-section-label">SETTINGS</li>
         <li class="side_line {{ request()->routeIs('setting*') ? 'active' : '' }}">
             <a href="{{ route('setting') }}">
@@ -157,30 +207,40 @@
                 <span>{{__('label.app_settings')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('system.setting.index'))
         <li class="side_line {{ request()->routeIs('system.setting*') ? 'active' : '' }}">
             <a href="{{ route('system.setting.index') }}">
                 <i class="fa-solid fa-screwdriver-wrench fa-2xl menu-icon"></i>
                 <span>{{__('label.system_settings')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('panel_setting.index'))
         <li class="side_line {{ request()->routeIs('panel_setting*') ? 'active' : '' }}">
             <a href="{{ route('panel_setting.index') }}">
                 <i class="fa-solid fa-palette fa-2xl menu-icon"></i>
                 <span>{{ __('label.panel_settings') }}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('notification_configuration.index'))
         <li class="side_line {{ request()->routeIs('notification_configuration.*') ? 'active' : '' }}">
             <a href="{{ route('notification_configuration.index') }}">
                 <i class="fa-solid fa-bell fa-2xl menu-icon"></i>
                 <span>{{__('label.notification_configuration')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('page.index'))
         <li class="side_line {{ request()->routeIs('page*') ? 'active' : '' }}">
             <a href="{{ route('page.index') }}">
                 <i class="fa-solid fa-book-open-reader fa-2xl menu-icon"></i>
                 <span>{{__('label.pages')}}</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('package.index'))
         <li class="dropdown {{ request()->routeIs('package*') ? 'active' : '' }}{{ request()->routeIs('transaction*') ? 'active' : '' }}{{ request()->routeIs('payment*') ? 'active' : '' }}">
             <a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa-solid fa-credit-card fa-2xl menu-icon"></i>
@@ -207,6 +267,7 @@
                 </li>
             </ul>
         </li>
+        @endif
 
         {{-- JAILAOI: Spacer + logout --}}
         <li style="margin-top:auto;padding-top:20px;">

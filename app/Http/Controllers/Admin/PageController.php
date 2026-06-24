@@ -158,7 +158,7 @@ class PageController extends Controller
 
                 if (isset($request->icon)) {
                     $files = $request->icon;
-                    $page->icon = $this->common->saveImage($files, $this->folder_app, "pages_");
+                    $page->icon = $this->common->saveImage($files, $this->folder_app, "page_");
 
                     $this->common->deleteImageToFolder($this->folder_app, basename($request->old_icon));
                 }
@@ -227,7 +227,7 @@ class PageController extends Controller
             $data = Page::where('id', $id)->first();
 
             if ($data) {
-                $this->common->deleteImageToFolder($this->folder_app, $data['image']);
+                $this->common->deleteImageToFolder($this->folder_app, $data['icon']);
                 $data->delete();
             }
             return redirect()->route('page.index')->with('success', __('label.success_delete_category'));
