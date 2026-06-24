@@ -325,6 +325,13 @@
                                         <small class="text-muted">Set in AndroidManifest.xml — rebuild app after changing</small>
                                     </div>
                                 </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="startio_interstitial_cooldown" class="form-control" min="0" placeholder="60" value="{{ $result['startio_interstitial_cooldown'] ?? '60' }}">
+                                        <small class="text-muted">Min seconds between Start.io interstitial ads (0 = no limit)</small>
+                                    </div>
+                                </div>
                             </div>
                             <div class="border-top pt-3 text-right">
                                 <button type="button" class="btn btn-default mw-120" onclick="startio_android_save()">{{__('label.save')}}</button>
@@ -410,6 +417,13 @@
                                             value="{{ $result['startio_app_id_ios'] ?? '' }}"
                                             placeholder="e.g. 204295105">
                                         <small class="text-muted">Set in Info.plist — rebuild app after changing</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="ios_startio_interstitial_cooldown" class="form-control" min="0" placeholder="60" value="{{ $result['ios_startio_interstitial_cooldown'] ?? '60' }}">
+                                        <small class="text-muted">Min seconds between Start.io interstitial ads (0 = no limit)</small>
                                     </div>
                                 </div>
                             </div>

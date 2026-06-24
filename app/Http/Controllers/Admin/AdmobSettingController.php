@@ -60,7 +60,7 @@ class AdmobSettingController extends Controller
             $keys = [
                 'startio_enabled', 'startio_banner_enabled',
                 'startio_interstitial_enabled', 'startio_rewarded_enabled',
-                'startio_app_id_android',
+                'startio_app_id_android', 'startio_interstitial_cooldown',
             ];
             foreach ($keys as $key) {
                 $value = $request->input($key, '0');
@@ -82,7 +82,7 @@ class AdmobSettingController extends Controller
             $keys = [
                 'ios_startio_enabled', 'ios_startio_banner_enabled',
                 'ios_startio_interstitial_enabled', 'ios_startio_rewarded_enabled',
-                'startio_app_id_ios',
+                'startio_app_id_ios', 'ios_startio_interstitial_cooldown',
             ];
             foreach ($keys as $key) {
                 $value = $request->input($key, '0');

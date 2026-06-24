@@ -9,13 +9,16 @@ return new class extends Migration
     {
         $seeds = [
             // Per-platform iOS keys (Android keys already exist from original seeding)
-            ['key' => 'ios_startio_enabled',              'value' => '0'],
-            ['key' => 'ios_startio_banner_enabled',       'value' => '1'],
-            ['key' => 'ios_startio_interstitial_enabled', 'value' => '1'],
-            ['key' => 'ios_startio_rewarded_enabled',     'value' => '0'],
+            ['key' => 'ios_startio_enabled',                  'value' => '0'],
+            ['key' => 'ios_startio_banner_enabled',           'value' => '1'],
+            ['key' => 'ios_startio_interstitial_enabled',     'value' => '1'],
+            ['key' => 'ios_startio_rewarded_enabled',         'value' => '0'],
             // App ID placeholders (admin fills these in)
-            ['key' => 'startio_app_id_android',           'value' => ''],
-            ['key' => 'startio_app_id_ios',               'value' => ''],
+            ['key' => 'startio_app_id_android',               'value' => ''],
+            ['key' => 'startio_app_id_ios',                   'value' => ''],
+            // Interstitial cooldown — Start.io has no server-side frequency cap
+            ['key' => 'startio_interstitial_cooldown',        'value' => '60'],
+            ['key' => 'ios_startio_interstitial_cooldown',    'value' => '60'],
         ];
 
         foreach ($seeds as $seed) {
@@ -40,6 +43,8 @@ return new class extends Migration
             'ios_startio_rewarded_enabled',
             'startio_app_id_android',
             'startio_app_id_ios',
+            'startio_interstitial_cooldown',
+            'ios_startio_interstitial_cooldown',
         ])->delete();
     }
 };
