@@ -87,9 +87,11 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_artist_dashboard', [ArtistController::class, 'get_artist_dashboard']);
     Route::post('generate_portal_token', [ArtistController::class, 'generate_portal_token']);
 
-    // -------------------- SupportController --------------------
-    Route::post('support/submit', [SupportController::class, 'submit']);
+    // -------------------- SupportController (rate-limited) --------------------
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('support/submit', [SupportController::class, 'submit']);
+        Route::post('support/reply', [SupportController::class, 'reply']);
+    });
     Route::post('support/tickets', [SupportController::class, 'tickets']);
-    Route::post('support/reply', [SupportController::class, 'reply']);
     Route::post('support/thread', [SupportController::class, 'thread']);
 });

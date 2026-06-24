@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class SupportReply extends Model
 {
     protected $table = 'tbl_support_reply';
-    protected $guarded = [];
+    protected $fillable = [
+        'ticket_id',
+        'sender_type',
+        'sender_id',
+        'message',
+    ];
 
     public function ticket()
     {

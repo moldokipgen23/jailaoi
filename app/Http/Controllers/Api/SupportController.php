@@ -10,6 +10,7 @@ use App\Models\SupportReply;
 use App\Models\SupportTicket;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
@@ -31,7 +32,7 @@ class SupportController extends Controller
                 'user_id' => 'required|exists:tbl_user,id',
                 'type'    => 'required|in:account,billing,playback,content,refund,other',
                 'subject' => 'required|max:255',
-                'message' => 'required',
+                'message' => 'required|max:5000',
             ]);
 
             if ($validation->fails()) {
@@ -65,7 +66,7 @@ class SupportController extends Controller
             $validation = Validator::make($request->all(), [
                 'user_id'   => 'required|exists:tbl_user,id',
                 'ticket_id' => 'required|exists:tbl_support_ticket,id',
-                'message'   => 'required',
+                'message'   => 'required|max:5000',
             ]);
 
             if ($validation->fails()) {
@@ -109,7 +110,7 @@ class SupportController extends Controller
                     ));
                 }
             } catch (Exception $e) {
-                // silent
+                Log::error('Support email notification failed: ' . $e->getMessage());
             }
 
             return $this->common->API_Response(200, 'Reply sent successfully.', null);

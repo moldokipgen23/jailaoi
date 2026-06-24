@@ -200,7 +200,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('support-tickets', [SupportTicketController::class, 'index'])->name('admin.support-tickets.index');
         Route::get('support-tickets/{id}', [SupportTicketController::class, 'show'])->name('admin.support-tickets.show');
         Route::post('support-tickets/{id}/reply', [SupportTicketController::class, 'reply'])->name('admin.support-tickets.reply');
-        Route::get('support-tickets/{id}/status/{status}', [SupportTicketController::class, 'changeStatus'])->name('admin.support-tickets.status');
+        Route::post('support-tickets/{id}/status/{status}', [SupportTicketController::class, 'changeStatus'])->name('admin.support-tickets.status');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 

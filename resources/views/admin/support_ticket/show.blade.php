@@ -135,7 +135,12 @@
                     </div>
                     @else
                     <div class="card-footer text-center text-muted">
-                        This ticket is closed. <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}">Reopen it</a> to reply.
+                        This ticket is closed.
+                        <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}" style="display:inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-link btn-sm p-0" style="vertical-align:baseline;">Reopen it</button>
+                        </form>
+                        to reply.
                     </div>
                     @endif
                 </div>
@@ -147,32 +152,42 @@
                     <div class="card-header"><h5 class="mb-0">Ticket Actions</h5></div>
                     <div class="card-body">
                         <p class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">Change Status</p>
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}"
-                           class="btn btn-sm btn-warning btn-block mb-2 {{ $ticket->status === 'open' ? 'disabled' : '' }}">
-                            <i class="fa-solid fa-circle-dot"></i> Mark Open
-                        </a>
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'in_progress']) }}"
-                           class="btn btn-sm btn-primary btn-block mb-2 {{ $ticket->status === 'in_progress' ? 'disabled' : '' }}">
-                            <i class="fa-solid fa-spinner"></i> Mark In Progress
-                        </a>
-                        <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'resolved']) }}"
-                           class="btn btn-sm btn-success btn-block mb-2 {{ $ticket->status === 'resolved' ? 'disabled' : '' }}">
-                            <i class="fa-solid fa-check"></i> Mark Resolved
-                        </a>
+                        <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}" class="mb-2">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-warning btn-block {{ $ticket->status === 'open' ? 'disabled' : '' }}">
+                                <i class="fa-solid fa-circle-dot"></i> Mark Open
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'in_progress']) }}" class="mb-2">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-primary btn-block {{ $ticket->status === 'in_progress' ? 'disabled' : '' }}">
+                                <i class="fa-solid fa-spinner"></i> Mark In Progress
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'resolved']) }}" class="mb-2">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-success btn-block {{ $ticket->status === 'resolved' ? 'disabled' : '' }}">
+                                <i class="fa-solid fa-check"></i> Mark Resolved
+                            </button>
+                        </form>
 
                         <hr>
                         <p class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">Close Ticket</p>
                         @if($ticket->status === 'closed')
-                            <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}"
-                               class="btn btn-sm btn-outline-secondary btn-block">
-                                <i class="fa-solid fa-lock-open"></i> Reopen Ticket
-                            </a>
+                            <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'open']) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-secondary btn-block">
+                                    <i class="fa-solid fa-lock-open"></i> Reopen Ticket
+                                </button>
+                            </form>
                         @else
-                            <a href="{{ route('admin.support-tickets.status', [$ticket->id, 'closed']) }}"
-                               class="btn btn-sm btn-secondary btn-block"
-                               onclick="return confirm('Close this ticket? The user will not be able to reply until it is reopened.')">
-                                <i class="fa-solid fa-lock"></i> Close Ticket
-                            </a>
+                            <form method="POST" action="{{ route('admin.support-tickets.status', [$ticket->id, 'closed']) }}"
+                                  onsubmit="return confirm('Close this ticket? The user will not be able to reply until it is reopened.')">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-secondary btn-block">
+                                    <i class="fa-solid fa-lock"></i> Close Ticket
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </div>

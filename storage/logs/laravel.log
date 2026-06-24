@@ -894,3 +894,18 @@ Stack trace:
 #23 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #24 {main}
 "} 
+[2026-06-24 15:59:42] local.ERROR: The "--dry-run" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--dry-run\" option does not exist. at /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Input/ArgvInput.php:223)
+[stacktrace]
+#0 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Input/ArgvInput.php(152): Symfony\\Component\\Console\\Input\\ArgvInput->addLongOption('dry-run', NULL)
+#1 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Input/ArgvInput.php(85): Symfony\\Component\\Console\\Input\\ArgvInput->parseLongOption('--dry-run')
+#2 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Input/ArgvInput.php(74): Symfony\\Component\\Console\\Input\\ArgvInput->parseToken('--dry-run', true)
+#3 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Input/Input.php(56): Symfony\\Component\\Console\\Input\\ArgvInput->parse()
+#4 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Command/Command.php(285): Symfony\\Component\\Console\\Input\\Input->bind(Object(Symfony\\Component\\Console\\Input\\InputDefinition))
+#5 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#6 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Application.php(1106): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#7 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Database\\Console\\Migrations\\MigrateCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/symfony/console/Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#9 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#10 /Users/moldokipgen/Projects/JAILAOI/Jailaoi App/Jailaoi admin/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#11 {main}
+"} 

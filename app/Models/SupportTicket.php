@@ -11,7 +11,17 @@ class SupportTicket extends Model
 
     protected $table = 'tbl_support_ticket';
 
-    protected $guarded = array();
+    protected $fillable = [
+        'user_id',
+        'type',
+        'subject',
+        'message',
+        'status',
+    ];
+
+    protected $hidden = [
+        'updated_at',
+    ];
 
     protected $casts = [
         'id' => 'integer',
@@ -20,7 +30,6 @@ class SupportTicket extends Model
         'subject' => 'string',
         'message' => 'string',
         'status' => 'string',
-        'admin_reply' => 'string',
         'replied_at' => 'datetime',
     ];
 

@@ -11,6 +11,7 @@ use App\Models\SupportTicket;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
@@ -73,7 +74,7 @@ class SupportTicketController extends Controller
     public function reply(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'message' => 'required',
+            'message' => 'required|max:5000',
         ]);
 
         if ($validator->fails()) {
@@ -110,7 +111,7 @@ class SupportTicketController extends Controller
                 ));
             }
         } catch (Exception $e) {
-            // silent — don't block on mail failure
+            Log::error('Admin support reply email failed for ticket #' . $ticket->id . ': ' . $e->getMessage());
         }
 
         return redirect()->route('admin.support-tickets.show', $ticket->id)
