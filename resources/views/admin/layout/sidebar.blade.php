@@ -187,6 +187,17 @@
         </li>
         @endif
 
+        {{-- JAILAOI: SUPPORT section --}}
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.support-tickets.index'))
+        <li class="side-section-label">SUPPORT</li>
+        <li class="side_line {{ request()->routeIs('admin.support-tickets*') ? 'active' : '' }}">
+            <a href="{{ route('admin.support-tickets.index') }}">
+                <i class="fa-solid fa-headset fa-2xl menu-icon"></i>
+                <span>Support Tickets</span>
+            </a>
+        </li>
+        @endif
+
         {{-- JAILAOI: SETTINGS section --}}
         @if(\App\Http\Middleware\RoleMiddleware::canAccess('setting'))
         <li class="side-section-label">SETTINGS</li>

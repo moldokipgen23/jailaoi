@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ForgotPasswordMail;
+use App\Mail\PasswordChangedMail;
 use App\Models\Common;
-use App\Models\Smtp;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -119,6 +120,13 @@ class ForgotPasswordController extends Controller
 
             DB::table('password_resets')->where('email', $request->email)->delete();
 
+            try {
+                $this->common->SetSmtpConfig();
+                Mail::to($user->email)->send(new PasswordChangedMail($user->full_name ?: $user->user_name));
+            } catch (Exception $e) {
+                // silent — don't break the main flow
+            }
+
             return response()->json(['status' => 200, 'success' => 'Password reset. You can now log in.']);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -129,23 +137,7 @@ class ForgotPasswordController extends Controller
     {
         try {
             $this->common->SetSmtpConfig();
-            $smtp = Smtp::latest()->first();
-            if (!$smtp || $smtp->status != 1) {
-                // SMTP not configured — silently skip; admin can reset manually
-                return;
-            }
-
-            $appName = function_exists('App_Name') ? App_Name() : 'JailaOi';
-            $subject = $appName . ' — Reset your password';
-            $body = view('user.password.email', [
-                'name' => $name,
-                'resetUrl' => $resetUrl,
-                'appName' => $appName,
-            ])->render();
-
-            Mail::html($body, function ($message) use ($email, $subject) {
-                $message->to($email)->subject($subject);
-            });
+            Mail::to($email)->send(new ForgotPasswordMail($name, $resetUrl));
         } catch (Exception $e) {
             // silent — don't break the flow if email sending fails
         }

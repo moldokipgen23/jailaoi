@@ -64,6 +64,7 @@ class RoleMiddleware
             'admin.artist-requests.*',
             'comment.*',
             'admin.play-errors',
+            'admin.support-tickets.*',
             'dashboard',
         ],
     ];
@@ -107,6 +108,9 @@ class RoleMiddleware
             ['label' => 'Panel Settings', 'routes' => ['panel_setting.*']],
             ['label' => 'Notification Config', 'routes' => ['notification_configuration.*']],
             ['label' => 'Pages', 'routes' => ['page.*']],
+        ],
+        'SUPPORT' => [
+            ['label' => 'Support Tickets', 'routes' => ['admin.support-tickets.*']],
         ],
         'COMMUNITY' => [
             ['label' => 'Comments', 'routes' => ['comment.*']],

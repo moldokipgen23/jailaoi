@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeMail;
+use App\Models\Common;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class VerifyController extends Controller
 {
@@ -36,6 +39,14 @@ class VerifyController extends Controller
 
             $user->email_verified_at = now();
             $user->save();
+
+            try {
+                $common = new Common;
+                $common->SetSmtpConfig();
+                Mail::to($user->email)->send(new WelcomeMail($user->full_name ?: $user->user_name));
+            } catch (Exception $e) {
+                Log::error('Welcome email failed: ' . $e->getMessage());
+            }
 
             return redirect()->route('user.login')
                 ->with('success', 'Email verified! You can now log in.');

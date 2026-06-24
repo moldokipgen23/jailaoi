@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ArtistController;
+use App\Http\Controllers\Api\SupportController;
 
 Route::group(['middleware' => 'apipurchasecode'], function () {
 
@@ -85,4 +86,8 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('unfollow_artist', [ArtistController::class, 'unfollow_artist']);
     Route::post('get_artist_dashboard', [ArtistController::class, 'get_artist_dashboard']);
     Route::post('generate_portal_token', [ArtistController::class, 'generate_portal_token']);
+
+    // -------------------- SupportController --------------------
+    Route::post('support/submit', [SupportController::class, 'submit']);
+    Route::post('support/tickets', [SupportController::class, 'tickets']);
 });

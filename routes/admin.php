@@ -46,6 +46,7 @@ use App\Http\Controllers\Admin\WithdrawalController;
 use App\Http\Controllers\Admin\PlayErrorController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\SupportTicketController;
 
 // Artisan
 Route::get('artisan', function () {
@@ -194,6 +195,12 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('artist-analytics', [ArtistController::class, 'analytics'])->name('admin.artist-analytics.index');
         // JAILAOI: Revenue Pool Settlement
         Route::get('earnings/settlement', [ArtistController::class, 'settleIndex'])->name('admin.earnings.settlement');
+
+        // JAILAOI: Support Tickets
+        Route::get('support-tickets', [SupportTicketController::class, 'index'])->name('admin.support-tickets.index');
+        Route::get('support-tickets/{id}', [SupportTicketController::class, 'show'])->name('admin.support-tickets.show');
+        Route::post('support-tickets/{id}/reply', [SupportTicketController::class, 'reply'])->name('admin.support-tickets.reply');
+        Route::get('support-tickets/{id}/status/{status}', [SupportTicketController::class, 'changeStatus'])->name('admin.support-tickets.status');
 
         Route::group(['middleware' => 'checkadmin'], function () {
 
