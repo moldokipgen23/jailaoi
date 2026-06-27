@@ -16,6 +16,7 @@ return new class extends Migration
                 'key_1'      => '',    // Cashfree App ID
                 'key_2'      => '',    // Cashfree Secret Key
                 'key_3'      => '',    // reserved
+                'key_4'      => '',    // reserved
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
