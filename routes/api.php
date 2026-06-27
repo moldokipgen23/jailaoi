@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\SupportController;
+use App\Http\Controllers\Api\CashfreeController;
 
 Route::group(['middleware' => 'apipurchasecode'], function () {
 
@@ -86,6 +87,10 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('unfollow_artist', [ArtistController::class, 'unfollow_artist']);
     Route::post('get_artist_dashboard', [ArtistController::class, 'get_artist_dashboard']);
     Route::post('generate_portal_token', [ArtistController::class, 'generate_portal_token']);
+
+    // -------------------- CashfreeController --------------------
+    Route::post('cashfree/create-order', [CashfreeController::class, 'createOrder']);
+    Route::post('cashfree/verify-order', [CashfreeController::class, 'verifyOrder']);
 
     // -------------------- SupportController (rate-limited) --------------------
     Route::middleware('throttle:10,1')->group(function () {

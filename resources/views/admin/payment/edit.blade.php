@@ -181,6 +181,23 @@
 						</div>
 					</div>
 					@endif
+					<!-- Cashfree -->
+					@if($data->name == 'cashfree')
+					<div class="form-row">
+						<div class="col-md-4">
+							<div class="form-group">
+								<label>App ID <span class="text-danger">*</span></label>
+								<input name="key_1" type="text" class="form-control" placeholder="Cashfree App ID" value="{{$data->key_1}}">
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label>Secret Key <span class="text-danger">*</span></label>
+								<input name="key_2" type="text" class="form-control" placeholder="Cashfree Secret Key" value="{{$data->key_2}}">
+							</div>
+						</div>
+					</div>
+					@endif
 					<div class="border-top pt-3 text-right">
 						<button type="button" class="btn btn-default mw-120" onclick="update_payment()">{{__('label.update')}}</button>
 						<a href="{{route('payment.index')}}" class="btn btn-cancel mw-120 ml-2">{{__('label.cancel')}}</a>
