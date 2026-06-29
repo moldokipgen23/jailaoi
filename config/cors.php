@@ -26,6 +26,7 @@ return [
         'https://jailaoi.com',
         'https://jailaoi-web.vercel.app',
         'https://www.jailaoi.com',
+        'https://jailaoi.com',
     ],
 
     'allowed_origins_patterns' => [],
