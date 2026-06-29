@@ -20,9 +20,11 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
 
     'allowed_origins' => [
+        'https://portal.jailaoi.com',
         'https://m.jailaoi.com',
         'https://admin.jailaoi.com',
         'https://jailaoi.com',
+        'https://jailaoi-web.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
