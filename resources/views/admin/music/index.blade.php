@@ -30,12 +30,30 @@
                     </div>
                     <input type="text" name="input_search" value="@if(isset($_GET['input_search'])){{$_GET['input_search']}}@endif" class="form-control" placeholder="{{__('label.search_music')}}" aria-label="Search" aria-describedby="basic-addon1">
                 </div>
-                <div class="sorting" style="width: 40%;">
+                <div class="sorting" style="width: 25%;">
                     <label>{{__('label.sort_by')}}</label>
                     <select class="form-control" name="input_artist" id="artist_id">
                         <option value="0" selected>{{__('label.all_artist')}}</option>
                         @foreach($artist as $key=>$value){
                         <option value="{{$value['id']}}" @if(isset($_GET['input_artist'])){{$_GET['input_artist']==$value['id'] ? "selected" :""}}@endif>{{$value['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sorting ml-3" style="width: 25%;">
+                    <label>{{__('label.category')}}</label>
+                    <select class="form-control" name="input_category" id="category_id">
+                        <option value="0">{{__('label.all_category')}}</option>
+                        @foreach($category as $key=>$value){
+                        <option value="{{$value['id']}}" @if(isset($_GET['input_category'])){{$_GET['input_category']==$value['id'] ? "selected" :""}}@endif>{{$value['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sorting ml-3" style="width: 25%;">
+                    <label>{{__('label.language')}}</label>
+                    <select class="form-control" name="input_language" id="language_id">
+                        <option value="0">{{__('label.all_language')}}</option>
+                        @foreach($language as $key=>$value){
+                        <option value="{{$value['id']}}" @if(isset($_GET['input_language'])){{$_GET['input_language']==$value['id'] ? "selected" :""}}@endif>{{$value['name']}}</option>
                         @endforeach
                     </select>
                 </div>
@@ -124,6 +142,8 @@
 @section('pagescript')
 <script>
     $("#artist_id").select2();
+    $("#category_id").select2();
+    $("#language_id").select2();
 
     $(function() {
         $(".video").click(function() {

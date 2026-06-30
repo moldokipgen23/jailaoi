@@ -32,9 +32,14 @@ class SongController extends Controller
 
             // JAILAOI FIX: removed type=1 filter — all JailaOi artists are type=0
             $params['artist'] = Artist::where('status', 1)->latest()->get();
+            // JAILAOI: category/language filters for radio index
+            $params['category'] = Category::orderBy('sort_order', 'asc')->where('status', 1)->get();
+            $params['language'] = Language::orderBy('sort_order', 'asc')->where('status', 1)->get();
 
             $input_search = $request['input_search'];
             $input_artist = $request['input_artist'];
+            $input_category = $request['input_category'];
+            $input_language = $request['input_language'];
 
             $query = Song::query();
 
@@ -45,7 +50,15 @@ class SongController extends Controller
             if (!empty($input_artist)) {
                 $query->where('artist_id', $input_artist);
             }
-            $params['data'] = $query->latest()->paginate(15);
+
+            if (!empty($input_category)) {
+                $query->where('category_id', $input_category);
+            }
+
+            if (!empty($input_language)) {
+                $query->where('language_id', $input_language);
+            }
+            $params['data'] = $query->latest()->paginate(15)->appends($request->query());
 
             $this->common->imageNameToUrl($params['data'], 'image', $this->folder_img);
             $this->common->songNameToUrl($params['data'], 'song_url', $this->folder);
