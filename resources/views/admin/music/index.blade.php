@@ -21,7 +21,7 @@
         </div>
         <!-- search -->
         <form action="{{route('music.index')}}" method="GET">
-            <div class="page-search mb-3">
+            <div class="page-search mb-2">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="basic-addon1">
@@ -30,7 +30,12 @@
                     </div>
                     <input type="text" name="input_search" value="@if(isset($_GET['input_search'])){{$_GET['input_search']}}@endif" class="form-control" placeholder="{{__('label.search_music')}}" aria-label="Search" aria-describedby="basic-addon1">
                 </div>
-                <div class="sorting" style="width: 25%;">
+                <div class="mr-3 ml-3">
+                    <button class="btn btn-default" type="submit"> {{__('label.search')}} </button>
+                </div>
+            </div>
+            <div class="d-flex align-items-center flex-wrap mb-3" style="gap: 12px;">
+                <div class="sorting mb-0" style="min-width: 220px; flex: 1;">
                     <label>{{__('label.sort_by')}}</label>
                     <select class="form-control" name="input_artist" id="artist_id">
                         <option value="0" selected>{{__('label.all_artist')}}</option>
@@ -39,7 +44,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sorting ml-3" style="width: 25%;">
+                <div class="sorting mb-0" style="min-width: 200px; flex: 1;">
                     <label>{{__('label.category')}}</label>
                     <select class="form-control" name="input_category" id="category_id">
                         <option value="0">{{__('label.all_category')}}</option>
@@ -48,7 +53,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sorting ml-3" style="width: 25%;">
+                <div class="sorting mb-0" style="min-width: 180px; flex: 1;">
                     <label>{{__('label.language')}}</label>
                     <select class="form-control" name="input_language" id="language_id">
                         <option value="0">{{__('label.all_language')}}</option>
@@ -56,9 +61,6 @@
                         <option value="{{$value['id']}}" @if(isset($_GET['input_language'])){{$_GET['input_language']==$value['id'] ? "selected" :""}}@endif>{{$value['name']}}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="mr-3 ml-5">
-                    <button class="btn btn-default" type="submit"> {{__('label.search')}} </button>
                 </div>
             </div>
         </form>
@@ -141,9 +143,9 @@
 
 @section('pagescript')
 <script>
-    $("#artist_id").select2();
-    $("#category_id").select2();
-    $("#language_id").select2();
+    $("#artist_id").select2({ width: '100%' });
+    $("#category_id").select2({ width: '100%' });
+    $("#language_id").select2({ width: '100%' });
 
     $(function() {
         $(".video").click(function() {
