@@ -29,6 +29,9 @@ class Music extends Model
         'ogtag_img' => 'string',
         'total_play' => 'integer',
         'status' => 'integer',
+        'release_year' => 'integer',
+        'release_date' => 'date',
+        'tags' => 'string',
     ];
 
 }

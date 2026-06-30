@@ -151,6 +151,8 @@ class MusicController extends Controller
             $requestData['album_name'] = isset($requestData['album_name']) ? $requestData['album_name'] : "";
             $requestData['language_id'] = isset($requestData['language_id']) ? $requestData['language_id'] : 0;
             $requestData['category_id'] = isset($requestData['category_id']) ? $requestData['category_id'] : 0;
+            $requestData['release_year'] = !empty($requestData['release_year']) ? (int) $requestData['release_year'] : null;
+            $requestData['tags'] = !empty($requestData['tags']) ? trim($requestData['tags']) : null;
             $requestData['total_play'] = 0;
 
             if ($requestData['upload_type'] == 1) {
@@ -274,6 +276,8 @@ class MusicController extends Controller
             $requestData['album_name'] = isset($requestData['album_name'])  ? $requestData['album_name'] : "";
             $requestData['language_id'] = isset($requestData['language_id'])  ? $requestData['language_id'] : 0;
             $requestData['category_id'] = isset($requestData['category_id'])  ? $requestData['category_id'] : 0;
+            $requestData['release_year'] = !empty($requestData['release_year']) ? (int) $requestData['release_year'] : null;
+            $requestData['tags'] = !empty($requestData['tags']) ? trim($requestData['tags']) : null;
             // potrait_image
             if (isset($requestData['portrait_img'])) {
                 $files = $requestData['portrait_img'];

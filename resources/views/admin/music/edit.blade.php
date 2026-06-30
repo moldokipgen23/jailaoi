@@ -75,6 +75,20 @@
 							</div>
 						</div>
 						<div class="form-row">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label>{{__('label.release_year')}}</label>
+									<input type="number" value="@if($data->release_year){{$data->release_year}}@endif" name="release_year" class="form-control" min="1900" max="2100" placeholder="{{__('label.release_year_here')}}">
+								</div>
+							</div>
+							<div class="col-md-8">
+								<div class="form-group">
+									<label>{{__('label.tags')}}</label>
+									<input type="text" value="@if($data->tags){{$data->tags}}@endif" name="tags" class="form-control" placeholder="{{__('label.tags_here')}}">
+								</div>
+							</div>
+						</div>
+						<div class="form-row">
 							<div class="col-md-6">
 								<div class="form-group">
 									<label>{{__('label.language')}}</label>
