@@ -49,7 +49,7 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SupportTicketController;
 
 // Artisan
-Route::get('artisan', function () {
+Route::post('artisan', function () {
 
     Artisan::call('config:clear');
     Artisan::call('config:cache');
@@ -57,7 +57,7 @@ Route::get('artisan', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     return "<h1>All Config Cache Clear Successfully.</h1>";
-});
+})->middleware(['authadmin', 'role'])->name('admin.maintenance');
 
 // Version
 Route::get('version', function () {
@@ -65,7 +65,7 @@ Route::get('version', function () {
         <li>PHP : " . phpversion() . "</li>
         <li>Laravel : " . app()->version() . "</li>
     </h1>";
-});
+})->middleware('authadmin');
 
 Route::group(['middleware' => 'installation'], function () {
 
@@ -74,15 +74,16 @@ Route::group(['middleware' => 'installation'], function () {
     Route::post('login', [LoginController::class, 'save_login'])->name('admin.save.login');
     Route::get('logout', [LoginController::class, 'logout'])->name('admin.logout');
     // Chunk
-    Route::any('song/saveChunk', [SongController::class, 'saveChunk']);
-    Route::any('podcasts/saveChunk', [PodcastController::class, 'saveChunk']);
-    Route::any('podcasts/episode/saveChunk', [PodcastController::class, 'saveChunkEpisode']);
-    Route::any('music/saveChunk', [MusicController::class, 'saveChunk']);
+    Route::any('song/saveChunk', [SongController::class, 'saveChunk'])->middleware(['authadmin', 'role'])->name('song.upload.chunk');
+    Route::any('podcasts/saveChunk', [PodcastController::class, 'saveChunk'])->middleware(['authadmin', 'role'])->name('podcast.upload.chunk');
+    Route::any('podcasts/episode/saveChunk', [PodcastController::class, 'saveChunkEpisode'])->middleware(['authadmin', 'role'])->name('podcast.episode.upload.chunk');
+    Route::any('music/saveChunk', [MusicController::class, 'saveChunk'])->middleware(['authadmin', 'role'])->name('music.upload.chunk');
 
     Route::group(['middleware' => 'authadmin'], function () {
 
         Route::group(['middleware' => 'role'], function () {
 
+        Route::get('operations/health', [\App\Http\Controllers\Admin\OperationsController::class, 'index'])->name('admin.operations.health');
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         // Admin Management (super_admin only via role middleware)

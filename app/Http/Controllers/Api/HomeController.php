@@ -2737,16 +2737,23 @@ class HomeController extends Controller
                 return $this->common->API_Response(400, $validation->errors()->first());
             }
 
-            $user_id = $request->user_id;
-            $content_type = $request->content_type;
-            $content_id = $request->content_id;
-            $action = $request->action;
-            $time_spend = $request->time_spend ?? 0;
-            $category_id = $request->category_id ?? 0;
-            $language_id = $request->language_id ?? 0;
-            $city_id = $request->city_id ?? 0;
-            $artist_id = $request->artist_id ?? 0;
-            $content_duration = $request->content_duration ?? 0;
+            $user_id = (int) $request->user_id;
+            $content_type = (int) $request->content_type;
+            $content_type = $content_type === 3 ? 8 : $content_type;
+            $content_id = (int) $request->content_id;
+            $action = (int) $request->action;
+            if (!in_array($content_type, [1, 2, 8], true) || $content_id < 1 || $user_id < 1 || $action < 1) {
+                return $this->common->API_Response(400, 'Invalid playback activity.');
+            }
+            $modelClass = [1 => Song::class, 2 => Podcast::class, 8 => Music::class][$content_type];
+            $content = $modelClass::whereKey($content_id)->where('status', 1)->first();
+            if (!$content) return $this->common->API_Response(400, 'Content is unavailable.');
+            $time_spend = max(0, min(86400, (int) ($request->time_spend ?? 0)));
+            $category_id = $content->category_id ?? 0;
+            $language_id = $content->language_id ?? 0;
+            $city_id = $content->city_id ?? 0;
+            $artist_id = $content->artist_id ?? 0;
+            $content_duration = max(0, (int) ($request->content_duration ?? 0));
 
             $history = User_Action::create([
                 'user_id' => $user_id,
@@ -2902,15 +2909,8 @@ class HomeController extends Controller
         try {
             if ($user_id <= 0 || $content_id <= 0) return;
 
-            // Dedup per user+content+DAY: one genuine daily stream counts (so a
-            // loyal listener earns the artist money each day), but same-day
-            // replays can't be farmed for infinite credits.
-            $exists = ArtistEarning::where('user_id', $user_id)
-                ->where('content_id', $content_id)
-                ->where('content_type', $type)
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-            if ($exists) return;
+            $type = (int) $type === 3 ? 8 : (int) $type;
+            if (!\App\Models\User::whereKey($user_id)->where('status', 1)->exists()) return;
 
             // Resolve artist IDs from the content
             $artistIds = [];
@@ -2930,50 +2930,26 @@ class HomeController extends Controller
             $artistIds = array_unique(array_filter($artistIds));
             if (empty($artistIds)) return;
 
-            // Cache earnings_model for 5 min — called on every play, no need to hit DB each time
-            $model = Cache::remember('earnings_model', 300, function () {
-                return General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
-            });
-
-            if ($model === 'pool') {
-                // Pool mode: record play with amount=0. Settlement job fills real amounts monthly.
+            sort($artistIds, SORT_NUMERIC);
+            DB::transaction(function () use ($artistIds, $type, $content_id, $user_id) {
+                // Lock artists in a stable order before rechecking daily duplicate credits.
+                $artists = \App\Models\Artist::whereIn('id', $artistIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+                $model = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
+                $rate = $model === 'pool' ? 0 : (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
+                $approved = DB::table('tbl_monetization_applications')->whereIn('artist_id', $artistIds)->where('status', 'approved')->distinct()->pluck('artist_id')->toArray();
+                $share = count($approved) ? $rate / count($approved) : 0;
                 foreach ($artistIds as $aid) {
-                    ArtistEarning::create([
-                        'artist_id'    => $aid,
-                        'user_id'      => $user_id,
-                        'content_id'   => $content_id,
-                        'content_type' => $type,
-                        'amount'       => 0,
-                    ]);
+                    if (!isset($artists[$aid]) || (int) ($artists[$aid]->is_suspended ?? 0) === 1) continue;
+                    $exists = ArtistEarning::where('artist_id', $aid)->where('user_id', $user_id)->where('content_id', $content_id)
+                        ->whereIn('content_type', $type === 8 ? [3, 8] : [$type])->whereDate('created_at', now()->toDateString())->exists();
+                    if ($exists) continue;
+                    $amount = $model === 'pool' ? 0 : (in_array($aid, $approved) ? $share : 0);
+                    ArtistEarning::create(['artist_id'=>$aid,'user_id'=>$user_id,'content_id'=>$content_id,'content_type'=>$type,'amount'=>$amount]);
+                    if ($amount > 0) $artists[$aid]->increment('wallet_balance', $amount);
                 }
-            } else {
-                // Legacy per-stream mode: pay fixed rate immediately
-                $rate = Cache::remember('payout_rate_per_stream', 300, function () {
-                    return (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
-                });
-                if ($rate <= 0) return;
-
-                $approvedIds = DB::table('tbl_monetization_applications')
-                    ->whereIn('artist_id', $artistIds)
-                    ->where('status', 'approved')
-                    ->pluck('artist_id')
-                    ->toArray();
-
-                $approvedCount = count($approvedIds);
-                $share = $approvedCount > 0 ? $rate / $approvedCount : 0;
-
-                foreach ($artistIds as $aid) {
-                    ArtistEarning::create([
-                        'artist_id'    => $aid,
-                        'user_id'      => $user_id,
-                        'content_id'   => $content_id,
-                        'content_type' => $type,
-                        'amount'       => in_array($aid, $approvedIds) ? $share : 0,
-                    ]);
-                }
-            }
+            }, 3);
         } catch (Exception $e) {
-            // silent — don't break play if earnings credit fails
+            Log::warning('Artist stream credit failed', ['exception' => get_class($e)]);
         }
     }
 }

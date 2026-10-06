@@ -228,15 +228,16 @@ class WithdrawalController extends Controller
             if ($validator->fails()) {
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
-            $wr = WithdrawalRequest::find($request->request_id);
-            if (!$wr) return response()->json(['status' => 400, 'errors' => 'Request not found']);
-
-            $wr->status = $status;
-            if ($request->filled('admin_note')) {
-                $wr->admin_note = $request->admin_note;
-            }
-            $wr->processed_at = now();
-            $wr->save();
+            $wr = DB::transaction(function () use ($request, $status) {
+                $row = WithdrawalRequest::where('id', $request->request_id)->lockForUpdate()->first();
+                if (!$row || $row->status !== 'pending') return null;
+                $row->status = $status;
+                if ($request->filled('admin_note')) $row->admin_note = $request->admin_note;
+                $row->processed_at = now();
+                $row->save();
+                return $row;
+            });
+            if (!$wr) return response()->json(['status' => 400, 'errors' => 'Only a pending withdrawal can be approved.']);
 
             return response()->json(['status' => 200, 'success' => 'Withdrawal ' . $status]);
         } catch (Exception $e) {

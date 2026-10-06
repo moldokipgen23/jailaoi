@@ -127,7 +127,10 @@ class NotificationController extends Controller
     {
         try {
 
+            $request->validate(['onesignal_apid'=>'required|uuid', 'onesignal_rest_key'=>'nullable|string|max:1024']);
             $data = $request->only(['onesignal_apid', 'onesignal_rest_key']);
+            if (empty($data['onesignal_rest_key'])) $data['onesignal_rest_key'] = General_Setting::where('key', 'onesignal_rest_key')->value('value') ?? '';
+            if ($data['onesignal_rest_key'] === '') return response()->json(['status'=>400,'errors'=>'Enter your OneSignal server key to enable push.']);
             $data["onesignal_apid"] = isset($data['onesignal_apid']) ? $data['onesignal_apid'] : '';
             $data["onesignal_rest_key"] = isset($data['onesignal_rest_key']) ? $data['onesignal_rest_key'] : '';
 

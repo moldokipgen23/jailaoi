@@ -22,6 +22,7 @@ class SettleMonthlyEarnings extends Command
 
     public function handle(): int
     {
+        if ((General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool') !== 'pool') { $this->info('Pool settlement skipped: fixed-rate earnings are active.'); return 0; }
         $lockHeld = false;
         try {
             if (DB::getDriverName() === 'mysql') {
@@ -69,6 +70,18 @@ class SettleMonthlyEarnings extends Command
             $monthStart = "{$month}-01 00:00:00";
             $monthEnd   = date('Y-m-d H:i:s', strtotime($monthStart . ' +1 month'));
 
+            $duplicates = DB::table('tbl_artist_earnings')->where('created_at', '>=', $monthStart)->where('created_at', '<', $monthEnd)
+                ->select('artist_id', 'user_id', 'content_id', 'content_type')->selectRaw('DATE(created_at) as day')
+                ->groupBy('artist_id', 'user_id', 'content_id', 'content_type', 'day')->havingRaw('COUNT(*) > 1')->exists();
+            if ($duplicates && !$pretend) throw new \RuntimeException('Duplicate daily stream credits require reconciliation before settlement.');
+            if ($force && $existing && !$pretend) {
+                $credits = DB::table('tbl_artist_earnings')->where('settled_month', $month)->select('artist_id')->selectRaw('SUM(amount) as amount')->groupBy('artist_id')->get();
+                foreach ($credits as $credit) {
+                    $artist = \App\Models\Artist::whereKey($credit->artist_id)->lockForUpdate()->first();
+                    if (!$artist || (float) $artist->wallet_balance + 0.0001 < (float) $credit->amount) throw new \RuntimeException('Cannot reverse a settlement whose funds are already held or paid.');
+                }
+            }
+
             // --- Step 1: Calculate subscription revenue ---
             $totalRevenue = (float) Transaction::where('created_at', '>=', $monthStart)
                 ->where('created_at', '<', $monthEnd)
@@ -88,8 +101,7 @@ class SettleMonthlyEarnings extends Command
 
             // --- Step 3: Count eligible streams (approved artists, unsettled) ---
             $totalStreams = DB::table('tbl_artist_earnings as ae')
-                ->join('tbl_monetization_applications as ma', 'ma.artist_id', '=', 'ae.artist_id')
-                ->where('ma.status', 'approved')
+                ->whereExists(function ($q) { $q->select(DB::raw(1))->from('tbl_monetization_applications as ma')->whereColumn('ma.artist_id', 'ae.artist_id')->where('ma.status', 'approved'); })
                 ->where('ae.created_at', '>=', $monthStart)
                 ->where('ae.created_at', '<', $monthEnd)
                 ->where(function ($query) use ($force, $existing, $month) {

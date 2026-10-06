@@ -20,6 +20,14 @@
         </div>
         @endif
 
+        @if(\Illuminate\Support\Facades\Auth::guard('admin')->user()?->role === 'super_admin')
+        <a href="{{ route('admin.operations.health') }}" class="btn head-btn" title="Operations health">
+            <i class="fa-solid fa-heart-pulse primary-color"></i>
+            @php($healthFile = storage_path('app/private/operations/health.json'))
+            @php($healthReport = is_file($healthFile) ? json_decode(file_get_contents($healthFile), true) : null)
+            <span>{{ $healthReport['issue_count'] ?? '?' }}</span>
+        </a>
+        @endif
         <!-- Language -->
         <div class="dropdown dropright">
             <a href="#" class="btn head-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
