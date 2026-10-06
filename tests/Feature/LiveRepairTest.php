@@ -194,4 +194,135 @@ class LiveRepairTest extends TestCase
         $this->assertSame(42,\Illuminate\Support\Facades\Auth::guard('user')->id());
         $this->assertNull(\Illuminate\Support\Facades\Cache::get('portal_token:'.$token));
     }
+
+    private function subscriptionLedger(): void
+    {
+        (require database_path('migrations/2026_07_10_000002_create_tbl_cashfree_subscriptions.php'))->up();
+        DB::table('tbl_cashfree_subscriptions')->insert(['subscription_id'=>'sub_test','user_id'=>42,'package_id'=>7,'plan_amount'=>99,'status'=>'created']);
+    }
+
+    private function webhookEvent(array $payload, ?string $timestamp = null, ?string $signature = null)
+    {
+        $timestamp ??= (string) (time() * 1000);
+        $raw = json_encode($payload);
+        $request = Request::create('/api/cashfree/webhook', 'POST', [], [], [], [], $raw);
+        $request->headers->set('x-webhook-timestamp', $timestamp);
+        $request->headers->set('x-webhook-signature', $signature ?? base64_encode(hash_hmac('sha256', $timestamp . $raw, 'secret', true)));
+        return (new CashfreeController)->webhook($request);
+    }
+
+    private function subscriptionPayment(array $overrides = [], string $type = 'SUBSCRIPTION_PAYMENT_SUCCESS'): array
+    {
+        return ['type'=>$type,'data'=>array_replace(['subscription_id'=>'sub_test','cf_payment_id'=>'charge_1',
+            'payment_status'=>'SUCCESS','payment_amount'=>99,'payment_currency'=>'INR','payment_type'=>'CHARGE'], $overrides)];
+    }
+
+    public function test_millisecond_signed_webhook_is_accepted_but_stale_and_forged_are_rejected(): void
+    {
+        $payload=['type'=>'UNKNOWN','data'=>[]];
+        $this->assertSame(200,$this->webhookEvent($payload)->getStatusCode());
+        $this->assertSame(200,$this->webhookEvent($payload,(string)time())->getStatusCode());
+        $this->assertSame(400,$this->webhookEvent($payload,(string)((time()-600)*1000))->getStatusCode());
+        $this->assertSame(401,$this->webhookEvent($payload,null,'forged')->getStatusCode());
+        $this->assertSame(400,$this->webhookEvent($payload,'invalid')->getStatusCode());
+    }
+
+    public function test_subscription_creation_respects_disabled_live_toggle(): void
+    {
+        $result=(new CashfreeController)->createSubscription(Request::create('/','POST',[]));
+        $this->assertSame(400,$result['status']); Http::assertNothingSent();
+    }
+
+    public function test_existing_subscription_cannot_be_overwritten_by_new_account(): void
+    {
+        $this->subscriptionLedger();
+        DB::table('tbl_general_setting')->insert(['key'=>'cashfree_subscription_enabled','value'=>'1']);
+        $result=(new CashfreeController)->createSubscription(Request::create('/','POST',[
+            'user_id'=>99,'package_id'=>7,'subscription_id'=>'sub_test','email'=>'test@example.com','phone'=>'9999999999']));
+        $this->assertSame(400,$result['status']); $this->assertSame(42,DB::table('tbl_cashfree_subscriptions')->value('user_id')); Http::assertNothingSent();
+    }
+
+    public function test_auth_and_success_notifications_credit_the_same_charge_once_and_renewal_separately(): void
+    {
+        $this->subscriptionLedger();
+        $auth=$this->subscriptionPayment(['payment_type'=>'AUTH'],'SUBSCRIPTION_AUTH_STATUS');
+        $this->assertSame(200,$this->webhookEvent($auth)->getStatusCode());
+        $this->assertSame(200,$this->webhookEvent($this->subscriptionPayment())->getStatusCode());
+        $this->assertSame(1,DB::table('tbl_transaction')->count());
+        $this->assertSame(200,$this->webhookEvent($this->subscriptionPayment(['cf_payment_id'=>'charge_2']))->getStatusCode());
+        $this->assertSame(2,DB::table('tbl_transaction')->count());
+        $this->assertSame(1,DB::table('tbl_transaction')->where('status',1)->count());
+    }
+
+    public function test_unpaid_underpaid_foreign_currency_or_missing_id_cannot_credit_subscription(): void
+    {
+        $this->subscriptionLedger();
+        foreach ([['payment_status'=>'PENDING'],['payment_amount'=>1],['payment_currency'=>'USD'],['cf_payment_id'=>'']] as $override) {
+            $this->assertSame(503,$this->webhookEvent($this->subscriptionPayment($override))->getStatusCode());
+        }
+        $this->assertSame(0,DB::table('tbl_transaction')->count());
+    }
+
+    public function test_refundable_authorization_is_not_subscription_revenue(): void
+    {
+        $this->subscriptionLedger();
+        $payload=$this->subscriptionPayment(['payment_type'=>'AUTH','authorization_details'=>['authorization_amount_refund'=>true]],'SUBSCRIPTION_AUTH_STATUS');
+        $this->assertSame(503,$this->webhookEvent($payload)->getStatusCode());
+        $this->assertSame(0,DB::table('tbl_transaction')->count());
+    }
+
+    public function test_checkout_completion_without_recorded_payment_does_not_claim_premium(): void
+    {
+        $this->subscriptionLedger();
+        $controller=new CashfreeController;
+        $request=Request::create('/','POST',['subscription_id'=>'sub_test','user_id'=>42]);
+        $this->assertFalse($controller->subscriptionStatus($request)->getData(true)['result']['paid']);
+        $this->webhookEvent($this->subscriptionPayment());
+        $this->assertTrue($controller->subscriptionStatus($request)->getData(true)['result']['paid']);
+        $request->merge(['user_id'=>99]);
+        $this->assertSame(404,$controller->subscriptionStatus($request)->getStatusCode());
+    }
+
+    public function test_cancellation_preserves_paid_access_and_failed_renewal_grants_nothing(): void
+    {
+        $this->subscriptionLedger(); $this->webhookEvent($this->subscriptionPayment());
+        $this->assertSame(200,$this->webhookEvent(['type'=>'SUBSCRIPTION_STATUS_CHANGED','data'=>[
+            'subscription_details'=>['subscription_id'=>'sub_test','subscription_status'=>'CUSTOMER_CANCELLED']]])->getStatusCode());
+        $this->assertSame('customer_cancelled',DB::table('tbl_cashfree_subscriptions')->value('status'));
+        $this->webhookEvent($this->subscriptionPayment(['cf_payment_id'=>'charge_failed','payment_status'=>'FAILED'],'SUBSCRIPTION_PAYMENT_FAILED'));
+        $this->assertSame(1,DB::table('tbl_transaction')->count());
+        $result=(new CashfreeController)->subscriptionStatus(Request::create('/','POST',['subscription_id'=>'sub_test','user_id'=>42]));
+        $this->assertTrue($result->getData(true)['result']['paid']);
+        DB::table('tbl_transaction')->update(['expiry_date'=>now()->subMinute()->format('Y-m-d H:i')]);
+        $this->assertFalse((new CashfreeController)->subscriptionStatus(Request::create('/','POST',['subscription_id'=>'sub_test','user_id'=>42]))->getData(true)['result']['paid']);
+    }
+
+    public function test_month_end_expiry_and_second_purchase_preserve_paid_time(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-01-31 12:00:00'));
+        $service=app(\App\Services\SubscriptionExpiry::class);
+        $this->assertSame('2026-02-28 12:00',$service->next(42,Package::find(7)));
+        DB::table('tbl_transaction')->insert(['user_id'=>42,'package_id'=>7,'price'=>99,'description'=>'cashfree','transaction_id'=>'previous',
+            'expiry_date'=>'2026-02-28 12:00','status'=>1]);
+        $this->assertSame('2026-03-28 12:00',$service->next(42,Package::find(7)));
+        DB::table('tbl_transaction')->delete();
+        DB::table('tbl_package')->where('id',7)->update(['type'=>'year']);
+        $this->travelTo(\Carbon\Carbon::parse('2024-02-29 12:00:00'));
+        $this->assertSame('2025-02-28 12:00',$service->next(42,Package::find(7)));
+        $this->travelBack();
+    }
+
+    public function test_verified_paid_order_with_existing_purchase_repairs_ledger_without_new_access(): void
+    {
+        Http::fake(['*'=>Http::response($this->order())]);
+        $service=new CashfreePaymentCredit; $first=$service->order('existing_order',42,7);
+        DB::table('tbl_cashfree_orders')->update(['status'=>'created','paid_at'=>null]);
+        $first->description='Monthly Plan'; $first->save();
+        $expiry=$first->expiry_date;
+        $again=$service->order('existing_order',42,7);
+        $this->assertSame($expiry,$again->expiry_date);
+        $this->assertSame('cashfree',$again->description);
+        $this->assertSame(1,DB::table('tbl_transaction')->count());
+        $this->assertSame('paid',DB::table('tbl_cashfree_orders')->value('status'));
+    }
 }

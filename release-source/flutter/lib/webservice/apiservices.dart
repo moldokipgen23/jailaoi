@@ -651,6 +651,14 @@ class ApiService {
     return SuccessModel.fromJson(response.data);
   }
 
+  Future<CashfreeOrderModel> cashfreeSubscriptionStatus(
+      String subscriptionId) async {
+    final response = await dio.post('${baseurl}cashfree/subscription-status',
+        data: FormData.fromMap({'subscription_id': subscriptionId}),
+        options: optHeaders);
+    return CashfreeOrderModel.fromJson(response.data);
+  }
+
   Future<CashfreeOrderModel> verifyCashfreeOrder(dynamic orderId) async {
     printLog('cashfree/verify-order orderId =====>>> $orderId');
     String api = "cashfree/verify-order";

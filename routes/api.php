@@ -97,6 +97,7 @@ Route::group(['middleware' => ['apipurchasecode', 'api.identity']], function () 
     Route::post('cashfree/create-order', [CashfreeController::class, 'createOrder']);
     Route::post('cashfree/verify-order', [CashfreeController::class, 'verifyOrder']);
     Route::post('cashfree/create-subscription', [CashfreeController::class, 'createSubscription']);
+    Route::post('cashfree/subscription-status', [CashfreeController::class, 'subscriptionStatus']);
     Route::post('cashfree/cancel-subscription', [CashfreeController::class, 'cancelSubscription']);
 
     // -------------------- SupportController (rate-limited) --------------------

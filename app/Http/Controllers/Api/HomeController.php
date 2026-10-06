@@ -398,7 +398,7 @@ class HomeController extends Controller
             $current_page = 0;
             $more_page = false;
 
-            $data = Package::orderBy('id', 'DESC');
+            $data = Package::where('status', 1)->orderBy('id', 'DESC');
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -924,6 +924,7 @@ class HomeController extends Controller
             $user_id = $request->user_id;
             $result = Transaction::where('user_id', $user_id)->with('package')->latest()->get();
 
+            $subscriptionStates = DB::table('tbl_cashfree_subscriptions')->where('user_id', $user_id)->pluck('status', 'subscription_id');
             if (count($result) > 0) {
 
                 foreach ($result as $key => $value) {
@@ -935,6 +936,7 @@ class HomeController extends Controller
                         $value['package_price'] = 0;
                     }
 
+                    $value['subscription_status'] = $subscriptionStates[$value['cf_subscription_id']] ?? null;
                     $value['buy_date'] = $value['created_at']->format('Y-m-d H:i');
 
                     unset($value['package']);

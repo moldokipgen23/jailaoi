@@ -25,15 +25,21 @@ class CashfreePaymentCredit
             }
             $existing = Transaction::where('transaction_id', $orderId)->first();
             if ($existing) {
-                if ($existing->user_id !== $userId || $existing->package_id !== $package->id) {
+                if ($existing->user_id !== $userId || $existing->package_id !== $package->id
+                    || (int) round((float) $existing->price * 100) !== (int) round((float) $ledger->amount * 100)) {
                     throw ValidationException::withMessages(['payment' => 'Payment is already associated with another purchase.']);
                 }
+                if ($existing->description !== 'cashfree') {
+                    $existing->description = 'cashfree';
+                    $existing->save();
+                }
+                DB::table('tbl_cashfree_orders')->where('order_id', $orderId)->update(['status' => 'paid', 'paid_at' => $existing->created_at ?? now(), 'updated_at' => now()]);
                 return $existing;
             }
             $transaction = Transaction::create([
                 'user_id' => $userId, 'package_id' => $package->id, 'price' => $ledger->amount,
                 'description' => 'cashfree', 'transaction_id' => $orderId,
-                'expiry_date' => date('Y-m-d H:i', strtotime('+' . $package->time . ' ' . strtolower($package->type), time())),
+                'expiry_date' => app(SubscriptionExpiry::class)->next($userId, $package),
                 'status' => 1,
             ]);
             Transaction::where('user_id', $userId)->where('id', '!=', $transaction->id)->update(['status' => 0]);

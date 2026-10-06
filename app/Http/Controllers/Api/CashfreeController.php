@@ -147,10 +147,13 @@ class CashfreeController extends Controller
     public function createSubscription(Request $request)
     {
         try {
+            if (DB::table('tbl_general_setting')->where('key', 'cashfree_subscription_enabled')->value('value') !== '1') {
+                return $this->common->API_Response(400, 'Auto-renew subscriptions are currently unavailable.', null);
+            }
             $validation = Validator::make($request->all(), [
                 'user_id'         => 'required',
                 'package_id'      => 'required',
-                'subscription_id' => 'required|string',
+                'subscription_id' => 'required|string|regex:/^[A-Za-z0-9_-]{1,100}$/',
                 'email'           => 'required|email',
                 'phone'           => 'required|string',
                 'name'            => 'nullable|string',
@@ -162,8 +165,12 @@ class CashfreeController extends Controller
             }
 
             $pkg = Package::where('id', $request->package_id)->where('status', '1')->first();
-            if (!$pkg) {
+            if (!$pkg || (float) $pkg->price <= 0 || !in_array(strtolower($pkg->type), ['month', 'year'], true) || (int) $pkg->time < 1) {
                 return $this->common->API_Response(400, __('api_msg.please_enter_right_package_id'), null);
+            }
+
+            if (DB::table('tbl_cashfree_subscriptions')->where('subscription_id', $request->subscription_id)->exists()) {
+                return $this->common->API_Response(400, 'Please start a new subscription attempt.', null);
             }
 
             $option = Payment_Option::where('name', 'cashfree')->first();
@@ -242,9 +249,9 @@ class CashfreeController extends Controller
 
             $data = $response->json();
 
-            DB::table('tbl_cashfree_subscriptions')->updateOrInsert(
-                ['subscription_id' => $request->subscription_id],
+            DB::table('tbl_cashfree_subscriptions')->insert(
                 [
+                    'subscription_id' => $request->subscription_id,
                     'user_id'     => $request->user_id,
                     'package_id'  => $request->package_id,
                     'plan_amount' => $amount,
@@ -266,12 +273,25 @@ class CashfreeController extends Controller
     }
 
     /** User-facing cancel — this is the required RBI opt-out path for the recurring mandate. */
+    public function subscriptionStatus(Request $request)
+    {
+        $request->validate(['subscription_id' => 'required|string|regex:/^[A-Za-z0-9_-]{1,100}$/']);
+        $sub = DB::table('tbl_cashfree_subscriptions')->where('subscription_id', $request->subscription_id)
+            ->where('user_id', $request->user_id)->first();
+        if (!$sub) return response()->json(['status' => 404, 'message' => 'Subscription not found.'], 404);
+        $transaction = Transaction::where('user_id', $request->user_id)->where('cf_subscription_id', $sub->subscription_id)
+            ->where('status', 1)->where('expiry_date', '>', now()->format('Y-m-d H:i'))->latest('expiry_date')->first();
+        return response()->json(['status' => 200, 'message' => $transaction ? 'Paid access confirmed.' : 'Awaiting payment confirmation.',
+            'result' => ['paid' => (bool) $transaction, 'subscription_status' => $sub->status,
+                'expiry_date' => $transaction?->expiry_date]])->header('Cache-Control', 'private, no-store');
+    }
+
     public function cancelSubscription(Request $request)
     {
         try {
             $validation = Validator::make($request->all(), [
                 'user_id'         => 'required',
-                'subscription_id' => 'required|string',
+                'subscription_id' => 'required|string|regex:/^[A-Za-z0-9_-]{1,100}$/',
             ]);
             if ($validation->fails()) {
                 return $this->common->API_Response(400, $validation->errors()->first(), null);
@@ -342,7 +362,8 @@ class CashfreeController extends Controller
             }
 
             // Reject stale requests (>5 min old) to limit replay-attack window
-            if (abs(time() - (int) $timestamp) > 300) {
+            $timestampSeconds = preg_match('/^[0-9]{13}$/D', $timestamp) ? (int) floor((int) $timestamp / 1000) : (int) $timestamp;
+            if (!preg_match('/^[0-9]{10}([0-9]{3})?$/D', $timestamp) || abs(time() - $timestampSeconds) > 300) {
                 Log::warning('Cashfree webhook: stale timestamp');
                 return response()->json(['status' => 400], 400);
             }
@@ -406,7 +427,7 @@ class CashfreeController extends Controller
                     if ($paymentStatus === 'SUCCESS') {
                         DB::table('tbl_cashfree_subscriptions')->where('subscription_id', $subscriptionId)
                             ->update(['status' => 'active', 'updated_at' => now()]);
-                        $this->creditSubscriptionCharge($sub, $subscriptionId, $cfPaymentId ?? ($subscriptionId . '_auth'));
+                        $this->creditSubscriptionCharge($sub, $subscriptionId, (string) ($cfPaymentId ?? ''), $payload['data']);
                     } else {
                         DB::table('tbl_cashfree_subscriptions')->where('subscription_id', $subscriptionId)
                             ->where('status', 'created')
@@ -414,10 +435,10 @@ class CashfreeController extends Controller
                     }
                 } elseif ($eventType === 'SUBSCRIPTION_PAYMENT_SUCCESS') {
                     // A recurring renewal charge succeeded — extend access, log a new transaction
-                    $this->creditSubscriptionCharge($sub, $subscriptionId, $cfPaymentId ?? '');
+                    $this->creditSubscriptionCharge($sub, $subscriptionId, (string) ($cfPaymentId ?? ''), $payload['data']);
                 } elseif ($eventType === 'SUBSCRIPTION_STATUS_CHANGED') {
                     $newStatus = strtolower($payload['data']['subscription_details']['subscription_status'] ?? '');
-                    if (in_array($newStatus, ['active', 'on_hold', 'cancelled', 'expired', 'completed'], true)) {
+                    if (in_array($newStatus, ['active', 'on_hold', 'cancelled', 'customer_cancelled', 'customer_paused', 'expired', 'completed', 'link_expired', 'bank_approval_pending', 'card_expired'], true)) {
                         DB::table('tbl_cashfree_subscriptions')->where('subscription_id', $subscriptionId)
                             ->update(['status' => $newStatus, 'updated_at' => now()]);
                     }
@@ -430,7 +451,7 @@ class CashfreeController extends Controller
             return response()->json(['status' => 200]);
         } catch (Exception $e) {
             Log::error('Cashfree webhook error: ' . $e->getMessage());
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()], 400);
+            return response()->json(['status' => 503, 'message' => 'Payment processing is temporarily unavailable.'], 503);
         }
     }
 
@@ -446,8 +467,14 @@ class CashfreeController extends Controller
      * subscription's lifetime — dedup key is the individual cf_payment_id, not the
      * (reusable) subscription_id.
      */
-    private function creditSubscriptionCharge(object $sub, string $subscriptionId, string $chargeId): void
+    private function creditSubscriptionCharge(object $sub, string $subscriptionId, string $chargeId, array $payment): void
     {
+        if (($payment['payment_status'] ?? '') !== 'SUCCESS' || !is_numeric($payment['payment_amount'] ?? null)
+            || (int) round((float) $payment['payment_amount'] * 100) !== (int) round((float) $sub->plan_amount * 100)
+            || ($payment['payment_currency'] ?? '') !== 'INR'
+            || filter_var($payment['authorization_details']['authorization_amount_refund'] ?? false, FILTER_VALIDATE_BOOLEAN) && ($payment['payment_type'] ?? '') === 'AUTH') {
+            throw new \RuntimeException('Subscription payment does not match the agreed charge.');
+        }
         if ($chargeId === '') throw new \RuntimeException('Recurring payment event has no stable payment ID.');
         DB::transaction(function () use ($sub, $subscriptionId, $chargeId) {
             $user = \App\Models\User::whereKey($sub->user_id)->lockForUpdate()->first();
@@ -459,12 +486,12 @@ class CashfreeController extends Controller
             }
 
             $pkg = Package::where('id', $sub->package_id)->where('status', '1')->first();
-            if (!$pkg) {
+            if (!$pkg || (float) $pkg->price <= 0 || !in_array(strtolower($pkg->type), ['month', 'year'], true) || (int) $pkg->time < 1) {
                 Log::error("Cashfree webhook: package {$sub->package_id} not found/inactive for subscription {$subscriptionId}");
                 return;
             }
 
-            $expiry = date('Y-m-d H:i', strtotime('+' . $pkg->time . ' ' . strtolower($pkg->type), time()));
+            $expiry = app(\App\Services\SubscriptionExpiry::class)->next((int) $sub->user_id, $pkg);
 
             $txn = new Transaction();
             $txn->user_id = $sub->user_id;
