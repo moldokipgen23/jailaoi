@@ -1,0 +1,9 @@
+# YouTube Add Music import — 6 October 2026
+
+Live Add Music has an expandable Import from YouTube option. Paste a public video URL to preview title, channel and thumbnail. Empty title fields are filled automatically; existing titles remain unchanged until the artist explicitly selects Use this title. Original audio and artwork upload remain required by the existing workflow; thumbnails are previews and are not downloaded or saved as release art. Audio, descriptions and lyrics are not imported. Channel connection and ongoing sync are not implemented in this first version, and a public link does not prove channel ownership.
+
+Uses YouTube oEmbed metadata at a fixed HTTPS endpoint. Supports watch, youtu.be, shorts, live and embed link forms. Arbitrary hosts, credential-bearing URLs, custom ports, malformed IDs and query arrays are rejected. Provider redirects are disabled, network calls have timeouts, and untrusted thumbnail hosts are ignored. Returned embed HTML is excluded. UI uses textContent, artist authentication/CSRF are retained, and the endpoint has a 10-per-minute limit. No database writes happen during preview; provider failures leave form edits intact.
+
+Validation: 76 backend tests, 229 assertions. New tests cover URL forms, SSRF-style input rejection, fixed canonical requests, thumbnail validation, omitted HTML and unavailable videos. Import JavaScript syntax check passed. Real YouTube metadata and thumbnail URL verified from the live server, route authentication/rate limit verified, and all six artist pages render. Wallet aggregate unchanged. No audio download, real upload, playback, payout or channel OAuth connection was performed. Signed-in browser interaction and visual layout checks remain pending artist login.
+
+Deployed four files with verified hashes. Live backup: /home/jailaoi-portal/repair-backups/codex-20261006T155012Z.

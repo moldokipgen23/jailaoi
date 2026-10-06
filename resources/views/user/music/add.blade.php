@@ -202,6 +202,22 @@
                         <div class="card custom-border-card jlw-card">
                             <div class="jlw-title"><i class="fa-solid fa-music"></i> Track Details</div>
 
+                            <details class="mb-4" style="border:1px solid #2ECC71;border-radius:10px;padding:16px;">
+                                <summary style="cursor:pointer;font-weight:600;">Import from YouTube</summary>
+                                <p class="mt-2">Start with a public YouTube video link to import its title and preview its thumbnail. Then upload your original audio and artwork.</p>
+                                <label for="youtubeImportUrl">YouTube video link</label>
+                                <input type="url" id="youtubeImportUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">
+                                <button type="button" id="youtubeImportButton" class="btn btn-outline-primary mt-2">Import details</button>
+                                <p id="youtubeImportStatus" role="status" aria-live="polite" class="mt-2"></p>
+                                <div id="youtubeImportPreview" hidden>
+                                    <img id="youtubeImportThumbnail" alt="YouTube video thumbnail preview" style="max-width:240px;width:100%;border-radius:8px;" referrerpolicy="no-referrer">
+                                    <p class="mt-2"><strong id="youtubeImportTitle"></strong><br><span id="youtubeImportChannel"></span></p>
+                                    <a id="youtubeImportLink" target="_blank" rel="noopener noreferrer">View on YouTube</a>
+                                    <button type="button" id="youtubeUseTitle" class="btn btn-sm btn-outline-primary ml-2">Use this title</button>
+                                    <p class="mt-2">This preview does not verify channel ownership. Import only releases you have rights to publish. Upload your own artwork; the thumbnail preview is not saved as cover art. Description, audio and lyrics are not imported.</p>
+                                </div>
+                            </details>
+
                             <div class="form-group" id="jlf-title">
                                 <label class="jlw-lbl">{{__('label.title')}} <span class="req">*</span></label>
                                 <input type="text" name="title" class="form-control" placeholder="Give your track a name..." autofocus autocomplete="off">
@@ -458,6 +474,41 @@
     <script src="{{ asset('/assets/js/common.js')}}"></script>
 
     <script>
+        const youtubeImportButton = document.getElementById('youtubeImportButton');
+        let youtubeImportedTitle = '';
+        document.getElementById('youtubeUseTitle').addEventListener('click', function () {
+            document.querySelector('[name="title"]').value = youtubeImportedTitle;
+        });
+        youtubeImportButton.addEventListener('click', async function () {
+            const status = document.getElementById('youtubeImportStatus');
+            const preview = document.getElementById('youtubeImportPreview');
+            const url = document.getElementById('youtubeImportUrl').value.trim();
+            if (!url) { status.textContent = 'Enter a YouTube video link first.'; return; }
+            youtubeImportButton.disabled = true;
+            status.textContent = 'Getting YouTube details…'; preview.hidden = true;
+            try {
+                const response = await fetch('{{ route('user.music.import.youtube') }}', {
+                    method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+                    body:JSON.stringify({youtube_url:url})
+                });
+                const result = await response.json();
+                if (!response.ok || result.status !== 200) throw new Error(result.message || 'Could not import this video. Try again or enter details manually.');
+                const data = result.data; youtubeImportedTitle = data.title;
+                document.getElementById('youtubeImportTitle').textContent = data.title;
+                document.getElementById('youtubeImportChannel').textContent = data.channel;
+                document.getElementById('youtubeImportLink').href = data.youtube_url;
+                const image = document.getElementById('youtubeImportThumbnail');
+                image.hidden = !data.thumbnail_url;
+                image.onerror = function () { image.hidden = true; };
+                if (data.thumbnail_url) image.src = data.thumbnail_url; else image.removeAttribute('src');
+                const title = document.querySelector('[name="title"]');
+                if (!title.value.trim()) title.value = data.title;
+                preview.hidden = false;
+                status.textContent = 'Details ready. Existing edits were kept. Review the title, then continue with your original audio.';
+            } catch (error) { status.textContent = error.message || 'Import failed. Your music details were kept.'; }
+            finally { youtubeImportButton.disabled = false; }
+        });
+
         // ── Init ────────────────────────────────────────────────
         $('#category_id').select2();
         $('#language_id').select2();
