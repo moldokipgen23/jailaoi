@@ -73,7 +73,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('playlist/delete', [PlaylistController::class, 'pl_delete'])->name('playlist.content.delete');
         Route::post('playlist/sortorder', [PlaylistController::class, 'pl_sort_order'])->name('playlist.content.sort_order');
         // Custom Ads
-        Route::resource('ads', AdsController::class)->only(['index', 'create', 'store', 'edit', 'show']);
+        Route::resource('ads', AdsController::class)->only(['index', 'create', 'store', 'edit', 'show', 'destroy']);
 
         // JAILAOI: Earnings + Withdrawal
         Route::get('earnings', [EarningsController::class, 'index'])->name('earnings.index');

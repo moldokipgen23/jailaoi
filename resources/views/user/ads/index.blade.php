@@ -90,9 +90,11 @@
                                             </a>
                                         </li>
                                         <li class="list-inline-item">
-                                            <a class="btn edit-delete-btn" href="{{route('user.ads.show', [$value->id])}}" onclick="return confirm('{{__('label.delete_ads')}}')">
-                                                <i class="fa-solid fa-trash-can fa-xl" class="dot-icon"></i>
-                                            </a>
+                                            <form method="POST" action="{{ route('user.ads.destroy', [$value->id]) }}" onsubmit="return confirm({{ Js::from(__('label.delete_ads')) }});" style="display:inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn edit-delete-btn"><i class="fa-solid fa-trash fa-xl"></i></button>
+                                            </form>
                                         </li>
                                     </ul>
                                 </div>

@@ -34,7 +34,7 @@ class AdmobSettingController extends Controller
     {
         try {
 
-            $data = $request->all();
+            $data = $request->only(['banner_ad', 'banner_adid', 'interstital_ad', 'interstital_adid', 'interstital_adclick', 'interstital_cooldown', 'reward_ad', 'reward_adid', 'reward_adclick']);
             $data["banner_adid"] = isset($data['banner_adid']) ? $data['banner_adid'] : '';
             $data["interstital_adid"] = isset($data['interstital_adid']) ? $data['interstital_adid'] : '';
             $data["reward_adid"] = isset($data['reward_adid']) ? $data['reward_adid'] : '';
@@ -150,7 +150,7 @@ class AdmobSettingController extends Controller
     {
         try {
 
-            $data = $request->all();
+            $data = $request->only(['ios_banner_ad', 'ios_banner_adid', 'ios_interstital_ad', 'ios_interstital_adid', 'ios_interstital_adclick', 'ios_interstital_cooldown', 'ios_reward_ad', 'ios_reward_adid', 'ios_reward_adclick']);
             $data["ios_banner_adid"] = isset($data['ios_banner_adid']) ? $data['ios_banner_adid'] : '';
             $data["ios_interstital_adid"] = isset($data['ios_interstital_adid']) ? $data['ios_interstital_adid'] : '';
             $data["ios_reward_adid"] = isset($data['ios_reward_adid']) ? $data['ios_reward_adid'] : '';

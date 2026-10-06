@@ -192,7 +192,8 @@ class SettingController extends Controller
     public function save_key(Request $request)
     {
         try {
-            $data = $request->all();
+            $request->validate(['ai_section' => 'nullable|in:0,1', 'ai_section_count' => 'nullable|integer|min:1|max:20', 'ai_api_key' => 'nullable|string|max:512']);
+            $data = $request->only(['ai_api_key', 'ai_section', 'ai_section_count']);
             $data["ai_api_key"] = isset($data['ai_api_key']) ? $data['ai_api_key'] : '';
             $data["ai_section"] = isset($data['ai_section']) ? $data['ai_section'] : 0;
             $data["ai_section_count"] = max(1, (int) ($data['ai_section_count'] ?? 2));

@@ -42,11 +42,16 @@ class createUploadBatchFile extends Command
             return Command::FAILURE;
         }
 
+        if (Batch::whereIn('status', ['validating', 'in_progress', 'finalizing', 'cancelling', 'completed'])->exists()) {
+            $this->info('Existing AI batch must finish before creating another.');
+            return Command::SUCCESS;
+        }
+
         $ai_section_count = max(1, (int) (General_Setting::where('key', 'ai_section_count')->value('value') ?? 2));
 
-        User_Summary::select('id', 'user_id', 'score_json')->where('status', 1)->chunkById(5000, function ($rows) use ($api_key, $ai_section_count) {
+        User_Summary::select('id', 'user_id', 'score_json')->where('status', 1)->when(Batch::where('status', 'uploaded')->exists(), fn ($query) => $query->whereRaw('1=0'))->chunkById(5000, function ($rows) use ($api_key, $ai_section_count) {
 
-            $filename = 'public/batch/input_' . now()->timestamp . "_" . uniqid() . '.jsonl';
+            $filename = 'private/batch/input_' . now()->timestamp . "_" . uniqid() . '.jsonl';
             $filePath = storage_path('app/' . $filename);
             if (!is_dir(dirname($filePath))) {
                 mkdir(dirname($filePath), 0755, true);
@@ -59,7 +64,7 @@ class createUploadBatchFile extends Command
 
                 if (!is_array($data)) {
                     Log::error("createUploadBatchFile: invalid score_json for user {$user_id}");
-                    $item->delete();
+                    // Preserve invalid summaries for diagnosis rather than silently deleting them.
                     continue;
                 }
 
@@ -115,7 +120,7 @@ TYPE NORMALIZATION: in affinity_vectors, type=3 represents Music and MUST be tre
 
 INSTRUCTIONS:
 
-1. Sort content types by user_data[uid].content_type_affinity[tp].score descending.
+1. Sort content types by user_data.content_type_affinity[tp].score descending.
 2. Compute gap_12 = top score − second score.
 3. Produce exactly N={$ai_section_count} sections total. Distribute across content types by affinity score proportion:
    - Rank types by content_type_affinity score descending
@@ -127,7 +132,7 @@ INSTRUCTIONS:
 
 FILTERS:
 
-For each type build four isolated value lists from user_data[uid].affinity_vectors[tp] only:
+For each type build four isolated value lists from user_data.affinity_vectors[tp] only:
 - artist_pool = top_artist keys of that tp sorted by score descending
 - category_pool = top_category keys of that tp sorted by score descending
 - language_pool = top_language keys of that tp sorted by score descending
@@ -238,7 +243,7 @@ PROMPT;
             }
 
             $fileStream = fopen($filePath, 'r');
-            $response = Http::withHeaders([
+            $response = Http::timeout(60)->withHeaders([
                 'Authorization' => 'Bearer ' . $api_key,
             ])->attach(
                 'file',
@@ -275,7 +280,7 @@ PROMPT;
                     'status' => "uploaded",
                 ]);
             } else {
-                Log::error("createUploadBatchFile: Failed To Upload Batch File: {$response->body()}");
+                Log::error("createUploadBatchFile: Failed To Upload Batch File: [response omitted]");
             }
 
             // clear local storage
@@ -290,7 +295,7 @@ PROMPT;
 
         foreach ($batches as $batch) {
 
-            $response = Http::withHeaders([
+            $response = Http::timeout(60)->withHeaders([
                 'Authorization' => 'Bearer ' . $api_key,
             ])->post('https://api.openai.com/v1/batches', [
                 'input_file_id' => $batch->input_file_id,
@@ -310,7 +315,7 @@ PROMPT;
                 $batch->update(['batch_id' => $batch_id, 'status' => $result['status']]);
                 Log::info("sendBatchRequest: Created batch ID {$batch_id} for item ID {$batch->id}");
             } else {
-                Log::error("sendBatchRequest: Failed to create batch for item ID {$batch->id}. Response: {$response->body()}");
+                Log::error("sendBatchRequest: Failed to create batch for item ID {$batch->id}. Response: [response omitted]");
             }
         }
 

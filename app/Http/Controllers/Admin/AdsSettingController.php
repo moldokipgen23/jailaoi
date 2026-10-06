@@ -35,7 +35,7 @@ class AdsSettingController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'banner_ads_status' => 'required',
+                'banner_ads_status' => 'required|in:0,1',
                 'banner_ads_cpv' => 'numeric|min:0',
                 'banner_ads_cpc' => 'numeric|min:0',
             ]);
@@ -44,7 +44,7 @@ class AdsSettingController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $data = $request->all();
+            $data = $request->only(array_keys($validator->getRules()));
             $data['banner_ads_status'] = $data['banner_ads_status'] ?? 0;
             $data['banner_ads_cpv'] = $data['banner_ads_cpv'] ?? 0;
             $data['banner_ads_cpc'] = $data['banner_ads_cpc'] ?? 0;
@@ -65,7 +65,7 @@ class AdsSettingController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'interstital_ads_status' => 'required',
+                'interstital_ads_status' => 'required|in:0,1',
                 'interstital_ads_cpv' => 'numeric|min:0',
                 'interstital_ads_cpc' => 'numeric|min:0',
             ]);
@@ -74,7 +74,7 @@ class AdsSettingController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $data = $request->all();
+            $data = $request->only(array_keys($validator->getRules()));
             $data['interstital_ads_status'] = $data['interstital_ads_status'] ?? 0;
             $data['interstital_ads_cpv'] = $data['interstital_ads_cpv'] ?? 0;
             $data['interstital_ads_cpc'] = $data['interstital_ads_cpc'] ?? 0;
@@ -95,7 +95,7 @@ class AdsSettingController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'reward_ads_status' => 'required',
+                'reward_ads_status' => 'required|in:0,1',
                 'reward_ads_cpv' => 'numeric|min:0',
                 'reward_ads_cpc' => 'numeric|min:0',
             ]);
@@ -104,7 +104,7 @@ class AdsSettingController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $data = $request->all();
+            $data = $request->only(array_keys($validator->getRules()));
             $data['reward_ads_status'] = $data['reward_ads_status'] ?? 0;
             $data['reward_ads_cpv'] = $data['reward_ads_cpv'] ?? 0;
             $data['reward_ads_cpc'] = $data['reward_ads_cpc'] ?? 0;

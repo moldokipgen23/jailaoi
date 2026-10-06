@@ -31,9 +31,9 @@ class updateSummary extends Command
      */
     public function handle()
     {
-        User_Summary::truncate();
+        if (\App\Models\Batch::whereIn('status', ['uploaded', 'validating', 'in_progress', 'finalizing', 'cancelling', 'completed'])->exists()) return Command::SUCCESS;
 
-        $data = User_Action::all()
+        $data = User_Action::where('created_at', '>=', now()->subDays(30))->where('user_id', '>', 0)->where('status', 1)->where('action', 1)->get()
             ->groupBy(['user_id', 'content_type']);
         $ids = [];
 
@@ -123,7 +123,7 @@ class updateSummary extends Command
 
                 foreach ($dimensions as $dimName => $field) {
 
-                    if ($dimName == 'top_artist' && $contentType == 3) {
+                    if ($dimName == 'top_artist' && in_array((int) $contentType, [3, 8], true)) {
                         $artistMap = [];
                         foreach ($actions as $action) {
                             if (empty($action->artist_id)) {
@@ -216,7 +216,7 @@ class updateSummary extends Command
         }
 
         $ids = collect($ids)->flatten()->toArray();
-        User_Action::whereIn('id', $ids)->delete();
+        // Keep activity for monthly listener analytics; retention is managed separately.
 
         return Command::SUCCESS;
     }

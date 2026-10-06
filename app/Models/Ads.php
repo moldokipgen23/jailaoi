@@ -16,7 +16,7 @@ class Ads extends Model
         'id' => 'integer',
         'user_id' => 'integer',
         'title' => 'string',
-        'redirect_url' => 'string',
+        'redirect_uri' => 'string',
         'type' => 'integer',
         'image_storage_type' => 'integer',
         'image' => 'string',

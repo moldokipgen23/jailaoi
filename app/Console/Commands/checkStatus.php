@@ -36,14 +36,14 @@ class checkStatus extends Command
             return Command::FAILURE;
         }
 
-        $data = Batch::where('batch_id', '!=', "")->whereIn('status', ['validating', 'in_progress', 'finalizing'])->get();
+        $data = Batch::where('batch_id', '!=', "")->whereIn('status', ['validating', 'in_progress', 'finalizing', 'cancelling'])->get();
 
         if ($data->isEmpty()) {
             return Command::SUCCESS;
         }
 
         foreach ($data as $item) {
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Authorization' => 'Bearer ' . $api_key,
             ])->get('https://api.openai.com/v1/batches/' . $item->batch_id . '');
 
@@ -62,7 +62,7 @@ class checkStatus extends Command
                     'status' => $result['status']
                 ]);
             } else {
-                Log::error("checkStatus: Failed to retrieve status for batch ID {$item->batch_id}. Response:  {$response->body()}");
+                Log::error("checkStatus: Failed to retrieve status for batch ID {$item->batch_id}. Malformed provider response");
             }
         }
 

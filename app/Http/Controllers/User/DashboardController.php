@@ -38,12 +38,12 @@ class DashboardController extends Controller
             : 0;
 
         $totalFollowers = $artist
-            ? Subscriber::where('to_user_id', $user->id)->count()
+            ? Subscriber::whereIn('to_user_id', array_values(array_unique([$user->id, $artist->id])))->where('status', 1)->distinct('user_id')->count('user_id')
             : 0;
 
         $monthlyListeners = $artist
             ? DB::table('tbl_user_action')
-                ->where('artist_id', $artist->id)
+                ->whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])->where('action', 1)->where('status', 1)->where('user_id', '>', 0)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->distinct('user_id')->count('user_id')
             : 0;

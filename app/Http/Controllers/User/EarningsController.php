@@ -57,14 +57,14 @@ class EarningsController extends Controller
 
                 foreach ($rows as $row) {
                     $title = '—';
-                    if ($row->content_type == 1 || $row->content_type == 8) {
+                    if ($row->content_type == 8) {
                         $music = Music::find($row->content_id);
                         if ($music) $title = $music->title;
-                    } elseif ($row->content_type == 2) {
+                    } elseif ($row->content_type == 1) {
                         $song = DB::table('tbl_song')->where('id', $row->content_id)->first();
-                        if ($song) $title = $song->title ?? '—';
+                        if ($song) $title = $song->name ?? '—';
                     } else {
-                        $content = DB::table('tbl_content')->where('id', $row->content_id)->first();
+                        $content = DB::table('tbl_podcast')->where('id', $row->content_id)->first();
                         if ($content) $title = $content->title ?? '—';
                     }
                     $songBreakdown[] = [

@@ -105,7 +105,7 @@ class ArtistController extends Controller
             $artist['total_followers'] = Subscriber::whereIn('to_user_id', array_values(array_filter(array_unique([$artist->user_id, $artist->id]))))->distinct('user_id')->count('user_id');
 
             // Real monthly listeners: unique users who played this artist's content in last 30 days
-            $artist['monthly_listeners'] = User_Action::where('artist_id', $artist->id)
+            $artist['monthly_listeners'] = User_Action::whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])->where('action', 1)->where('status', 1)->where('user_id', '>', 0)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->distinct('user_id')
                 ->count('user_id');
@@ -491,7 +491,7 @@ class ArtistController extends Controller
             $total_content = $song_count + $music_count + $podcast_count;
 
             // Monthly listeners — unique users who played in last 30 days
-            $monthly_listeners = User_Action::where('artist_id', $artist->id)
+            $monthly_listeners = User_Action::whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])->where('action', 1)->where('status', 1)->where('user_id', '>', 0)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->distinct('user_id')
                 ->count('user_id');
@@ -520,7 +520,7 @@ class ArtistController extends Controller
                 ->where('status', 1)
                 ->orderByDesc('id')
                 ->take(5)
-                ->get(['id', 'title', 'image', 'total_play']);
+                ->get(['id', 'name as title', 'image', 'total_play']);
             $this->common->imageNameToUrl($recent_tracks, 'image', 'images/radio');
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);

@@ -17,7 +17,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:update-summary')->weeklyOn(1, '00:00')->then(function () {
+        $schedule->command('app:update-summary')->weeklyOn(1, '00:00')->withoutOverlapping()->then(function () {
             Artisan::call('app:create-upload-batch-file');
         });
         $schedule->command('app:check-status')->everyFiveMinutes()->withoutOverlapping();

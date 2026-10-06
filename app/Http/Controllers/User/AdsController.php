@@ -64,10 +64,10 @@ class AdsController extends Controller
             $user = User_Data();
 
             $rules = [
-                'title' => 'required',
-                'redirect_uri' => 'required',
+                'title' => 'required|string|max:255',
+                'redirect_uri' => 'required|url:http,https|max:2048',
                 'budget' => 'required|numeric|min:1',
-                'type' => 'required',
+                'type' => 'required|integer|in:1,2,3',
                 'image' => 'required|image|mimes:jpeg,png,jpg',
             ];
             if ($request['type'] == 3) {
@@ -87,7 +87,7 @@ class AdsController extends Controller
 
             $storage_type = Storage_Type();
 
-            $requestData = $request->all();
+            $requestData = $request->only(['title', 'redirect_uri', 'budget', 'type', 'image', 'video', 'user_id']);
             $requestData['user_id'] = $user['id'];
             $requestData['image_storage_type'] = $storage_type;
             $requestData['video_storage_type'] = $storage_type;
@@ -101,7 +101,7 @@ class AdsController extends Controller
                 if ($requestData['video_storage_type'] == 1) {
                     $requestData['video'] = $requestData['video'];
                 } else {
-                    $requestData['video'] = $this->common->saveImage($requestData['video'], $this->folder, 'vid_');
+                    $requestData['video'] = $this->common->saveAudioFile($requestData['video'], $this->folder, 'vid_');
                 }
             } else {
                 $requestData['video'] = "";
@@ -109,7 +109,7 @@ class AdsController extends Controller
             $requestData['status'] = 1;
             $requestData['is_hide'] = 0;
 
-            $data = Ads::updateOrCreate(['id' => $requestData['id']], $requestData);
+            $data = Ads::create($requestData);
             if (isset($data->id)) {
                 return response()->json(['status' => 200, 'success' => __('label.success_add_ads')]);
             } else {
@@ -124,7 +124,7 @@ class AdsController extends Controller
         try {
 
             $params['ads_id'] = $ads_id;
-            $params['data'] = Ads::where('id', $ads_id)->with('user')->first();
+            $params['data'] = Ads::where('user_id', User_Data()['id'])->where('id', $ads_id)->with('user')->firstOrFail();
             $params['total_ads_cpv'] = Ads_View_Click_Count::where('ads_id', $ads_id)->where('type', 1)->count();
             $params['total_ads_cpc'] = Ads_View_Click_Count::where('ads_id', $ads_id)->where('type', 2)->count();
             $params['total_use_budget'] = Ads_View_Click_Count::where('ads_id', $ads_id)->sum('total_coin');
@@ -137,9 +137,14 @@ class AdsController extends Controller
     }
     public function show($id)
     {
+        return redirect()->route('user.ads.index');
+    }
+
+    public function destroy($id)
+    {
         try {
 
-            $data = Ads::where('id', $id)->first();
+            $data = Ads::where('user_id', User_Data()['id'])->where('id', $id)->firstOrFail();
             if (isset($data)) {
                 $this->common->deleteImageToFolder($this->folder, $data['image'], $data['image_storage_type']);
                 $this->common->deleteImageToFolder($this->folder, $data['video'], $data['video_storage_type']);
