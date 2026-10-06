@@ -39,6 +39,7 @@ class ProfileController extends Controller
     public function update($id, Request $request)
     {
         try {
+            $id = User_Data()['id'];
             $rules = [
                 'channel_name' => 'required|min:2|unique:tbl_user,channel_name,' . $id,
                 'description' => 'required',
@@ -81,7 +82,14 @@ class ProfileController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['account_no', 'address', 'back_id_proof', 'bank_address', 'bank_code', 'bank_name', 'channel_name', 'city', 'country', 'country_code', 'country_name', 'cover_img', 'description', 'email', 'facebook_url', 'front_id_proof', 'full_name', 'ifsc_no', 'image', 'instagram_url', 'mobile_number', 'old_back_id_proof', 'old_back_id_proof_storage_type', 'old_cover_img', 'old_cover_img_storage_type', 'old_front_id_proof', 'old_front_id_proof_storage_type', 'old_image', 'old_image_storage_type', 'pincode', 'push_notification_status', 'send_mail_status', 'state', 'twitter_url', 'website']);
+            $requestData['id'] = $id;
+            $ownedUser = User::findOrFail($id);
+            foreach (['image', 'cover_img', 'front_id_proof', 'back_id_proof', 'image_storage_type', 'cover_img_storage_type', 'front_id_proof_storage_type', 'back_id_proof_storage_type'] as $field) {
+                $requestData['old_' . $field] = $ownedUser->$field;
+                $request->merge(['old_' . $field => $ownedUser->$field]);
+            }
+            $requestData['is_account_verify'] = User::where('id', $id)->value('is_account_verify');
 
             if (isset($request['image'])) {
                 $file = $request['image'];

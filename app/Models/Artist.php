@@ -12,6 +12,9 @@ class Artist extends Model
     protected $table = 'tbl_artist';
     protected $guarded = array();
 
+    // Public artist serialization must not disclose payout balances.
+    protected $hidden = ['wallet_balance'];
+
     protected $casts = [
         'id' => 'integer',
         'name' => 'string',

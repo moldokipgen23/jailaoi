@@ -44,8 +44,10 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('get_radio_by_artist', [HomeController::class, 'get_radio_by_artist']);
     Route::post('get_radio_by_language', [HomeController::class, 'get_radio_by_language']);
     Route::post('get_radio_by_category', [HomeController::class, 'get_radio_by_category']);
+    Route::post('get_station_songs', [HomeController::class, 'get_station_songs']);
     Route::post('get_latest_song', [HomeController::class, 'get_latest_song']);
     Route::post('get_popular_song', [HomeController::class, 'get_popular_song']);
+    Route::post('get_recently_played', [HomeController::class, 'get_recently_played']);
     Route::post('get_latest_podcast', [HomeController::class, 'get_latest_podcast']);
     Route::post('get_popular_podcast', [HomeController::class, 'get_popular_podcast']);
     Route::post('get_live_event', [HomeController::class, 'get_live_event']);
@@ -70,6 +72,7 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('edit_comment', [HomeController::class, 'edit_comment']);
     Route::post('delete_comment', [HomeController::class, 'delete_comment']);
     Route::post('get_related_data', [HomeController::class, 'get_related_data']);
+    Route::post('get_content_detail', [HomeController::class, 'get_content_detail']);
     Route::post('get_content_by_artist', [HomeController::class, 'get_content_by_artist']);
     Route::post('add_remove_follow', [HomeController::class, 'add_remove_follow']);
     Route::post('add_user_action', [HomeController::class, 'add_user_action']);
@@ -86,11 +89,14 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('follow_artist', [ArtistController::class, 'follow_artist']);
     Route::post('unfollow_artist', [ArtistController::class, 'unfollow_artist']);
     Route::post('get_artist_dashboard', [ArtistController::class, 'get_artist_dashboard']);
+    Route::post('get_followed_artists', [ArtistController::class, 'get_followed_artists']);
     Route::post('generate_portal_token', [ArtistController::class, 'generate_portal_token']);
 
     // -------------------- CashfreeController --------------------
     Route::post('cashfree/create-order', [CashfreeController::class, 'createOrder']);
     Route::post('cashfree/verify-order', [CashfreeController::class, 'verifyOrder']);
+    Route::post('cashfree/create-subscription', [CashfreeController::class, 'createSubscription']);
+    Route::post('cashfree/cancel-subscription', [CashfreeController::class, 'cancelSubscription']);
 
     // -------------------- SupportController (rate-limited) --------------------
     Route::middleware('throttle:10,1')->group(function () {
@@ -100,3 +106,8 @@ Route::group(['middleware' => 'apipurchasecode'], function () {
     Route::post('support/tickets', [SupportController::class, 'tickets']);
     Route::post('support/thread', [SupportController::class, 'thread']);
 });
+
+// JAILAOI: Cashfree calls this server-to-server — it can't send our apipurchasecode
+// header, so this route sits outside that group. Authenticity is instead verified
+// via the HMAC webhook signature inside CashfreeController::webhook().
+Route::post('cashfree/webhook', [CashfreeController::class, 'webhook']);

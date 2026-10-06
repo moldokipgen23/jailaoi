@@ -69,7 +69,7 @@ function submitReset() {
     var formData = new FormData(document.getElementById('reset_form'));
     $.ajax({
         type: 'POST',
-        url: "{{ route('user.password.update') }}",
+        url: "{{ route('user.password.reset.update') }}",
         data: formData,
         processData: false,
         contentType: false,

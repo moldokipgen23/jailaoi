@@ -87,6 +87,7 @@ class ArtistController extends Controller
                         $btn .= '<a class="edit-delete-btn edit_artist mr-4" title="' . __('label.edit') . '"'
                             . ' data-toggle="modal" href="#EditModel"'
                             . ' data-id="' . $row->id . '"'
+                            . ' data-user-id="' . ($row->user_id ?? 0) . '"'
                             . ' data-name="' . htmlspecialchars($row->name, ENT_QUOTES) . '"'
                             . ' data-image="' . $row->image . '"'
                             . ' data-bio="' . htmlspecialchars($row->bio ?? '', ENT_QUOTES) . '"'
@@ -148,10 +149,15 @@ class ArtistController extends Controller
     {
         try {
 
+            $artistRow = Artist::find($request->id);
+            $linkedUserId = $artistRow->user_id ?? 0;
+
             $validator = Validator::make($request->all(), [
                 'name' => 'required|min:2',
                 'bio' => 'required|min:2',
                 'image' => 'image|mimes:jpeg,png,jpg|max:2048',
+                'email' => ['nullable', 'email', \Illuminate\Validation\Rule::unique('tbl_user', 'email')->ignore($linkedUserId)],
+                'mobile_number' => 'nullable|string|max:20',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
@@ -168,6 +174,18 @@ class ArtistController extends Controller
                 $this->common->deleteImageToFolder($this->folder, $requestData['old_image']);
             }
             unset($requestData['old_image']);
+
+            $newEmail = trim($request->input('email', ''));
+            $newPhone = trim($request->input('mobile_number', ''));
+            if ($linkedUserId) {
+                $linkedUser = \App\Models\User::find($linkedUserId);
+                if ($linkedUser) {
+                    if ($newEmail !== '') $linkedUser->email = $newEmail;
+                    if ($newPhone !== '') $linkedUser->mobile_number = $newPhone;
+                    $linkedUser->save();
+                }
+            }
+            unset($requestData['email'], $requestData['mobile_number']);
 
             $artist_data = Artist::updateOrCreate(['id' => $requestData['id']], $requestData);
             if (isset($artist_data->id)) {

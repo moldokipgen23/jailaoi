@@ -158,6 +158,21 @@ class SettingController extends Controller
         }
     }
 
+    public function saveCashfreeSubscriptionSetting(Request $request)
+    {
+        try {
+            $value = $request->input('cashfree_subscription_enabled', '0');
+            $setting = General_Setting::where('key', 'cashfree_subscription_enabled')->first();
+            if ($setting) {
+                $setting->value = $value;
+                $setting->save();
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function screenshot(Request $request)
     {
         try {

@@ -276,6 +276,38 @@
                     </div>
                 </div>
                 <div class="form-row">
+                    <!-- Cashfree Subscription Toggle -->
+                    <div class="col-12">
+                        <div class="card custom-border-card">
+                            <h5 class="card-header">Cashfree Auto-Renew Subscriptions</h5>
+                            <div class="card-body">
+                                <form id="cashfree_subscription_setting_form">
+                                    <div class="form-row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-0">
+                                                <label class="d-block mb-1">Use Cashfree Subscriptions for package purchases</label>
+                                                <small class="text-muted">Turn ON only after Cashfree approves the Subscriptions product for this merchant account. While OFF, package purchases use a one-time Cashfree order (no auto-renew).</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-md-right mt-2 mt-md-0">
+                                            <div class="custom-control custom-switch d-inline-block">
+                                                <input type="checkbox" class="custom-control-input" id="cashfree_subscription_toggle"
+                                                    name="cashfree_subscription_enabled" value="1"
+                                                    {{ ($result['cashfree_subscription_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="cashfree_subscription_toggle">Enable</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="border-top pt-3 text-right mt-3">
+                                        <button type="button" class="btn btn-default mw-120" onclick="save_cashfree_subscription_setting()">{{__('label.save')}}</button>
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
                     <!-- Ai Api Key -->
                     <div class="col-12">
                         <div class="card custom-border-card">
@@ -429,21 +461,21 @@
                                     <label>Earnings Model</label>
                                     <select name="earnings_model" class="form-control" id="earnings_model">
                                         <option value="pool" {{ ($result['earnings_model'] ?? 'pool') == 'pool' ? 'selected' : '' }}>
-                                            Revenue Pool (55% to Artists)
+                                            Revenue Pool (% to Artists)
                                         </option>
                                         <option value="per_stream" {{ ($result['earnings_model'] ?? 'pool') == 'per_stream' ? 'selected' : '' }}>
                                             Per Stream (Fixed Rate)
                                         </option>
                                     </select>
                                     <small class="text-muted">
-                                        <strong>Revenue Pool:</strong> 55% of subscription revenue distributed monthly by stream share.
+                                        <strong>Revenue Pool:</strong> a share of subscription revenue distributed monthly by stream share — split set below.
                                         <strong>Per Stream:</strong> Fixed rate per play, paid immediately.
                                     </small>
                                 </div>
                                 <div class="form-group col-md-3" id="platform_cut_group">
                                     <label>Platform Cut (%)</label>
                                     <input type="number" step="1" min="0" max="100" name="platform_cut_pct"
-                                        class="form-control"
+                                        class="form-control" id="platform_cut_pct_input"
                                         value="{{ $result['platform_cut_pct'] ?? '45' }}"
                                         placeholder="45">
                                     <small class="text-muted">% kept by platform. Remaining goes to artist pool.</small>
@@ -463,6 +495,24 @@
                                         value="{{ $result['payout_rate_per_stream'] ?? '0.001' }}"
                                         placeholder="e.g. 0.001">
                                     <small class="text-muted">Amount paid to artist per 1 play. Default: $0.001</small>
+                                </div>
+                            </div>
+                            <div class="form-row" id="pool_split_row">
+                                <div class="form-group col-md-12">
+                                    <label class="mb-1">Revenue Split (live preview)</label>
+                                    <div style="display:flex;height:36px;border-radius:6px;overflow:hidden;font-size:13px;font-weight:600;color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);">
+                                        <div id="split_bar_admin" style="background:#5b21b6;display:flex;align-items:center;justify-content:center;transition:width .15s ease;white-space:nowrap;overflow:hidden;">
+                                            <span id="split_bar_admin_label"></span>
+                                        </div>
+                                        <div id="split_bar_artist" style="background:#10b981;display:flex;align-items:center;justify-content:center;transition:width .15s ease;white-space:nowrap;overflow:hidden;">
+                                            <span id="split_bar_artist_label"></span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        Admin keeps <strong id="split_text_admin">45%</strong> of subscription revenue.
+                                        Artists share <strong id="split_text_artist">55%</strong> based on their stream count.
+                                        <span id="split_text_warning" class="text-danger" style="display:none;"> — Platform Cut must be between 0 and 100.</span>
+                                    </small>
                                 </div>
                             </div>
                             <div class="form-row">
@@ -628,7 +678,7 @@
                             </div>
                             <div class="alert alert-info py-2 mt-2" id="pool_info">
                                 <strong>Revenue Pool:</strong>
-                                55% of monthly subscription revenue goes to the artist pool.
+                                <span id="pool_info_artist_pct">{{ 100 - (int) ($result['platform_cut_pct'] ?? 45) }}%</span> of monthly subscription revenue goes to the artist pool.
                                 Each artist earns based on their share of total streams.
                                 Settlements run automatically on the
                                 <strong>{{ $result['settlement_day'] ?? '5' }}th</strong> of each month.
@@ -1041,6 +1091,36 @@
         }
     }
 
+    function save_cashfree_subscription_setting() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin == 1) {
+            $('#dvloader').show();
+            var formData = new FormData($('#cashfree_subscription_setting_form')[0]);
+            if (!$('#cashfree_subscription_toggle').is(':checked')) {
+                formData.set('cashfree_subscription_enabled', '0');
+            }
+            $.ajax({
+                type: 'POST',
+                url: '{{route("setting.cashfree_subscription")}}',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp) {
+                    $("#dvloader").hide();
+                    $("html, body").animate({ scrollTop: 0 }, "swing");
+                    get_responce_message(resp);
+                },
+                error: function(XMLHttpRequest, errorThrown, textStatus) {
+                    $('#dvloader').hide();
+                    toastr.error(textStatus, errorThrown);
+                }
+            });
+        } else {
+            toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}');
+        }
+    }
+
     function save_banner_setting() {
         var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
         if (CheckAdmin == 1) {
@@ -1409,16 +1489,37 @@
     function toggleEarningsModel() {
         var model = $('#earnings_model').val();
         if (model === 'pool') {
-            $('#platform_cut_group, #settlement_day_group, #pool_info').show();
+            $('#platform_cut_group, #settlement_day_group, #pool_info, #pool_split_row').show();
             $('#per_stream_fields, #per_stream_info').hide();
         } else {
-            $('#platform_cut_group, #settlement_day_group, #pool_info').hide();
+            $('#platform_cut_group, #settlement_day_group, #pool_info, #pool_split_row').hide();
             $('#per_stream_fields, #per_stream_info').show();
         }
     }
+
+    // JAILAOI: Live revenue split preview — keeps Platform Cut input, split bar,
+    // and both "X% to artists" text blurbs in sync so they never drift out of sight of each other.
+    function updateSplitPreview() {
+        var raw = parseFloat($('#platform_cut_pct_input').val());
+        var invalid = isNaN(raw) || raw < 0 || raw > 100;
+        var adminPct = invalid ? 0 : raw;
+        var artistPct = invalid ? 0 : (100 - raw);
+
+        $('#split_text_warning').toggle(invalid);
+        $('#split_bar_admin').css('width', adminPct + '%');
+        $('#split_bar_artist').css('width', artistPct + '%');
+        $('#split_bar_admin_label').text(adminPct >= 10 ? adminPct + '%' : '');
+        $('#split_bar_artist_label').text(artistPct >= 10 ? artistPct + '%' : '');
+        $('#split_text_admin').text(adminPct + '%');
+        $('#split_text_artist').text(artistPct + '%');
+        $('#pool_info_artist_pct').text(artistPct + '%');
+    }
+
     $(document).ready(function() {
         $('#earnings_model').on('change', toggleEarningsModel);
+        $('#platform_cut_pct_input').on('input', updateSplitPreview);
         toggleEarningsModel();
+        updateSplitPreview();
     });
 
     // JAILAOI: Payout settings save

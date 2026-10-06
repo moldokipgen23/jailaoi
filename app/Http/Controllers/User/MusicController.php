@@ -133,7 +133,7 @@ class MusicController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['id', 'title', 'description', 'lyrics', 'album_id', 'category_id', 'language_id', 'hashtag_id', 'portrait_img', 'landscape_img', 'content_upload_type', 'content_duration', 'content', 'url', 'is_comment', 'is_like', 'is_download', 'is_rent', 'rent_price', 'rent_day', 'old_portrait_img', 'old_landscape_img', 'old_content', 'old_hashtag_id', 'old_portrait_img_storage_type', 'old_landscape_img_storage_type', 'old_content_storage_type', 'old_content_upload_type', 'music']);
             $storage_type = Storage_Type();
             $requestData['portrait_img_storage_type'] = $storage_type;
             $requestData['landscape_img_storage_type'] = $storage_type;
@@ -142,6 +142,8 @@ class MusicController extends Controller
             $requestData['channel_id'] = $user['channel_id'];
             $requestData['content_type'] = 2;
             $requestData['description'] = $requestData['description'] ?? "";
+            $requestData['lyrics'] = $requestData['lyrics'] ?? '';
+            $requestData['album_id'] = ($requestData['album_id'] ?? null) ?: null;
             $hashtag_id = $this->common->checkHashTag($requestData['description']);
             $hashtagId = 0;
             if (count($hashtag_id) > 0) {
@@ -181,7 +183,11 @@ class MusicController extends Controller
             $requestData['total_watch_time'] = 0;
             $requestData['status'] = 1;
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
+            unset($requestData['id']);
+            foreach (array_keys($requestData) as $field) {
+                if (str_starts_with($field, 'old_')) unset($requestData[$field]);
+            }
+            $data = Content::create($requestData);
             if (isset($data->id)) {
                 // JAILAOI: Mirror to tbl_music so the Flutter app can play it immediately
                 $this->mirrorToMusic($data, $requestData);
@@ -196,7 +202,7 @@ class MusicController extends Controller
     public function edit($id)
     {
         try {
-            $params['data'] = Content::where('id', $id)->first();
+            $params['data'] = Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->first();
             if ($params['data'] != null) {
 
                 $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
@@ -241,12 +247,21 @@ class MusicController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['id', 'title', 'description', 'lyrics', 'album_id', 'category_id', 'language_id', 'hashtag_id', 'portrait_img', 'landscape_img', 'content_upload_type', 'content_duration', 'content', 'url', 'is_comment', 'is_like', 'is_download', 'is_rent', 'rent_price', 'rent_day', 'old_portrait_img', 'old_landscape_img', 'old_content', 'old_hashtag_id', 'old_portrait_img_storage_type', 'old_landscape_img_storage_type', 'old_content_storage_type', 'old_content_upload_type', 'music']);
+            $ownedContent = Content::where('id', $request->id)->where('channel_id', $user['channel_id'])->first();
+            if (!$ownedContent) {
+                return response()->json(['status' => 404, 'message' => 'Music not found.'], 404);
+            }
+            foreach (['portrait_img', 'landscape_img', 'content', 'content_upload_type', 'hashtag_id', 'portrait_img_storage_type', 'landscape_img_storage_type', 'content_storage_type'] as $field) {
+                $requestData['old_' . $field] = $ownedContent->$field;
+            }
             $storage_type = Storage_Type();
 
             $requestData['channel_id'] = $user['channel_id'];
             $requestData['content_type'] = 2;
             $requestData['description'] = $requestData['description'] ?? "";
+            $requestData['lyrics'] = $requestData['lyrics'] ?? $ownedContent->lyrics ?? '';
+            $requestData['album_id'] = array_key_exists('album_id', $requestData) ? ($requestData['album_id'] ?: null) : $ownedContent->album_id;
             $old_hashtag = explode(',', $requestData['old_hashtag_id']);
             Hashtag::whereIn('id', $old_hashtag)->decrement('total_used', 1);
             $hashtag_id = $this->common->checkHashTag($requestData['description']);
@@ -323,7 +338,7 @@ class MusicController extends Controller
     {
         try {
 
-            $data = Content::where('id', $id)->first();
+            $data = Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->first();
             if (isset($data)) {
 
                 $old_hashtag = explode(',', $data['hashtag_id']);

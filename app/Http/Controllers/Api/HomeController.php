@@ -79,7 +79,74 @@ class HomeController extends Controller
     {
         try {
 
-            $list = General_Setting::get();
+            $list = General_Setting::whereIn('key', [
+                'app_desripation',
+                'app_logo',
+                'app_name',
+                'app_version',
+                'banner_ad',
+                'banner_adid',
+                'cashfree_subscription_enabled',
+                'company_logo',
+                'company_name',
+                'contact',
+                'contact_email',
+                'currency',
+                'currency_code',
+                'currency_symbol',
+                'dev_logo',
+                'dev_title',
+                'email',
+                'home_banner_enabled',
+                'interstital_ad',
+                'interstital_adclick',
+                'interstital_adid',
+                'interstital_cooldown',
+                'ios_banner_ad',
+                'ios_banner_adid',
+                'ios_interstital_ad',
+                'ios_interstital_adclick',
+                'ios_interstital_adid',
+                'ios_interstital_cooldown',
+                'ios_meta_banner_enabled',
+                'ios_meta_interstitial_cooldown',
+                'ios_meta_interstitial_enabled',
+                'ios_meta_placement_id_banner',
+                'ios_meta_placement_id_interstitial',
+                'ios_meta_placement_id_rewarded',
+                'ios_meta_rewarded_enabled',
+                'ios_meta_status',
+                'ios_reward_ad',
+                'ios_reward_adclick',
+                'ios_reward_adid',
+                'ios_startio_banner_enabled',
+                'ios_startio_enabled',
+                'ios_startio_interstitial_cooldown',
+                'ios_startio_interstitial_enabled',
+                'ios_startio_rewarded_enabled',
+                'login_page_image',
+                'meta_banner_enabled',
+                'meta_interstitial_cooldown',
+                'meta_interstitial_enabled',
+                'meta_placement_id_banner',
+                'meta_placement_id_interstitial',
+                'meta_placement_id_rewarded',
+                'meta_rewarded_enabled',
+                'meta_status',
+                'onesignal_apid',
+                'privacy_policy',
+                'reward_ad',
+                'reward_adclick',
+                'reward_adid',
+                'screenshot',
+                'startio_banner_enabled',
+                'startio_enabled',
+                'startio_interstitial_cooldown',
+                'startio_interstitial_enabled',
+                'startio_rewarded_enabled',
+                'terms_condition',
+                'website',
+            ])->get();
             foreach ($list as $key => $value) {
 
                 if ($value['key'] == "app_logo" || $value['key'] == "dev_logo" || $value['key'] == "login_page_image" || $value['key'] == "company_logo") {
@@ -104,7 +171,11 @@ class HomeController extends Controller
             $return = [];
             $Option_data = Payment_Option::get();
             foreach ($Option_data as $value) {
-                $return[$value['name']] = $value;
+                $public = $value->only(['id', 'name', 'visibility', 'is_live', 'key_1']);
+                // Secrets belong to server-side gateway requests, never public clients.
+                $public['key_2'] = '';
+                $public['key_3'] = '';
+                $return[$value['name']] = $public;
             }
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $return);
         } catch (Exception $e) {
@@ -183,7 +254,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -217,7 +288,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -253,7 +324,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -267,7 +338,7 @@ class HomeController extends Controller
                 $this->common->imageNameToUrl($data, 'image', $this->folder_category);
 
                 // Attach song count per category
-                $categorySongCounts = Song::where('status', 1)
+                $categorySongCounts = Music::where('status', 1)
                     ->selectRaw('category_id, COUNT(*) as song_count')
                     ->groupBy('category_id')
                     ->pluck('song_count', 'category_id');
@@ -297,7 +368,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -332,7 +403,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -420,7 +491,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -473,15 +544,15 @@ class HomeController extends Controller
 
             if ($language_id) {
                 $lang_id = explode(",", $language_id);
-                $data = Song::where('artist_id', $artist_id)->whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
+                $data = Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist_id])->whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
             } else {
-                $data = Song::where('artist_id', $artist_id)->where('status', 1)->orderBy('id', "DESC");
+                $data = Music::whereRaw("FIND_IN_SET(?, artist_id)", [$artist_id])->where('status', 1)->orderBy('id', "DESC");
             }
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -492,15 +563,16 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
-                $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
-                $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
-                    $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
+                    $value['name']     = $value->title;
+                    $value['song_url'] = $value->upload_type == 1 ? $this->common->Get_Song($this->folder_music, $value->music) : $value->music;
+                    $value['image']    = $this->common->Get_Image($this->folder_music_img, $value->portrait_img);
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
                     $value['is_buy'] = $this->common->is_any_package_buy($user_id);
                     $value['is_follow'] = $this->common->is_follow($user_id, $value['artist_id']);
-                    $this->common->get_all_count_for_content(1, $value);
+                    $this->common->get_all_count_for_content(3, $value);
                 }
+                $this->common->getAllIdByName($data);
 
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
             } else {
@@ -533,15 +605,15 @@ class HomeController extends Controller
 
             if ($language_id) {
                 $lang_id = explode(",", $language_id);
-                $data = Song::whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
+                $data = Music::whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
             } else {
-                $data = Song::where('status', 1)->orderBy('id', "DESC");
+                $data = Music::where('status', 1)->orderBy('id', "DESC");
             }
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -552,14 +624,15 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
-                $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
-                $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
-                    $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
+                    $value['name']     = $value->title;
+                    $value['song_url'] = $value->upload_type == 1 ? $this->common->Get_Song($this->folder_music, $value->music) : $value->music;
+                    $value['image']    = $this->common->Get_Image($this->folder_music_img, $value->portrait_img);
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
                     $value['is_buy'] = $this->common->is_any_package_buy($user_id);
-                    $this->common->get_all_count_for_content(1, $value);
+                    $this->common->get_all_count_for_content(3, $value);
                 }
+                $this->common->getAllIdByName($data);
 
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
             } else {
@@ -569,6 +642,67 @@ class HomeController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    // JAILAOI: Curated Radio Station — resolves a station (tbl_song row, upload_type=3)
+    // to its songs from tbl_music by the station's category / artist / language filters.
+    // Same output shape as get_radio_by_category so the app plays it identically.
+    public function get_station_songs(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), ['station_id' => 'required']);
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+            $user_id = isset($request->user_id) ? (int) $request->user_id : 0;
+            $station = Song::where('id', $request->station_id)->first();
+            if (!$station) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
+            $catIds  = array_filter(array_map('intval', explode(',', (string) ($station->station_category_ids ?? ''))));
+            $artIds  = array_filter(array_map('intval', explode(',', (string) ($station->station_artist_ids ?? ''))));
+            $langIds = array_filter(array_map('intval', explode(',', (string) ($station->station_language_ids ?? ''))));
+            if (empty($catIds) && (int) $station->category_id > 0)  $catIds  = [(int) $station->category_id];
+            if (empty($artIds) && (int) $station->artist_id > 0)    $artIds  = [(int) $station->artist_id];
+            if (empty($langIds) && (int) $station->language_id > 0) $langIds = [(int) $station->language_id];
+
+            $q = Music::where('status', 1);
+            if (!empty($catIds) || !empty($artIds) || !empty($langIds)) {
+                $q->where(function ($w) use ($catIds, $artIds, $langIds) {
+                    if (!empty($catIds))  $w->orWhereIn('category_id', $catIds);
+                    if (!empty($langIds)) $w->orWhereIn('language_id', $langIds);
+                    foreach ($artIds as $aid) $w->orWhereRaw('FIND_IN_SET(?, artist_id)', [$aid]);
+                });
+            }
+
+            $total_rows = $q->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / max($total_page, 1));
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
+            $offset = $current_page * $total_page - $total_page;
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+
+            $data = $q->orderBy('id', 'desc')->take($total_page)->offset($offset)->get();
+
+            if (count($data) > 0) {
+                foreach ($data as $key => $value) {
+                    $value['name']     = $value->title;
+                    $value['song_url'] = $value->upload_type == 1 ? $this->common->Get_Song($this->folder_music, $value->music) : $value->music;
+                    $value['image']    = $this->common->Get_Image($this->folder_music_img, $value->portrait_img);
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $this->common->get_all_count_for_content(3, $value);
+                }
+                $this->common->getAllIdByName($data);
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function get_radio_by_category(Request $request)
     {
         try {
@@ -593,15 +727,15 @@ class HomeController extends Controller
 
             if ($language_id) {
                 $lang_id = explode(",", $language_id);
-                $data = Song::where('category_id', $category_id)->whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
+                $data = Music::where('category_id', $category_id)->whereIn('language_id', $lang_id)->where('status', 1)->orderBy('id', "DESC");
             } else {
-                $data = Song::where('category_id', $category_id)->where('status', 1)->orderBy('id', 'DESC');
+                $data = Music::where('category_id', $category_id)->where('status', 1)->orderBy('id', 'DESC');
             }
 
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -612,14 +746,15 @@ class HomeController extends Controller
 
             if (count($data) > 0) {
 
-                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
-                $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
-                $this->common->getAllIdByName($data);
                 foreach ($data as $key => $value) {
-                    $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
+                    $value['name']     = $value->title;
+                    $value['song_url'] = $value->upload_type == 1 ? $this->common->Get_Song($this->folder_music, $value->music) : $value->music;
+                    $value['image']    = $this->common->Get_Image($this->folder_music_img, $value->portrait_img);
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
                     $value['is_buy'] = $this->common->is_any_package_buy($user_id);
-                    $this->common->get_all_count_for_content(1, $value);
+                    $this->common->get_all_count_for_content(3, $value);
                 }
+                $this->common->getAllIdByName($data);
 
                 return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
             } else {
@@ -650,7 +785,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -693,7 +828,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -724,47 +859,20 @@ class HomeController extends Controller
     public function add_transaction(Request $request)
     {
         try {
-
-            $validation = Validator::make(
-                $request->all(),
-                [
-                    'user_id' => 'required|numeric',
-                    'package_id' => 'required|numeric',
-                    'price' => 'required|numeric',
-                ],
+            $request->validate([
+                'user_id' => 'required|integer|min:1', 'package_id' => 'required|integer|min:1',
+                'transaction_id' => 'required|string|max:100',
+            ]);
+            // Premium is granted only for a provider-verified, server-priced ledger order.
+            $insert = app(\App\Services\CashfreePaymentCredit::class)->order(
+                $request->transaction_id, (int) $request->user_id, (int) $request->package_id
             );
-            if ($validation->fails()) {
-                return $this->common->API_Response(400, $validation->errors()->first());
-            }
-
-            $user_id = $request->user_id;
-            $package_id = $request->package_id;
-            $price = $request->price;
-            $transaction_id = isset($request->transaction_id) ? $request->transaction_id : "";
-            $description = isset($request->description) ? $request->description : "";
-
-            $Pdata = Package::where('id', $package_id)->where('status', '1')->first();
-            if (!empty($Pdata)) {
-                $Edate = date("Y-m-d H:i", strtotime('+' . $Pdata->time . ' ' . strtolower($Pdata->type), time()));
-            } else {
-                return $this->common->API_Response(400, __('api_msg.please_enter_right_package_id'));
-            }
-
-            $insert = new Transaction();
-            $insert->user_id = $user_id;
-            $insert->package_id = $package_id;
-            $insert->price = $price;
-            $insert->description = $description;
-            $insert->transaction_id = $transaction_id;
-            $insert->expiry_date = $Edate;
-            $insert->status = 1;
-            if ($insert->save()) {
-
-                $transactions = Transaction::where('user_id', $user_id)->where('id', "!=", $insert->id)->get();
-                foreach ($transactions as $data) {
-                    $data->update(['status' => 0]);
-                }
-
+            if ($insert->wasRecentlyCreated) {
+                $user_id = $insert->user_id;
+                $Pdata = Package::find($insert->package_id);
+                $price = $insert->price;
+                $transaction_id = $insert->transaction_id;
+                $Edate = $insert->expiry_date;
                 $invoicePath = null;
                 try {
                     $invoicePath = (new InvoiceService)->generate($insert);
@@ -788,12 +896,13 @@ class HomeController extends Controller
                     }
                 }
 
-                return $this->common->API_Response(200, __('api_msg.transaction_add_successfully'), []);
-            } else {
-                return $this->common->API_Response(400, __('api_msg.data_not_save'));
             }
+            return $this->common->API_Response(200, __('api_msg.transaction_add_successfully'), []);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 422, 'message' => $e->validator->errors()->first()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            Log::error('Purchase verification failed: ' . $e->getMessage());
+            return response()->json(['status' => 503, 'message' => 'Purchase could not be verified. Please try again.'], 503);
         }
     }
     public function transaction_list(Request $request)
@@ -887,7 +996,7 @@ class HomeController extends Controller
                 $request->all(),
                 [
                     'user_id' => 'required|numeric',
-                    'type' => 'required|numeric',
+                    'type' => 'required|integer|in:1,2,3',
                 ],
             );
             if ($validation->fails()) {
@@ -998,7 +1107,7 @@ class HomeController extends Controller
             $validation = Validator::make(
                 $request->all(),
                 [
-                    'type' => 'required|numeric',
+                    'type' => 'required|integer|in:1,2,3,4',
                 ],
             );
             if ($validation->fails()) {
@@ -1032,7 +1141,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1099,6 +1208,59 @@ class HomeController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    public function get_recently_played(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), ['user_id' => 'required|numeric']);
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+
+            $user_id = $request->user_id;
+            $page_no = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
+
+            // Music plays (type 3), most-recently-played first.
+            $playQuery = Play::where('user_id', $user_id)->where('type', 3)->orderBy('updated_at', 'DESC');
+            $total_rows = $playQuery->count();
+            $total_page = $this->page_limit;
+            $page_size = ceil($total_rows / $total_page);
+            $current_page = $page_no;
+            $offset = $current_page * $total_page - $total_page;
+            $more_page = $this->common->more_page($current_page, $page_size);
+            $pagination = $this->common->pagination_array($total_rows, $page_size, $current_page, $more_page);
+
+            $plays = $playQuery->skip($offset)->take($total_page)->get();
+            $ids = $plays->pluck('content_id')->unique()->values()->all();
+
+            if (count($ids) == 0) {
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [], $pagination);
+            }
+
+            $orderField = implode(',', array_map('intval', $ids));
+            $data = Music::whereIn('id', $ids)->where('status', 1)
+                ->orderByRaw("FIELD(id, $orderField)")->get();
+
+            if (count($data) > 0) {
+                $this->common->getAllIdByName($data);
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music_img);
+                $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music_img);
+                foreach ($data as $key => $value) {
+                    if ($value['upload_type'] == 1) {
+                        $value['music'] = $this->common->Get_Song($this->folder_music, $value['music']);
+                    }
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $this->common->get_all_count_for_content(3, $value);
+                }
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
+            }
+            return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [], $pagination);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function get_latest_podcast(Request $request)
     {
         try {
@@ -1114,7 +1276,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1161,7 +1323,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1218,7 +1380,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1265,7 +1427,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1387,7 +1549,7 @@ class HomeController extends Controller
             // are the same for all users. Cleared when admin saves a section.
             $section_type = $request->section_type;
             $user_id      = isset($request->user_id) ? (int) $request->user_id : 0;
-            $page_no      = $request->page_no ?? 1;
+            $page_no      = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $cacheKey     = "section_list_{$section_type}_{$page_no}";
             $cacheTtl     = 300; // 5 minutes
 
@@ -1414,7 +1576,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1427,7 +1589,7 @@ class HomeController extends Controller
                 for ($i = 0; $i < count($data); $i++) {
 
                     $data[$i]['data'] = [];
-                    if (in_array($data[$i]['type'], [1, 2, 8, 9, 10, 11, 12, 13, 14])) {
+                    if (in_array($data[$i]['type'], [1, 2, 8, 9, 10, 11, 12, 13, 14, 15, 16])) {
 
                         $query = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
 
@@ -1522,7 +1684,7 @@ class HomeController extends Controller
                 $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
                 // JAILAOI: Store in cache for anonymous (user_id=0) requests only.
                 if ($user_id === 0) {
-                    Cache::put($cacheKey, $response->getData(true), $cacheTtl);
+                    Cache::put($cacheKey, $response, $cacheTtl);
                 }
                 return $response;
             } else {
@@ -1549,14 +1711,14 @@ class HomeController extends Controller
 
             $section_id = $request['section_id'];
             $user_id = isset($request['user_id']) ? $request['user_id'] : 0;
-            $page_no = $request['page_no'] ?? 1;
+            $page_no = max(1, (int) ($request['page_no'] ?? $request['pageno'] ?? 1));
             $page_size = 0;
             $more_page = false;
 
             $section = Section::where('id', $section_id)->first();
             if ($section != null && isset($section)) {
 
-                if (in_array($section['type'], [9, 10, 11, 12, 13])) {
+                if (in_array($section['type'], [9, 10, 11, 12, 13, 14, 15, 16])) {
                     $data = $this->common->section_query($user_id, $section['type'], 0, 0, 0, 0, 0, 0, 0, 50);
                 } else if ($section['type'] == 1 || $section['type'] == 2 || $section['type'] == 8) {
                     $content = $this->common->section_query_detail($section['type'], $section['artist_id'], $section['category_id'], $section['language_id'], $section['city_id'], $section['order_by_upload'], $section['order_by_play'], $section['is_premium']);
@@ -1709,7 +1871,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -1749,7 +1911,7 @@ class HomeController extends Controller
 
             $section_id = $request['section_id'];
             $user_id = isset($request['user_id']) ? $request['user_id'] : 0;
-            $page_no = $request['page_no'] ?? 1;
+            $page_no = max(1, (int) ($request['page_no'] ?? $request['pageno'] ?? 1));
             $page_size = 0;
             $more_page = false;
 
@@ -1817,7 +1979,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -2001,7 +2163,8 @@ class HomeController extends Controller
                     if ($type == 1) {
 
                         Song::where('id', $content_id)->increment('total_play');
-                        $this->creditArtistEarning($type, $content_id, $user_id);
+                        // Earnings are credited from add_user_action once the
+                        // listener passes min_play_seconds — not on this first tap.
                     } else if ($type == 2) {
 
                         Podcast::where('id', $content_id)->increment('total_play');
@@ -2009,11 +2172,14 @@ class HomeController extends Controller
                     } else  if ($type == 3) {
 
                         Music::where('id', $content_id)->increment('total_play');
-                        $this->creditArtistEarning($type, $content_id, $user_id);
+                        // Earnings credited from add_user_action after min_play_seconds.
                     }
                     return $this->common->API_Response(200, __('api_msg.play_added'));
                 }
             } else {
+                // Refresh timestamp so a replayed song bubbles back to the top
+                // of the user's Recently played list.
+                $existingplay->touch();
                 return $this->common->API_Response(400, __('api_msg.previously_played'));
             }
             return $this->common->API_Response(200, __('api_msg.song_play_successfully'), []);
@@ -2106,7 +2272,7 @@ class HomeController extends Controller
                 $validation = Validator::make(
                     $request->all(),
                     [
-                        'type' => 'required|numeric',
+                        'type' => 'required|integer|in:1,2,3',
                     ],
                 );
             }
@@ -2133,7 +2299,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -2217,7 +2383,9 @@ class HomeController extends Controller
             }
 
             $comment_id = $request['comment_id'];
-            Comment::where('id', $comment_id)->delete();
+            if (!Comment::where('id', $comment_id)->where('user_id', $request->user_id)->delete()) {
+                return response()->json(['status' => 404, 'message' => 'Comment not found.'], 404);
+            }
             return $this->common->API_Response(200, __('api_msg.comment_delete_successfully'));
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -2231,7 +2399,7 @@ class HomeController extends Controller
                 $request->all(),
                 [
                     'content_id' => 'required',
-                    'type' => 'required|numeric',
+                    'type' => 'required|integer|in:1,2,3',
                 ],
             );
             if ($validation->fails()) {
@@ -2248,25 +2416,25 @@ class HomeController extends Controller
 
             if ($type == 1) {
 
-                $category_id = Song::where('id', $content_id)->value('category_id');
+                $category_id = Song::where('status', 1)->where('id', $content_id)->value('category_id');
                 if (!$category_id) {
                     return $this->common->API_Response(400, __('api_msg.data_not_found'));
                 }
-                $data = Song::where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
+                $data = Song::where('status', 1)->where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
             } else if ($type == 2) {
 
-                $category_id = Podcast::where('id', $content_id)->value('category_id');
+                $category_id = Podcast::where('status', 1)->where('id', $content_id)->value('category_id');
                 if (!$category_id) {
                     return $this->common->API_Response(400, __('api_msg.data_not_found'));
                 }
-                $data = Podcast::where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
+                $data = Podcast::where('status', 1)->where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
             } else if ($type == 3) {
 
-                $category_id = Music::where('id', $content_id)->value('category_id');
+                $category_id = Music::where('status', 1)->where('id', $content_id)->value('category_id');
                 if (!$category_id) {
                     return $this->common->API_Response(400, __('api_msg.data_not_found'));
                 }
-                $data = Music::where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
+                $data = Music::where('status', 1)->where('id', '!=', $content_id)->where('category_id', $category_id)->orderByDesc('total_play');
             }
             $total_rows = $data->count();
             $total_page = $this->page_limit;
@@ -2324,6 +2492,81 @@ class HomeController extends Controller
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
     }
+    // JAILAOI DEEPLINK: fetch a single content item (song/podcast/music) by id,
+    // fully formatted with URLs, so a shared https://jailaoi.com/song/{id} link
+    // can be opened and played directly in the app. Mirrors the per-type
+    // formatting used by get_related_data.
+    public function get_content_detail(Request $request)
+    {
+        try {
+
+            $validation = Validator::make(
+                $request->all(),
+                [
+                    'content_id' => 'required',
+                    'type' => 'required|numeric',
+                ],
+            );
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+
+            $content_id = $request->content_id;
+            $user_id = isset($request->user_id) ? $request->user_id : 0;
+            $type = $request->type;
+
+            if ($type == 1) {
+                $data = Song::where('id', $content_id)->get();
+            } else if ($type == 2) {
+                $data = Podcast::where('id', $content_id)->get();
+            } else if ($type == 3) {
+                $data = Music::where('id', $content_id)->get();
+            } else {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
+            if (count($data) == 0) {
+                return $this->common->API_Response(400, __('api_msg.data_not_found'));
+            }
+
+            $this->common->getAllIdByName($data);
+            if ($type == 1) {
+                $this->common->imageNameToUrl($data, 'image', $this->folder_song_img);
+                $this->common->songNameToUrl($data, 'song_url', $this->folder_song);
+                foreach ($data as $key => $value) {
+                    $value['is_favorite'] = $this->common->isFavorite(1, $value->id, $user_id);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $this->common->get_all_count_for_content(1, $value);
+                }
+            } else if ($type == 2) {
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_podcast_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_podcast_img);
+                foreach ($data as $key => $value) {
+                    $value['is_favorite'] = $this->common->isFavorite(2, $value->id, $user_id);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $value['is_follow'] = $this->common->is_follow($user_id, $value['artist_id']);
+                    $this->common->get_all_count_for_content(2, $value);
+                }
+            } else if ($type == 3) {
+                $this->common->imageNameToUrl($data, 'portrait_img', $this->folder_music_img);
+                $this->common->imageNameToUrl($data, 'landscape_img', $this->folder_music_img);
+                $this->common->imageNameToUrl($data, 'ogtag_img', $this->folder_music_img);
+                foreach ($data as $key => $value) {
+                    if ($value['upload_type'] == 1) {
+                        $value['music'] = $this->common->Get_Song($this->folder_music, $value['music']);
+                    }
+                    $value['is_favorite'] = $this->common->isFavorite(3, $value->id, $user_id);
+                    $value['is_buy'] = $this->common->is_any_package_buy($user_id);
+                    $this->common->get_all_count_for_content(3, $value);
+                }
+            }
+
+            return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function get_content_by_artist(Request $request)
     {
         try {
@@ -2332,7 +2575,7 @@ class HomeController extends Controller
                 $request->all(),
                 [
                     'artist_id' => 'required',
-                    'type' => 'required|numeric',
+                    'type' => 'required|integer|in:0,1,2,3',
                 ],
             );
             if ($validation->fails()) {
@@ -2348,24 +2591,24 @@ class HomeController extends Controller
             $more_page = false;
 
             if ($type == 1) {
-                $data = Song::where('artist_id', $artist_id)->orderByDesc('total_play');
+                $data = Song::where('status', 1)->where('artist_id', $artist_id)->orderByDesc('total_play');
             } else if ($type == 2) {
-                $data = Podcast::where('artist_id', $artist_id)->orderByDesc('total_play');
+                $data = Podcast::where('status', 1)->where('artist_id', $artist_id)->orderByDesc('total_play');
             } else if ($type == 3) {
-                $data = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->orderByDesc('total_play');
+                $data = Music::where('status', 1)->whereRaw("FIND_IN_SET(?,artist_id)", [$artist_id])->orderByDesc('total_play');
             } else {
-                $songCount = Song::where('artist_id', $artist_id)->count();
-                $podcastCount = Podcast::where('artist_id', $artist_id)->count();
-                $musicCount = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->count();
+                $songCount = Song::where('status', 1)->where('artist_id', $artist_id)->count();
+                $podcastCount = Podcast::where('status', 1)->where('artist_id', $artist_id)->count();
+                $musicCount = Music::where('status', 1)->whereRaw("FIND_IN_SET(?,artist_id)", [$artist_id])->count();
                 if ($songCount > 0) {
                     $type = 1;
-                    $data = Song::where('artist_id', $artist_id)->orderByDesc('total_play');
+                    $data = Song::where('status', 1)->where('artist_id', $artist_id)->orderByDesc('total_play');
                 } else if ($podcastCount > 0) {
                     $type = 2;
-                    $data = Podcast::where('artist_id', $artist_id)->orderByDesc('total_play');
+                    $data = Podcast::where('status', 1)->where('artist_id', $artist_id)->orderByDesc('total_play');
                 } else if ($musicCount > 0) {
                     $type = 3;
-                    $data = Music::whereRaw("FIND_IN_SET(?,artist_id)", $artist_id)->orderByDesc('total_play');
+                    $data = Music::where('status', 1)->whereRaw("FIND_IN_SET(?,artist_id)", [$artist_id])->orderByDesc('total_play');
                 } else {
                     return $this->common->API_Response(400, __('api_msg.data_not_found'));
                 }
@@ -2374,7 +2617,7 @@ class HomeController extends Controller
             $total_rows = $data->count();
             $total_page = $this->page_limit;
             $page_size = ceil($total_rows / $total_page);
-            $current_page = $request->page_no ?? 1;
+            $current_page = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $offset = $current_page * $total_page - $total_page;
 
             $more_page = $this->common->more_page($current_page, $page_size);
@@ -2513,9 +2756,17 @@ class HomeController extends Controller
                 'status' => 1,
             ]);
 
-            // JAILAOI: Credit per-stream artist earnings on play action for Song/Music
+            // JAILAOI: Credit a monetizable stream ONLY when the listener passed
+            // the minimum play time (Spotify-style 30s threshold). time_spend is
+            // the real seconds listened, sent by the app. A 2-second tap no longer
+            // earns money.
             if ((int) $action === 1 && in_array((int) $content_type, [1, 8])) {
-                $this->creditArtistEarning((int) $content_type, (int) $content_id, (int) $user_id);
+                $minSeconds = (int) Cache::remember('min_play_seconds', 300, function () {
+                    return General_Setting::where('key', 'min_play_seconds')->value('value') ?? 30;
+                });
+                if ((int) $time_spend >= $minSeconds) {
+                    $this->creditArtistEarning((int) $content_type, (int) $content_id, (int) $user_id);
+                }
             }
 
             return $this->common->API_Response(200, __('api_msg.history_add'), [$history]);
@@ -2529,7 +2780,7 @@ class HomeController extends Controller
     {
         try {
             $user_id     = isset($request->user_id) ? (int) $request->user_id : 0;
-            $page_no     = $request->page_no ?? 1;
+            $page_no     = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $cacheKey    = "section_list_radio_{$page_no}";
             if ($user_id === 0 && ($cached = Cache::get($cacheKey)) !== null) {
                 return response()->json($cached);
@@ -2555,7 +2806,7 @@ class HomeController extends Controller
                     $data[$i]['data'] = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                 }
                 $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
-                if ($user_id === 0) Cache::put($cacheKey, $response->getData(true), 300);
+                if ($user_id === 0) Cache::put($cacheKey, $response, 300);
                 return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
@@ -2570,7 +2821,7 @@ class HomeController extends Controller
     {
         try {
             $user_id     = isset($request->user_id) ? (int) $request->user_id : 0;
-            $page_no     = $request->page_no ?? 1;
+            $page_no     = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $cacheKey    = "section_list_music_{$page_no}";
             if ($user_id === 0 && ($cached = Cache::get($cacheKey)) !== null) {
                 return response()->json($cached);
@@ -2596,7 +2847,7 @@ class HomeController extends Controller
                     $data[$i]['data'] = $this->common->section_query($user_id, $data[$i]['type'], $data[$i]['artist_id'], $data[$i]['category_id'], $data[$i]['language_id'], $data[$i]['city_id'], $data[$i]['order_by_upload'], $data[$i]['order_by_play'], $data[$i]['is_premium'], $data[$i]['no_of_content'], $data[$i]['time_window_days'] ?? 0);
                 }
                 $response = $this->common->API_Response(200, __('api_msg.get_record_successfully'), $data, $pagination);
-                if ($user_id === 0) Cache::put($cacheKey, $response->getData(true), 300);
+                if ($user_id === 0) Cache::put($cacheKey, $response, 300);
                 return $response;
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
@@ -2645,10 +2896,13 @@ class HomeController extends Controller
         try {
             if ($user_id <= 0 || $content_id <= 0) return;
 
-            // Already credited this user for this content? skip (once-ever dedup).
+            // Dedup per user+content+DAY: one genuine daily stream counts (so a
+            // loyal listener earns the artist money each day), but same-day
+            // replays can't be farmed for infinite credits.
             $exists = ArtistEarning::where('user_id', $user_id)
                 ->where('content_id', $content_id)
                 ->where('content_type', $type)
+                ->whereDate('created_at', now()->toDateString())
                 ->exists();
             if ($exists) return;
 

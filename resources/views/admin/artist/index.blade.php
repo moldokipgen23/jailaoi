@@ -178,7 +178,7 @@
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="fa-solid fa-circle-info me-2" style="color:#6c63ff;"></i>
                                         <strong style="font-size:13px;color:#374151;">Account & Registration Info</strong>
-                                        <span class="ml-auto" style="font-size:11px;color:#9ca3af;">Admin view only</span>
+                                        <span class="ml-auto" style="font-size:11px;color:#10b981;">Email &amp; phone editable</span>
                                     </div>
                                     <div class="row" style="font-size:13px;">
                                         <div class="col-md-4 mb-2">
@@ -187,11 +187,11 @@
                                         </div>
                                         <div class="col-md-4 mb-2">
                                             <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Email</div>
-                                            <div id="view_email" style="color:#111827;font-weight:500;">—</div>
+                                            <input type="email" name="email" id="edit_email" class="form-control form-control-sm" style="font-size:13px;padding:6px 10px;" placeholder="artist@email.com">
                                         </div>
                                         <div class="col-md-4 mb-2">
                                             <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Phone</div>
-                                            <div id="view_phone" style="color:#111827;font-weight:500;">—</div>
+                                            <input type="text" name="mobile_number" id="edit_phone" class="form-control form-control-sm" style="font-size:13px;padding:6px 10px;" placeholder="mobile number">
                                         </div>
                                         <div class="col-md-4 mb-2">
                                             <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Artist Types</div>
@@ -210,9 +210,11 @@
                             </div>
                         </div>
                         <div class="modal-footer">
+                            <button type="button" class="btn mw-120" style="background:#0ea5e9;color:#fff;" onclick="send_artist_reset()"><i class="fa-solid fa-key mr-1"></i> Send Reset Link</button>
                             <button type="button" class="btn btn-default mw-120" onclick="update_artist()">{{__('label.update')}}</button>
                             <button type="button" class="btn btn-cancel mw-120" data-dismiss="modal">{{__('label.close')}}</button>
                             <input type="hidden" name="_method" value="PATCH">
+                            <input type="hidden" id="edit_user_id">
                         </div>
                     </form>
                 </div>
@@ -478,6 +480,7 @@
         var adminNote   = $(this).data('admin-note') || '—';
 
         $(".modal-body #edit_id").val(id);
+        $("#edit_user_id").val($(this).data('user-id') || '');
         $(".modal-body #edit_name").val(name);
         $(".modal-body #edit_bio").val(bio);
         $(".modal-body #edit_type").val(type);
@@ -486,8 +489,8 @@
 
         // JAILAOI: populate read-only registration section
         $("#view_fullname").text(fullname);
-        $("#view_email").html(email !== '—' ? '<a href="mailto:' + email + '">' + email + '</a>' : '—');
-        $("#view_phone").text(phone);
+        $("#edit_email").val(email !== '—' ? email : '');
+        $("#edit_phone").val(phone !== '—' ? phone : '');
         // format artist_types: "music,podcast" → badges
         if (artTypes && artTypes !== '—') {
             var badges = artTypes.split(',').map(function(t) {
@@ -508,6 +511,25 @@
             $("#artist_reg_info").hide();
         }
     });
+
+    function send_artist_reset() {
+        var uid = $('#edit_user_id').val();
+        var email = $('#edit_email').val();
+        if (!uid) { toastr.error('No linked account for this artist'); return; }
+        if (!confirm('Send a password reset link to ' + (email || 'this artist') + '?')) return;
+        $('#dvloader').show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("admin/user") }}/' + uid + '/send-reset',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(resp) {
+                $('#dvloader').hide();
+                if (resp.status == 200) { toastr.success(resp.success); }
+                else { toastr.error(Array.isArray(resp.errors) ? resp.errors.join(', ') : resp.errors); }
+            },
+            error: function() { $('#dvloader').hide(); toastr.error('Something went wrong'); }
+        });
+    }
 
     function update_artist() {
 

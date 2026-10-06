@@ -210,6 +210,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Artist Photo</label>
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/jpg" class="form-control">
+                    <small style="color:#6c757d;font-size:12px;display:block;margin-top:6px;">Optional — a clear photo for your artist profile (JPG/PNG, max 5MB).</small>
+                </div>
+
+                <div class="form-group">
                     <label>{{__('label.bio')}} <span class="text-danger">*</span></label>
                     <textarea name="bio" rows="4" placeholder="{{__('label.bio_placeholder')}}" required minlength="20"></textarea>
                 </div>

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class RegisterController extends Controller
 {
@@ -32,6 +33,7 @@ class RegisterController extends Controller
                 'country_code' => 'nullable|string|max:6',
                 'password' => 'required|string|min:6|confirmed',
                 'bio' => 'required|string|min:20|max:2000',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
                 'artist_types' => 'required|array|min:1',
                 'artist_types.*' => 'in:music,podcast',
             ], [
@@ -44,7 +46,16 @@ class RegisterController extends Controller
                 ]);
             }
 
+            // channel_id/channel_name are NOT NULL and drive the whole upload->sync
+            // chain (tbl_content.channel_id -> mirrorToMusic). Generate a unique
+            // one at registration so the artist can upload once approved.
+            do {
+                $channelId = Str::random(8);
+            } while (User::where('channel_id', $channelId)->exists());
+
             $user = User::create([
+                'channel_id' => $channelId,
+                'channel_name' => $request->artist_name,
                 'full_name' => $request->full_name,
                 'email' => $request->email,
                 'mobile_number' => $request->mobile_number ?? '',
@@ -56,10 +67,15 @@ class RegisterController extends Controller
                 'bio' => $request->bio,
             ]);
 
+            $artistImage = '';
+            if ($request->hasFile('image')) {
+                $artistImage = (new Common)->saveImage($request->file('image'), 'images/artist', 'artist_');
+            }
             ArtistRequest::create([
                 'user_id' => $user->id,
                 'artist_name' => $request->artist_name,
                 'bio' => $request->bio,
+                'image' => $artistImage,
                 'artist_types' => implode(',', $request->artist_types),
                 'status' => 'pending',
             ]);

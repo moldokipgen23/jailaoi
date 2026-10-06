@@ -27,9 +27,12 @@ class Common extends Model
     // Image Functions
     public function saveImage($org_name, $folder, $prefix = "", $artistSlug = "")
     {
+        if (!$org_name || !in_array($org_name->getMimeType(), ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'], true) || $org_name->getSize() > 10 * 1024 * 1024) {
+            throw new \InvalidArgumentException('Please upload a supported image under 10 MB.');
+        }
         try {
 
-            $img_ext = $org_name->getClientOriginalExtension();
+            $img_ext = $org_name->extension();
             $filename = $prefix . date('d_m_Y_') . rand(1111, 9999) . '.' . $img_ext;
 
             // Build stored value — includes artist subfolder if provided (mirrors saveAudioFile)
@@ -844,9 +847,11 @@ class Common extends Model
             // TYPE 11 — From Artists You Follow: latest music from followed artists
             if ($type == 11) {
                 if ($user_id == 0) return collect();
-                $artistIds = Follow::where('user_id', $user_id)
-                    ->where('status', 1)
-                    ->pluck('artist_id');
+                $toUserIds = \App\Models\Subscriber::where('user_id', $user_id)->pluck('to_user_id')->toArray();
+                if (empty($toUserIds)) return collect();
+                $artistIds = \App\Models\Artist::whereIn('user_id', $toUserIds)
+                    ->orWhereIn('id', $toUserIds)
+                    ->pluck('id');
                 if ($artistIds->isEmpty()) return collect();
                 $query = Music::where('status', 1)
                     ->where(function ($q) use ($artistIds) {
@@ -902,12 +907,52 @@ class Common extends Model
                 return $this->formatMusicCollection($query, $user_id);
             }
 
+            // TYPE 16 — Best of Your Language: the MOST-PLAYED music in the user's
+            // most-played language (regional "best of", personalized per user).
+            if ($type == 16) {
+                if ($user_id == 0) return collect();
+                $topLanguage = \Illuminate\Support\Facades\DB::table('tbl_user_action')
+                    ->select('language_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as cnt'))
+                    ->where('user_id', $user_id)
+                    ->where('action', 1)
+                    ->where('language_id', '!=', 0)
+                    ->whereNotNull('language_id')
+                    ->groupBy('language_id')
+                    ->orderByDesc('cnt')
+                    ->value('language_id');
+                if (!$topLanguage) return collect();
+                $query = Music::where('status', 1)
+                    ->where('language_id', $topLanguage)
+                    ->orderByDesc('total_play')
+                    ->take((int) $no_of_content)
+                    ->get();
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
             // TYPE 14 — Hidden Gems: music with moderate plays (50–5000), ranked by velocity (plays/age)
             if ($type == 14) {
                 $query = Music::where('status', 1)
                     ->whereBetween('total_play', [50, 5000])
                     ->orderByRaw('total_play / GREATEST(DATEDIFF(NOW(), created_at), 1) DESC')
                     ->take((int) $no_of_content * 3) // fetch extra for diversity cap
+                    ->get();
+                $query = $this->applyArtistDiversityCap($query, (int) $no_of_content, 8);
+                return $this->formatMusicCollection($query, $user_id);
+            }
+
+            // TYPE 15 — Fresh Finds: date-seeded random rotation. Every track has an
+            // equal chance to surface and the set changes once per day (stable within
+            // the day). Spreads exposure fairly across the whole catalog instead of
+            // favoring already-popular songs. Respects category/language filters so it
+            // also powers "Discovery Radio" stations.
+            if ($type == 15) {
+                $seed = (int) date('Ymd');
+                $q = Music::where('status', 1);
+                if ($category_id != 0) $q->where('category_id', $category_id);
+                if ($language_id != 0) $q->where('language_id', $language_id);
+                if ($artist_id != 0) $q->whereRaw('FIND_IN_SET(?, artist_id)', [$artist_id]);
+                $query = $q->orderByRaw('RAND(?)', [$seed])
+                    ->take((int) $no_of_content * 3)
                     ->get();
                 $query = $this->applyArtistDiversityCap($query, (int) $no_of_content, 8);
                 return $this->formatMusicCollection($query, $user_id);
@@ -1162,7 +1207,12 @@ class Common extends Model
     }
     public function is_follow($user_id, $artist_id)
     {
-        return Follow::where('user_id', $user_id)->where('artist_id', $artist_id)->exists() ? 1 : 0;
+        // Follows live in tbl_subscriber (to_user_id = artist's user_id, or artist_id
+        // when the artist has no user account) — same mapping as add_remove_follow.
+        $artist = \App\Models\Artist::find($artist_id);
+        $targets = array_values(array_filter(array_unique([$artist ? $artist->user_id : 0, (int) $artist_id])));
+        if (empty($targets)) return 0;
+        return \App\Models\Subscriber::where('user_id', $user_id)->whereIn('to_user_id', $targets)->exists() ? 1 : 0;
     }
 
     // -------------------------------------------------------------------------

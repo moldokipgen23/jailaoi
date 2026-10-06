@@ -26,6 +26,9 @@
                 <a class="nav-link active" id="admob-tab" data-toggle="tab" href="#admob" role="tab" aria-controls="admob" aria-selected="true">AdMob</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" id="meta-tab" data-toggle="tab" href="#meta" role="tab" aria-controls="meta" aria-selected="false">Meta</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" id="startio-tab" data-toggle="tab" href="#startio" role="tab" aria-controls="startio" aria-selected="false">Start.io</a>
             </li>
             <li class="nav-item">
@@ -242,7 +245,236 @@
                 </div>
             </div>
 
-            {{-- Tab 2: Start.io --}}
+            {{-- Tab 2: Meta / Facebook Audience Network --}}
+            <div class="tab-pane fade" id="meta" role="tabpanel" aria-labelledby="meta-tab">
+
+                {{-- Android --}}
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">{{__('label.android_settings')}}</h5>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            Create <b>Banner</b>, <b>Interstitial</b> and <b>Rewarded Interstitial</b> placements in
+                            <a href="https://business.facebook.com/latest/monetization_manager" target="_blank">Meta Monetisation Manager</a>
+                            and paste the IDs below. Meta sits at the <b>top</b> of the fallback chain (Meta → Start.io → AdMob).
+                            The App ID / Client Token are baked into <code>strings.xml</code>.
+                        </p>
+                        <form id="meta_android_form">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Meta Enabled</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_enabled_1" name="meta_status" class="custom-control-input" value="1" {{ ($result['meta_status'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_enabled_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_enabled_0" name="meta_status" class="custom-control-input" value="0" {{ ($result['meta_status'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_enabled_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Banner Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_banner_1" name="meta_banner_enabled" class="custom-control-input" value="1" {{ ($result['meta_banner_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_banner_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_banner_0" name="meta_banner_enabled" class="custom-control-input" value="0" {{ ($result['meta_banner_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_banner_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_inter_1" name="meta_interstitial_enabled" class="custom-control-input" value="1" {{ ($result['meta_interstitial_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_inter_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_inter_0" name="meta_interstitial_enabled" class="custom-control-input" value="0" {{ ($result['meta_interstitial_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_inter_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Rewarded Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_reward_1" name="meta_rewarded_enabled" class="custom-control-input" value="1" {{ ($result['meta_rewarded_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_reward_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="meta_reward_0" name="meta_rewarded_enabled" class="custom-control-input" value="0" {{ ($result['meta_rewarded_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="meta_reward_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="meta_interstitial_cooldown" class="form-control" min="0" placeholder="60" value="{{ $result['meta_interstitial_cooldown'] ?? '60' }}">
+                                        <small class="text-muted">Min seconds between Meta interstitial ads (0 = no limit)</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Interstitial Placement ID</label>
+                                        <input type="text" name="meta_placement_id_interstitial" class="form-control"
+                                            value="{{ $result['meta_placement_id_interstitial'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                        <small class="text-muted">Reward triggers also use this placement (Meta has no Rewarded Video).</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Banner Placement ID</label>
+                                        <input type="text" name="meta_placement_id_banner" class="form-control"
+                                            value="{{ $result['meta_placement_id_banner'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Rewarded Placement ID</label>
+                                        <input type="text" name="meta_placement_id_rewarded" class="form-control"
+                                            value="{{ $result['meta_placement_id_rewarded'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                        <small class="text-muted">Rewarded Interstitial placement. If Meta rejects it on the device (error 1203), reward triggers auto-fall back to the Interstitial placement.</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="meta_android_save()">{{__('label.save')}}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- iOS --}}
+                <div class="card custom-border-card mt-3">
+                    <h5 class="card-header">{{__('label.ios_settings')}}</h5>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            If your Meta property uses one App ID across platforms, iOS often shares the same placement IDs as Android.
+                            The App ID / Client Token are set in <code>Info.plist</code>.
+                        </p>
+                        <form id="meta_ios_form">
+                            @csrf
+                            <div class="row">
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Meta Enabled</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_enabled_1" name="ios_meta_status" class="custom-control-input" value="1" {{ ($result['ios_meta_status'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_enabled_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_enabled_0" name="ios_meta_status" class="custom-control-input" value="0" {{ ($result['ios_meta_status'] ?? '0') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_enabled_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Banner Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_banner_1" name="ios_meta_banner_enabled" class="custom-control-input" value="1" {{ ($result['ios_meta_banner_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_banner_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_banner_0" name="ios_meta_banner_enabled" class="custom-control-input" value="0" {{ ($result['ios_meta_banner_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_banner_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_inter_1" name="ios_meta_interstitial_enabled" class="custom-control-input" value="1" {{ ($result['ios_meta_interstitial_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_inter_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_inter_0" name="ios_meta_interstitial_enabled" class="custom-control-input" value="0" {{ ($result['ios_meta_interstitial_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_inter_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Rewarded Ads</label>
+                                        <div class="radio-group">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_reward_1" name="ios_meta_rewarded_enabled" class="custom-control-input" value="1" {{ ($result['ios_meta_rewarded_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_reward_1">{{__('label.yes')}}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="ios_meta_reward_0" name="ios_meta_rewarded_enabled" class="custom-control-input" value="0" {{ ($result['ios_meta_rewarded_enabled'] ?? '1') == '0' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="ios_meta_reward_0">{{__('label.no')}}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label>Interstitial Cooldown (sec)</label>
+                                        <input type="number" name="ios_meta_interstitial_cooldown" class="form-control" min="0" placeholder="60" value="{{ $result['ios_meta_interstitial_cooldown'] ?? '60' }}">
+                                        <small class="text-muted">Min seconds between Meta interstitial ads (0 = no limit)</small>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Interstitial Placement ID</label>
+                                        <input type="text" name="ios_meta_placement_id_interstitial" class="form-control"
+                                            value="{{ $result['ios_meta_placement_id_interstitial'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Banner Placement ID</label>
+                                        <input type="text" name="ios_meta_placement_id_banner" class="form-control"
+                                            value="{{ $result['ios_meta_placement_id_banner'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Rewarded Placement ID</label>
+                                        <input type="text" name="ios_meta_placement_id_rewarded" class="form-control"
+                                            value="{{ $result['ios_meta_placement_id_rewarded'] ?? '' }}"
+                                            placeholder="e.g. 123456789012345_123456789012345">
+                                        <small class="text-muted">Rewarded Interstitial placement. Auto-falls back to Interstitial if Meta rejects the format (error 1203).</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-3 text-right">
+                                <button type="button" class="btn btn-default mw-120" onclick="meta_ios_save()">{{__('label.save')}}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tab 3: Start.io --}}
             <div class="tab-pane fade" id="startio" role="tabpanel" aria-labelledby="startio-tab">
 
                 {{-- Android --}}
@@ -535,6 +767,34 @@
             type: 'POST',
             url: '{{ route("admob.startio.ios") }}',
             data: new FormData($('#startio_ios_form')[0]),
+            cache: false, contentType: false, processData: false,
+            success: function(resp) { $('#dvloader').hide(); $("html,body").animate({scrollTop:0},"swing"); get_responce_message(resp); },
+            error: function(x, t, e) { $('#dvloader').hide(); toastr.error(e, t); }
+        });
+    }
+
+    function meta_android_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin != 1) { toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}'); return; }
+        $('#dvloader').show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("admob.meta.android") }}',
+            data: new FormData($('#meta_android_form')[0]),
+            cache: false, contentType: false, processData: false,
+            success: function(resp) { $('#dvloader').hide(); $("html,body").animate({scrollTop:0},"swing"); get_responce_message(resp); },
+            error: function(x, t, e) { $('#dvloader').hide(); toastr.error(e, t); }
+        });
+    }
+
+    function meta_ios_save() {
+        var CheckAdmin = '<?php echo Check_Admin_Access(); ?>';
+        if (CheckAdmin != 1) { toastr.error('{{__("label.you_have_no_right_to_add_edit_and_delete")}}'); return; }
+        $('#dvloader').show();
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("admob.meta.ios") }}',
+            data: new FormData($('#meta_ios_form')[0]),
             cache: false, contentType: false, processData: false,
             success: function(resp) { $('#dvloader').hide(); $("html,body").animate({scrollTop:0},"swing"); get_responce_message(resp); },
             error: function(x, t, e) { $('#dvloader').hide(); toastr.error(e, t); }

@@ -160,6 +160,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('setting/dev', [SettingController::class, 'dev'])->name('setting.dev');
         Route::post('setting/screenshot', [SettingController::class, 'screenshot'])->name('setting.screenshot');
         Route::post('setting/banner', [SettingController::class, 'saveBannerSetting'])->name('setting.banner');
+        Route::post('setting/cashfree_subscription', [SettingController::class, 'saveCashfreeSubscriptionSetting'])->name('setting.cashfree_subscription');
         Route::post('setting/save_key', [SettingController::class, 'save_key'])->name('setting.save_key');
         Route::post('setting/smtp', [SettingController::class, 'smtpSave'])->name('smtp.save');
         Route::post('setting/test_smtp', [SettingController::class, 'testSmtp'])->name('setting.test_smtp');
@@ -221,6 +222,7 @@ Route::group(['middleware' => 'installation'], function () {
             Route::resource('page', PageController::class)->only(['update', 'destroy']);
             // User
             Route::resource('user', UserController::class)->only(['store', 'update', 'destroy']);
+            Route::post('user/{id}/send-reset', [UserController::class, 'sendResetLink'])->name('user.send_reset');
             // Song
             Route::resource('song', SongController::class)->only(['store', 'update', 'show']);
             // Podcasts
@@ -249,6 +251,8 @@ Route::group(['middleware' => 'installation'], function () {
             Route::post('admob/ios', [AdmobSettingController::class, 'admobIos'])->name('admob.ios');
             Route::post('admob/startio/android', [AdmobSettingController::class, 'startioAndroid'])->name('admob.startio.android');
             Route::post('admob/startio/ios', [AdmobSettingController::class, 'startioIos'])->name('admob.startio.ios');
+            Route::post('admob/meta/android', [AdmobSettingController::class, 'metaAndroid'])->name('admob.meta.android');
+            Route::post('admob/meta/ios', [AdmobSettingController::class, 'metaIos'])->name('admob.meta.ios');
             // FaceBook Ads
             Route::post('fbads/android', [FaceBookAdsSettingController::class, 'facebookadAndroid'])->name('fbads.android');
             Route::post('fbads/ios', [FaceBookAdsSettingController::class, 'facebookadIos'])->name('fbads.ios');

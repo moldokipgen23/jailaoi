@@ -114,6 +114,21 @@ class ArtistRequestController extends Controller
                 return response()->json(array('status' => 400, 'errors' => 'User not found'));
             }
 
+            // Ensure the artist has a channel_id. Uploads (tbl_content) and the
+            // mirror-to-tbl_music sync resolve the artist BY channel_id. Users who
+            // register in the app don't get one at signup, so without this a newly
+            // approved artist's uploads would never reach the app.
+            if (empty($user->channel_id)) {
+                do {
+                    $chan = \Illuminate\Support\Str::random(8);
+                } while (User::where('channel_id', $chan)->exists());
+                $user->channel_id = $chan;
+                if (empty($user->channel_name)) {
+                    $user->channel_name = $artistReq->artist_name;
+                }
+                $user->save();
+            }
+
             $existingArtist = Artist::where('user_id', $user->id)->first();
             if ($existingArtist) {
                 $artistReq->status = 'approved';
@@ -126,7 +141,7 @@ class ArtistRequestController extends Controller
             $artist = Artist::create([
                 'user_id' => $user->id,
                 'name' => $artistReq->artist_name,
-                'image' => $user->image ?? '',
+                'image' => !empty($artistReq->image) ? $artistReq->image : ($user->image ?? ''),
                 'bio' => $artistReq->bio ?? '',
                 'status' => 1,
             ]);

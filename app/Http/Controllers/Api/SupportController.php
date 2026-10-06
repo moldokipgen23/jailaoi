@@ -142,7 +142,8 @@ class SupportController extends Controller
 
             $pagination = [
                 'current_page' => $page,
-                'total_record' => $total,
+                'total_rows' => $total,
+                'more_page' => $page < (int) ceil($total / $this->page_limit),
                 'total_page'   => (int) ceil($total / $this->page_limit),
             ];
 

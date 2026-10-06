@@ -87,6 +87,23 @@
 
 @section('pagescript')
 <script>
+$(document).on('click', '.send-reset-btn', function() {
+    var id = $(this).data('id');
+    if (!confirm('Send a password reset link to this user email?')) return;
+    $('#dvloader').show();
+    $.ajax({
+        type: 'POST',
+        url: '{{ url("admin/user") }}/' + id + '/send-reset',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: function(resp) {
+            $('#dvloader').hide();
+            if (resp.status == 200) { toastr.success(resp.success); }
+            else { toastr.error(Array.isArray(resp.errors) ? resp.errors.join(', ') : resp.errors); }
+        },
+        error: function() { $('#dvloader').hide(); toastr.error('Something went wrong'); }
+    });
+});
+
     $(document).ready(function() {
 
         var table = $('#datatable').DataTable({

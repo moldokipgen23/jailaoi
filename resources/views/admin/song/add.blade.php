@@ -120,6 +120,7 @@
                                 <select name="upload_type" id="upload_type" class="form-control">
                                     <option selected="selected" value="1">{{__('label.server_audio')}}</option>
                                     <option value="2">{{__('label.external_url')}}</option>
+                                    <option value="3">Curated Station (No Upload)</option>
                                     <!-- <option value="youtube">{{__('label.youtube')}}</option>
                                         <option value="vimeo">{{__('label.vimeo')}}</option> -->
                                 </select>
@@ -150,6 +151,27 @@
                                     <input type="text" name="url" class="form-control" placeholder="{{__('label.audio_url_here')}}">
                                 </div>
                             </div>
+                        </div>
+                        <div class="form-row curated_box" style="display:none;">
+                            <div class="col-md-12"><p class="text-muted mb-2">Curated station &mdash; pick any mix of categories, artists and languages (all optional). The station plays every song matching your selection, non-stop.</p></div>
+                            <div class="col-md-4"><div class="form-group">
+                                <label>Categories</label>
+                                <select class="form-control" name="station_category_ids[]" id="station_category_ids" multiple>
+                                    @foreach ($category as $value)<option value="{{ $value->id }}">{{ $value->name }}</option>@endforeach
+                                </select>
+                            </div></div>
+                            <div class="col-md-4"><div class="form-group">
+                                <label>Artists</label>
+                                <select class="form-control" name="station_artist_ids[]" id="station_artist_ids" multiple>
+                                    @foreach ($artist as $value)<option value="{{ $value->id }}">{{ $value->name }}</option>@endforeach
+                                </select>
+                            </div></div>
+                            <div class="col-md-4"><div class="form-group">
+                                <label>Languages</label>
+                                <select class="form-control" name="station_language_ids[]" id="station_language_ids" multiple>
+                                    @foreach ($language as $value)<option value="{{ $value->id }}">{{ $value->name }}</option>@endforeach
+                                </select>
+                            </div></div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -233,17 +255,18 @@
     $(document).ready(function() {
 
         $(".url_box").hide();
-        $('#upload_type').change(function() {
-            var optionValue = $(this).val();
-
-            if (optionValue == '1') {
-                $(".video_box").show();
-                $(".url_box").hide();
-            } else {
-                $(".url_box").show();
-                $(".video_box").hide();
-            }
-        });
+        $(".curated_box").hide();
+        $("#station_category_ids").select2({ width: '100%' });
+        $("#station_artist_ids").select2({ width: '100%' });
+        $("#station_language_ids").select2({ width: '100%' });
+        function jailaoiToggleUploadType(v) {
+            var f = $('#artist_id,#category_id,#language_id,#city_id,[name="duration"],[name="is_premium"]').closest('.form-group');
+            if (v == '1') { $(".video_box").show(); $(".url_box").hide(); $(".curated_box").hide(); f.show(); }
+            else if (v == '3') { $(".video_box").hide(); $(".url_box").hide(); $(".curated_box").show(); f.hide(); }
+            else { $(".url_box").show(); $(".video_box").hide(); $(".curated_box").hide(); f.show(); }
+        }
+        $('#upload_type').change(function() { jailaoiToggleUploadType($(this).val()); });
+        jailaoiToggleUploadType($('#upload_type').val());
     });
 </script>
 @endsection

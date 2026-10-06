@@ -89,6 +89,8 @@
                                     <option value="12">Based on Your Top Category</option>
                                     <option value="13">New in Your Language</option>
                                     <option value="14">Hidden Gems</option>
+                                    <option value="15">Fresh Finds</option>
+                                    <option value="16">Best in Your Language</option>
                                 </select>
                             </div>
                         </div>
@@ -355,6 +357,13 @@
                                             <option value="7">{{__('label.city')}}</option>
                                             <option value="8">{{__('label.music')}}</option>
                                             <option value="9">Continue Listening</option>
+                                            <option value="10">Liked Songs</option>
+                                            <option value="11">From Artists You Follow</option>
+                                            <option value="12">Based on Your Top Category</option>
+                                            <option value="13">New in Your Language</option>
+                                            <option value="14">Hidden Gems</option>
+                                            <option value="15">Fresh Finds</option>
+                                            <option value="16">Best in Your Language</option>
                                         </select>
                                     </div>
                                 </div>
@@ -694,6 +703,10 @@
                         var type = "New in Your Language";
                     } else if (resp.result[i].type == 14) {
                         var type = "Hidden Gems";
+                    } else if (resp.result[i].type == 15) {
+                        var type = "Fresh Finds";
+                    } else if (resp.result[i].type == 16) {
+                        var type = "Best in Your Language";
                     } else {
                         var type = "-";
                     }
@@ -817,6 +830,10 @@
                         var type = "New in Your Language";
                     } else if (resp.result[i].type == 14) {
                         var type = "Hidden Gems";
+                    } else if (resp.result[i].type == 15) {
+                        var type = "Fresh Finds";
+                    } else if (resp.result[i].type == 16) {
+                        var type = "Best in Your Language";
                     } else {
                         var type = "-";
                     }
@@ -1204,6 +1221,10 @@
                         var type = "New in Your Language";
                     } else if (resp.result[i].type == 14) {
                         var type = "Hidden Gems";
+                    } else if (resp.result[i].type == 15) {
+                        var type = "Fresh Finds";
+                    } else if (resp.result[i].type == 16) {
+                        var type = "Best in Your Language";
                     } else {
                         var type = "-";
                     }
@@ -1481,7 +1502,7 @@
                     $(".edit_is_title").show();
                     $(".edit_is_category").show();
                     $(".edit_is_artist_name").show();
-                } else if (resp.result.type == 9 || resp.result.type == 10 || resp.result.type == 11 || resp.result.type == 12 || resp.result.type == 13 || resp.result.type == 14) {
+                } else if (resp.result.type == 9 || resp.result.type == 10 || resp.result.type == 11 || resp.result.type == 12 || resp.result.type == 13 || resp.result.type == 14 || resp.result.type == 15 || resp.result.type == 16) {
 
                     $(".edit_screen_layout").show();
                     $("#edit_screen_layout option[value='landscape']").show();
@@ -1602,7 +1623,7 @@
                         $(".edit_is_title").show();
                         $(".edit_is_category").show();
                         $(".edit_is_artist_name").show();
-                    } else if (type == 9 || type == 10 || type == 11 || type == 12 || type == 13 || type == 14) {
+                    } else if (type == 9 || type == 10 || type == 11 || type == 12 || type == 13 || type == 14 || type == 15 || type == 16) {
 
                         $(".edit_artist_drop").hide();
                         $(".edit_category_drop").hide();

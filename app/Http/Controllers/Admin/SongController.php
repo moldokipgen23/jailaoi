@@ -98,6 +98,11 @@ class SongController extends Controller
                     'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
                     'song_url' => 'required',
                 ]);
+            } else if ($request->upload_type == 3) {
+                $validator = Validator::make($request->all(), [
+                    'name' => 'required|min:2',
+                    'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                ]);
             } else {
                 $validator = Validator::make($request->all(), [
                     'name' => 'required|min:2',
@@ -124,6 +129,16 @@ class SongController extends Controller
 
             if ($requestData['upload_type'] == 1) {
                 $requestData['song_url'] = $requestData['song_url'];
+            } else if ($requestData['upload_type'] == 3) {
+                // Curated station: no audio file. Points at (multiple) categories/artists/languages.
+                $requestData['song_url'] = '';
+                $requestData['station_category_ids'] = !empty($request->station_category_ids) ? implode(',', (array) $request->station_category_ids) : '';
+                $requestData['station_artist_ids']   = !empty($request->station_artist_ids) ? implode(',', (array) $request->station_artist_ids) : '';
+                $requestData['station_language_ids'] = !empty($request->station_language_ids) ? implode(',', (array) $request->station_language_ids) : '';
+                $requestData['category_id'] = 0;
+                $requestData['artist_id']   = 0;
+                $requestData['language_id'] = 0;
+                $requestData['city_id']     = 0;
             } else {
                 $requestData['song_url'] = $requestData['url'];
             }

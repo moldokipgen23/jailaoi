@@ -12,7 +12,7 @@ class RoleMiddleware
     private static array $roleAccess = [
         'super_admin' => ['*'],
         'staff' => [
-            'dashboard',
+            'admin.dashboard',
             'profile.*',
             'user.*',
             'artist.*',
@@ -53,7 +53,7 @@ class RoleMiddleware
             'admin.artist-requests.*',
             'user.index',
             'artist.index',
-            'dashboard',
+            'admin.dashboard',
         ],
         'support' => [
             'profile.*',
@@ -65,13 +65,13 @@ class RoleMiddleware
             'comment.*',
             'admin.play-errors',
             'admin.support-tickets.*',
-            'dashboard',
+            'admin.dashboard',
         ],
     ];
 
     private static array $permissionGroups = [
         'DASHBOARD' => [
-            ['label' => 'Dashboard', 'routes' => ['dashboard']],
+            ['label' => 'Dashboard', 'routes' => ['admin.dashboard']],
         ],
         'USERS & ARTISTS' => [
             ['label' => 'Users — Full Access', 'routes' => ['user.*']],
@@ -186,17 +186,31 @@ class RoleMiddleware
 
     public static function adminHasAccess(string $role, string $routeName, ?array $overrides = null): bool
     {
+        // Baseline routes every authenticated admin can always reach,
+        // regardless of role or custom permission overrides. Prevents a
+        // managed admin from being locked out of the dashboard, their own
+        // profile, or logout.
+        $always = ['admin.dashboard', 'profile.*', 'logout'];
+
         $patterns = self::$roleAccess[$role] ?? [];
 
         if ($overrides && is_array($overrides)) {
             $patterns = $overrides;
         }
 
+        $patterns = array_merge($always, $patterns);
+
+        // Some routes are named with an "admin." prefix (e.g. admin.dashboard,
+        // admin.pages) while the permission patterns are stored bare
+        // (e.g. "dashboard", "page.*"). Match against both the full route name
+        // and the prefix-stripped variant so bare patterns still apply.
+        $stripped = preg_replace('/^admin\./', '', $routeName);
+
         foreach ($patterns as $pattern) {
             if ($pattern === '*') {
                 return true;
             }
-            if (fnmatch($pattern, $routeName)) {
+            if (fnmatch($pattern, $routeName) || fnmatch($pattern, $stripped)) {
                 return true;
             }
         }

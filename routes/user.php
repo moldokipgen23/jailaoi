@@ -47,7 +47,7 @@ Route::group(['middleware' => 'installation'], function () {
     Route::get('password/forgot', [ForgotPasswordController::class, 'showForgot'])->name('user.password.forgot');
     Route::post('password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('user.password.email');
     Route::get('password/reset', [ForgotPasswordController::class, 'showReset'])->name('user.password.reset');
-    Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
+    Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.reset.update');
 
     // JAILAOI: Become an artist (outside authuser middleware — non-artists need access)
     Route::get('become-artist', [BecomeArtistController::class, 'index'])->name('user.become.artist');

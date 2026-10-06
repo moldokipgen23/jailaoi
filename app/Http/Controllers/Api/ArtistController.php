@@ -38,7 +38,7 @@ class ArtistController extends Controller
     public function get_artist_list(Request $request)
     {
         try {
-            $page_no = $request->page_no ?? 1;
+            $page_no = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $user_id = $request->user_id ?? 0;
 
             $data = Artist::where('status', 1)->latest();
@@ -54,12 +54,10 @@ class ArtistController extends Controller
 
             $result = [];
             foreach ($artists as $artist) {
+                $follow_targets = array_values(array_filter(array_unique([$artist->user_id, $artist->id])));
                 $is_following = 0;
-                if ($user_id > 0 && $artist->user_id) {
-                    $follow = Subscriber::where('user_id', $user_id)
-                        ->where('to_user_id', $artist->user_id)
-                        ->first();
-                    if ($follow) $is_following = 1;
+                if ($user_id > 0 && Subscriber::where('user_id', $user_id)->whereIn('to_user_id', $follow_targets)->exists()) {
+                    $is_following = 1;
                 }
                 $result[] = [
                     'id' => $artist->id,
@@ -67,7 +65,7 @@ class ArtistController extends Controller
                     'name' => $artist->name,
                     'image' => $artist->image,
                     'bio' => $artist->bio,
-                    'total_followers' => $artist->user_id ? Subscriber::where('to_user_id', $artist->user_id)->count() : 0,
+                    'total_followers' => Subscriber::whereIn('to_user_id', $follow_targets)->distinct('user_id')->count('user_id'),
                     'is_following' => $is_following,
                 ];
             }
@@ -104,9 +102,7 @@ class ArtistController extends Controller
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
 
             // Real followers count
-            $artist['total_followers'] = $artist->user_id
-                ? Subscriber::where('to_user_id', $artist->user_id)->count()
-                : 0;
+            $artist['total_followers'] = Subscriber::whereIn('to_user_id', array_values(array_filter(array_unique([$artist->user_id, $artist->id]))))->distinct('user_id')->count('user_id');
 
             // Real monthly listeners: unique users who played this artist's content in last 30 days
             $artist['monthly_listeners'] = User_Action::where('artist_id', $artist->id)
@@ -132,9 +128,8 @@ class ArtistController extends Controller
 
             $login_user_id = $request->login_user_id ?? 0;
             $artist['is_following'] = 0;
-            if ($login_user_id > 0 && $artist->user_id) {
-                $follow = Subscriber::where('user_id', $login_user_id)->where('to_user_id', $artist->user_id)->first();
-                if ($follow) $artist['is_following'] = 1;
+            if ($login_user_id > 0 && Subscriber::where('user_id', $login_user_id)->whereIn('to_user_id', array_values(array_filter(array_unique([$artist->user_id, $artist->id]))))->exists()) {
+                $artist['is_following'] = 1;
             }
 
             if ($artist->user_id) {
@@ -167,7 +162,7 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
 
-            $page_no = $request->page_no ?? 1;
+            $page_no = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
             $content_model = null;
             $channel_id = null;
 
@@ -187,7 +182,7 @@ class ArtistController extends Controller
 
             $songs = \App\Models\Song::where('status', 1)
                 ->where(function($q) use ($channel_id, $artist) {
-                    $q->where('artist_id', 'LIKE', "%{$artist->id}%")
+                    $q->whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])
                       ->orWhere('artist_id', $artist->id);
                 });
 
@@ -246,6 +241,11 @@ class ArtistController extends Controller
             $req->artist_name = $request->artist_name;
             $req->bio = $request->bio ?? '';
             $req->artist_types = $artistTypes;
+            // Optional artist photo — saved into the artist image folder so it
+            // resolves correctly once the request is approved into an artist.
+            if ($request->hasFile('image')) {
+                $req->image = $this->common->saveImage($request->file('image'), $this->folder_artist, 'artist_');
+            }
             $req->status = 'pending';
             $req->save();
 
@@ -291,6 +291,73 @@ class ArtistController extends Controller
                 'is_artist' => $is_artist,
                 'admin_note' => $req->admin_note ?? '',
             ]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function get_followed_artists(Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), [
+                'user_id' => 'required|numeric',
+            ]);
+            if ($validation->fails()) {
+                return $this->common->API_Response(400, $validation->errors()->first());
+            }
+
+            $user_id = $request->user_id;
+            $page_no = max(1, (int) ($request->page_no ?? $request->pageno ?? 1));
+
+            // Artists this user follows: tbl_subscriber.to_user_id holds the
+            // artist's USER id; map those to tbl_artist rows.
+            $followedUserIds = Subscriber::where('user_id', $user_id)
+                ->pluck('to_user_id')
+                ->unique()
+                ->values();
+
+            if ($followedUserIds->isEmpty()) {
+                return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [], [
+                    'total_rows' => 0,
+                    'total_page' => 0,
+                    'current_page' => $page_no,
+                    'more_page' => false,
+                ]);
+            }
+
+            $query = Artist::where('status', 1)
+                ->whereIn('user_id', $followedUserIds)
+                ->latest();
+
+            $total = $query->count();
+            $offset = $this->page_limit * ($page_no - 1);
+            $artists = $query->skip($offset)->take($this->page_limit)->get();
+
+            $this->common->imageNameToUrl($artists, 'image', $this->folder_artist);
+
+            $result = [];
+            foreach ($artists as $artist) {
+                $follow_targets = array_values(array_filter(array_unique([$artist->user_id, $artist->id])));
+                $result[] = [
+                    'id' => $artist->id,
+                    'user_id' => $artist->user_id,
+                    'name' => $artist->name,
+                    'image' => $artist->image,
+                    'bio' => $artist->bio,
+                    'total_followers' => Subscriber::whereIn('to_user_id', $follow_targets)->distinct('user_id')->count('user_id'),
+                    'is_following' => 1,
+                ];
+            }
+
+            $more_page = ($page_no * $this->page_limit) < $total;
+            $pagination = [
+                'total_rows' => $total,
+                'total_page' => ceil($total / $this->page_limit),
+                'current_page' => $page_no,
+                'more_page' => $more_page,
+            ];
+
+            return $this->common->API_Response(200, __('api_msg.get_record_successfully'), $result, $pagination);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }

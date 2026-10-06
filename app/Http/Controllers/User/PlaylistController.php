@@ -96,7 +96,7 @@ class PlaylistController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['title', 'playlist_type', 'description', 'content_type', 'playlist_id', 'content']);
 
             $requestData['channel_id'] = $user['channel_id'];
             $requestData['content_type'] = 5;
@@ -121,7 +121,11 @@ class PlaylistController extends Controller
             $requestData['total_watch_time'] = 0;
             $requestData['status'] = 1;
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
+            unset($requestData['id']);
+            foreach (array_keys($requestData) as $field) {
+                if (str_starts_with($field, 'old_')) unset($requestData[$field]);
+            }
+            $data = Content::create($requestData);
             if (isset($data->id)) {
                 return response()->json(['status' => 200, 'success' => __('label.success_add_playlist')]);
             } else {
@@ -135,6 +139,9 @@ class PlaylistController extends Controller
     {
         try {
             $user = User_Data();
+            if (!Content::where('id', $id)->where('channel_id', $user['channel_id'])->where('content_type', 5)->exists()) {
+                return response()->json(['status' => 404, 'message' => 'Playlist not found.'], 404);
+            }
 
             $validator = Validator::make($request->all(), [
                 'title' => 'required|min:2',
@@ -145,12 +152,12 @@ class PlaylistController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['title', 'playlist_type', 'description', 'content_type', 'playlist_id', 'content']);
 
             $requestData['channel_id'] = $user['channel_id'];
             $requestData['description'] = $requestData['description'] ?? '';
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
+            $data = Content::updateOrCreate(['id' => $id], $requestData);
             if (isset($data->id)) {
                 return response()->json(['status' => 200, 'success' => __('label.success_edit_playlist')]);
             } else {
@@ -163,7 +170,9 @@ class PlaylistController extends Controller
     public function destroy($id)
     {
         try {
-            Content::where('id', $id)->delete();
+            if (!Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->where('content_type', 5)->delete()) {
+                return response()->json(['status' => 404, 'message' => 'Playlist not found.'], 404);
+            }
             Playlist_Content::where('playlist_id', $id)->delete();
 
             // Content Releted Data Delete
@@ -183,6 +192,9 @@ class PlaylistController extends Controller
 
             $params['data'] = [];
             $params['playlist_id'] = $id;
+            if (!Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->where('content_type', 5)->exists()) {
+                return response()->json(['status' => 404, 'message' => 'Playlist not found.'], 404);
+            }
 
             $params['data'] = Playlist_Content::where('playlist_id', $id)
                 ->with(['content' => function ($query) {
@@ -196,7 +208,7 @@ class PlaylistController extends Controller
                 }
             }
 
-            $check = Content::select('id', 'title')->where('id', $id)->first();
+            $check = Content::select('id', 'title')->where('id', $id)->where('channel_id', User_Data()['channel_id'])->first();
             $params['playlist_name'] = $check['title'] ?? "";
 
             return view('user.playlist.ct_index', $params);
@@ -209,6 +221,9 @@ class PlaylistController extends Controller
         try {
             $content_type = $request['content_type'];
             $playlist_id = $request['playlist_id'];
+            if (!Content::where('id', $playlist_id)->where('channel_id', User_Data()['channel_id'])->where('content_type', 5)->exists()) {
+                return response()->json(['status' => 404, 'message' => 'Playlist not found.'], 404);
+            }
 
             $ids_array = Playlist_Content::select('content_id')->where('playlist_id', $playlist_id)->where('content_type', $content_type)->get()->toArray();
             $data = Content::select('id', 'title')->whereNotIn('id', $ids_array)->where('content_type', $content_type)->where('status', 1)->where('is_rent', 0)->latest()->get();
@@ -234,9 +249,10 @@ class PlaylistController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $requestData = $request->all();
+            $requestData = $request->only(['title', 'playlist_type', 'description', 'content_type', 'playlist_id', 'content']);
 
-            $content = Content::select('channel_id')->where('id', $requestData['playlist_id'])->first();
+            $content = Content::select('channel_id')->where('id', $requestData['playlist_id'])->where('channel_id', User_Data()['channel_id'])->where('content_type', 5)->first();
+            if (!$content) return response()->json(['status' => 404, 'message' => 'Playlist not found.'], 404);
             for ($i = 0; $i < count($requestData['content']); $i++) {
 
                 $insert = new Playlist_Content();
@@ -257,7 +273,7 @@ class PlaylistController extends Controller
     {
         try {
 
-            Playlist_Content::where('id', $request['id'])->delete();
+            Playlist_Content::where('id', $request['id'])->where('channel_id', User_Data()['channel_id'])->delete();
             return response()->json(['status' => 200, 'success' => __('label.content_removed'), 'id' => $request['id']]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -271,7 +287,7 @@ class PlaylistController extends Controller
             if (isset($ids) && $ids != null && $ids != "") {
 
                 for ($i = 0; $i < count($ids); $i++) {
-                    Playlist_Content::where('id', $ids[$i])->update(['sort_order' => $i + 1]);
+                    Playlist_Content::where('id', $ids[$i])->where('channel_id', User_Data()['channel_id'])->update(['sort_order' => $i + 1]);
                 }
             }
             return response()->json(['status' => 200, 'success' => __('label.sort_order_saved')]);

@@ -52,9 +52,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/admin.php'));
 
-            Route::middleware('web')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/install.php'));
+            // JAILAOI: Install wizard routes (step0-step5, database_installation,
+            // purchase_code, import_sql) are deliberately not registered — the app
+            // is already installed and running in production; leaving these public
+            // would let anyone re-run DB install/import against the live database.
 
             Route::middleware('web')
                 ->prefix('user')

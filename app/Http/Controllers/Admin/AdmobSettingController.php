@@ -98,6 +98,54 @@ class AdmobSettingController extends Controller
         }
     }
 
+    public function metaAndroid(Request $request)
+    {
+        try {
+            $keys = [
+                'meta_status', 'meta_banner_enabled', 'meta_interstitial_enabled',
+                'meta_rewarded_enabled', 'meta_interstitial_cooldown',
+                'meta_placement_id_interstitial', 'meta_placement_id_banner',
+                'meta_placement_id_rewarded',
+            ];
+            foreach ($keys as $key) {
+                $default = $key === 'meta_interstitial_cooldown' ? '60' : '0';
+                $value = $request->input($key, $default);
+                $setting = General_Setting::where('key', $key)->first();
+                if ($setting) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
+    public function metaIos(Request $request)
+    {
+        try {
+            $keys = [
+                'ios_meta_status', 'ios_meta_banner_enabled', 'ios_meta_interstitial_enabled',
+                'ios_meta_rewarded_enabled', 'ios_meta_interstitial_cooldown',
+                'ios_meta_placement_id_interstitial', 'ios_meta_placement_id_banner',
+                'ios_meta_placement_id_rewarded',
+            ];
+            foreach ($keys as $key) {
+                $default = $key === 'ios_meta_interstitial_cooldown' ? '60' : '0';
+                $value = $request->input($key, $default);
+                $setting = General_Setting::where('key', $key)->first();
+                if ($setting) {
+                    $setting->value = $value;
+                    $setting->save();
+                }
+            }
+            return response()->json(['status' => 200, 'success' => __('label.save_setting')]);
+        } catch (Exception $e) {
+            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+        }
+    }
+
     public function admobIos(Request $request)
     {
         try {

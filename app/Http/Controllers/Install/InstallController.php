@@ -25,10 +25,6 @@ class InstallController extends Controller
     // Step 0
     public function step0(Request $request)
     {
-        $url = $request->url();
-        if (strpos($request->url(), '/public') === false) {
-            return redirect($url . '/public');
-        }
 
         Artisan::call('config:clear');
         $verflyDomain = Demo_Domain();

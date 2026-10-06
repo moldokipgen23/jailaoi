@@ -12,9 +12,9 @@ class AuthAdmin
     {
 
         if (Auth::guard('admin')->guest()) {
-            if (!$request->ajax() || !$request->wantsJson()) {
-                return redirect(route('admin.logout'));
-            }
+            return $request->expectsJson()
+                ? response()->json(['status' => 401, 'message' => 'Please sign in.'], 401)
+                : redirect(route('admin.login'));
         }
         return $next($request);
     }
