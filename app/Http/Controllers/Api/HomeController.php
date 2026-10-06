@@ -2076,7 +2076,7 @@ class HomeController extends Controller
                 $NotiIds[] = $value['notification_id'];
             }
 
-            $result = Notification::whereNotIn('id', $NotiIds)->orderBy('id', 'desc')->get();
+            $result = Notification::where('status', 1)->whereIn('user_id', [0, $user_id])->whereNotIn('id', $NotiIds)->orderBy('id', 'desc')->get();
 
             $this->common->imageNameToUrl($result, 'image', $this->folder_notification);
 
@@ -2103,6 +2103,12 @@ class HomeController extends Controller
             $user_id = $request['user_id'];
             $notification_id = $request['notification_id'];
 
+            if (!Notification::where('id', $notification_id)->where('status', 1)->whereIn('user_id', [0, $user_id])->exists()) {
+                return $this->common->API_Response(400, 'Notification not found.');
+            }
+            if (User_Notification_Tracking::where('user_id', $user_id)->where('notification_id', $notification_id)->exists()) {
+                return $this->common->API_Response(200, __('api_msg.notification_read_successfully'));
+            }
             $noti = new User_Notification_Tracking();
             $noti->user_id = $user_id;
             $noti->notification_id = $notification_id;

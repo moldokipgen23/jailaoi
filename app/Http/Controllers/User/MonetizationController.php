@@ -104,10 +104,10 @@ class MonetizationController extends Controller
             'totalPlays' => ArtistEarning::where('artist_id', $artist->id)->count(),
             'monthlyPlays' => ArtistEarning::where('artist_id', $artist->id)
                 ->where('created_at', '>=', now()->startOfMonth())->count(),
-            'followers' => Subscriber::where('to_user_id', $user->id)->where('status', 1)->count(),
-            'tracks' => Music::where('artist_id', $artist->id)->where('status', 1)->count(),
+            'followers' => Subscriber::whereIn('to_user_id', array_values(array_unique([$user->id, $artist->id])))->where('status', 1)->distinct('user_id')->count('user_id'),
+            'tracks' => Music::whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])->where('status', 1)->count(),
             'accountAgeDays' => $user->created_at ? $user->created_at->diffInDays(now()) : 0,
-            'totalEarned' => (float) ArtistEarning::where('artist_id', $artist->id)->sum('amount'),
+            'totalEarned' => (float) ArtistEarning::where('artist_id', $artist->id)->whereNotNull('settled_month')->sum('amount'),
         ];
     }
 

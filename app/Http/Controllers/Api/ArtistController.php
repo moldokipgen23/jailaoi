@@ -477,7 +477,7 @@ class ArtistController extends Controller
                 return $this->common->API_Response(400, 'You are not an artist');
             }
 
-            $total_followers = Subscriber::where('to_user_id', $user->id)->count();
+            $total_followers = Subscriber::whereIn('to_user_id', array_values(array_unique([$user->id, $artist->id])))->where('status', 1)->distinct('user_id')->count('user_id');
 
             // Plays across all content types
             $total_views = Song::where('artist_id', $artist->id)->sum('total_play')

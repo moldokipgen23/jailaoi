@@ -29,7 +29,7 @@ class NotificationController extends Controller
 
                 $input_search = $request['input_search'];
                 if ($input_search != null && isset($input_search)) {
-                    $data = Notification::where('title', 'LIKE', "%{$input_search}%")->orwhere('description', 'LIKE', "%{$input_search}%")->latest()->get();
+                    $data = Notification::where('title', 'LIKE', "%{$input_search}%")->orwhere('message', 'LIKE', "%{$input_search}%")->latest()->get();
                 } else {
                     $data = Notification::latest()->get();
                 }
@@ -67,71 +67,29 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         try {
-
             $validator = Validator::make($request->all(), [
-                'title' => 'required',
-                'description' => 'required',
-                'image' => 'image|mimes:jpeg,png,jpg|max:2048',
+                'title' => 'required|string|max:255', 'description' => 'required|string|max:10000',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
-            if ($validator->fails()) {
-                $errs = $validator->errors()->all();
-                return response()->json(array('status' => 400, 'errors' => $errs));
-            }
-
-            $requestData = $request->all();
-
-            $notificationImageURL = '';
-            if (isset($requestData['image'])) {
-                $files = $requestData['image'];
-                $requestData['image'] = $this->common->saveImage($files, $this->folder, 'notification_');
-
-                // Image Name to URL
-                $notificationImageURL = $this->common->Get_Image($this->folder, $requestData['image']);
-            } else {
-                $requestData['image'] = "";
-            }
-
-            $notification_data = Notification::updateOrCreate(['id' => $requestData['id']], $requestData);
-            if (isset($notification_data->id)) {
-
-                // Notification Send App
-                $notification = Setting_Data();
-                $ONESIGNAL_APP_ID = $notification['onesignal_apid'];
-                $ONESIGNAL_REST_KEY = $notification['onesignal_rest_key'];
-
-                $fields = array(
-                    'app_id' => $ONESIGNAL_APP_ID,
-                    'included_segments' => array('All'),
-                    'data' => array("foo" => "bar"),
-                    'headings' => array("en" => $request->title),
-                    'contents' => array("en" => $request->description),
-                    'big_picture' => $notificationImageURL,
-                );
-
-                $fields = json_encode($fields);
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json; charset=utf-8',
-                    'Authorization: Basic ' . $ONESIGNAL_REST_KEY,
-                ));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HEADER, false);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                return response()->json(['status' => 200, 'success' => __('label.success_add_notification')]);
-            } else {
-                return response()->json(['status' => 400, 'errors' => __('label.notification_not_added')]);
-            }
+            if ($validator->fails()) return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
+            // Form tokens, empty IDs and client-supplied recipients are never database fields.
+            $data = $request->only(['title', 'description']);
+            $data['image'] = $request->hasFile('image') ? $this->common->saveImage($request->file('image'), $this->folder, 'notification_') : '';
+            $record = Notification::create($data);
+            $payload = [
+                'included_segments' => ['Subscribed Users'],
+                'headings' => ['en' => $record->title], 'contents' => ['en' => $record->description],
+                'data' => ['notification_id' => $record->id],
+            ];
+            if ($record->image !== '') $payload['big_picture'] = $this->common->Get_Image($this->folder, $record->image);
+            $push = app(\App\Services\OneSignalPush::class)->send($payload);
+            $message = $push['sent'] ? 'Saved to the notification inbox and accepted for push delivery.'
+                : ($push['reason'] === 'not_configured' ? 'Saved to the notification inbox. Push notifications are not configured.'
+                    : 'Saved to the notification inbox. Push delivery failed; check notification settings.');
+            return response()->json(['status' => 200, 'success' => $message, 'push_sent' => $push['sent'], 'push_status' => $push['reason']]);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('Notification save failed.', ['exception' => get_class($e)]);
+            return response()->json(['status' => 400, 'errors' => 'Could not save the notification. Please try again.']);
         }
     }
     public function destroy($id)
@@ -169,7 +127,7 @@ class NotificationController extends Controller
     {
         try {
 
-            $data = $request->all();
+            $data = $request->only(['onesignal_apid', 'onesignal_rest_key']);
             $data["onesignal_apid"] = isset($data['onesignal_apid']) ? $data['onesignal_apid'] : '';
             $data["onesignal_rest_key"] = isset($data['onesignal_rest_key']) ? $data['onesignal_rest_key'] : '';
 

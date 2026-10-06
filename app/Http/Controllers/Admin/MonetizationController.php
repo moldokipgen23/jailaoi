@@ -58,7 +58,7 @@ class MonetizationController extends Controller
                     ->addColumn('current_followers', function ($row) {
                         $uid = $row->artist->user_id ?? null;
                         if (!$uid) return 'N/A';
-                        return number_format(Subscriber::where('to_user_id', $uid)->where('status', 1)->count());
+                        return number_format(Subscriber::whereIn('to_user_id', array_values(array_unique([$uid, $row->artist_id])))->where('status', 1)->distinct('user_id')->count('user_id'));
                     })
                     ->addColumn('snapshot_monthly_plays', function ($row) {
                         return number_format($row->snapshot_monthly_plays);
@@ -71,7 +71,7 @@ class MonetizationController extends Controller
                         return $row->snapshot_tracks;
                     })
                     ->addColumn('current_tracks', function ($row) {
-                        return number_format(Music::where('artist_id', $row->artist_id)->where('status', 1)->count());
+                        return number_format(Music::whereRaw('FIND_IN_SET(?, artist_id)', [$row->artist_id])->where('status', 1)->count());
                     })
                     ->addColumn('applied_at', function ($row) {
                         return $row->applied_at ? $row->applied_at->format('Y-m-d') : '-';

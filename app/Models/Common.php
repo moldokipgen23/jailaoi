@@ -478,89 +478,23 @@ class Common extends Model
     function sendNotification($array)
     {
         try {
-
-            $imageUrl = $array['image_url'];
-            unset($array['image_url']);
-
-            Notification::insert($array);
-
-            $notification = Setting_Data();
-            $ONESIGNAL_APP_ID = $notification['onesignal_apid'];
-            $ONESIGNAL_REST_KEY = $notification['onesignal_rest_key'];
-
-            $fields = array(
-                'app_id' => $ONESIGNAL_APP_ID,
-                'included_segments' => array('All'),
-                'data' => $array,
-                'headings' => array("en" => $array['title']),
-                'contents' => array("en" => $array['description']),
-                'big_picture' => $imageUrl,
-            );
-
-            $fields = json_encode($fields);
-
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json; charset=utf-8',
-                'Authorization: Basic ' . $ONESIGNAL_REST_KEY,
-            ));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-            $response = curl_exec($ch);
-
-            curl_close($ch);
-            return true;
+            $record = Notification::create(array_intersect_key($array, array_flip(['title', 'description', 'message', 'image', 'type', 'user_id', 'from_user_id', 'content_id', 'storage_type', 'status'])));
+            $payload = ['included_segments' => ['Subscribed Users'], 'headings' => ['en' => $record->title], 'contents' => ['en' => $record->description], 'data' => ['notification_id' => $record->id]];
+            if (!empty($array['image_url'])) $payload['big_picture'] = $array['image_url'];
+            $push = app(\App\Services\OneSignalPush::class)->send($payload);
+            return ['saved' => true, 'push_sent' => $push['sent']];
         } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
-        }
-    }
-    public function basic_notification_configuration($type)
-    {
-        if ($type != null) {
-            return Notification_Configuration::where('type', $type)->first();
-        } else {
-            return [];
+            Log::error('Automatic notification could not be saved.', ['exception' => get_class($e)]);
+            return ['saved' => false, 'push_sent' => false];
         }
     }
     public function send_push_notification($device_type = '', $device_token = '', $title = '', $message = '')
     {
-        try {
-            $setting_data = Setting_Data();
-            $ONESIGNAL_APP_ID = $setting_data['onesignal_apid'];
-            $ONESIGNAL_REST_KEY = $setting_data['onesignal_rest_key'];
-
-            $fields = [
-                'app_id' => $ONESIGNAL_APP_ID,
-                'headings' => array("en" => $title),
-                'contents' => array("en" => $message),
-                'include_player_ids' => [$device_token],
-            ];
-
-            $fields = json_encode($fields);
-
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json; charset=utf-8',
-                'Authorization: Basic ' . $ONESIGNAL_REST_KEY,
-            ));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = curl_exec($ch);
-
-            curl_close($ch);
-            return true;
-        } catch (Exception $e) {
-            return response()->json(array('status' => 400, 'errors' => $e->getMessage()));
-        }
+        if (!is_string($device_token) || trim($device_token) === '') return false;
+        return app(\App\Services\OneSignalPush::class)->send([
+            'include_subscription_ids' => [$device_token],
+            'headings' => ['en' => $title], 'contents' => ['en' => $message],
+        ])['sent'];
     }
     public function package_expiry()
     {
