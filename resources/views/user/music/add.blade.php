@@ -506,7 +506,7 @@
                 document.getElementById('youtubeUseDescription').hidden = data.mode !== 'full';
                 const description = document.querySelector('[name="description"]');
                 if (!description.value.trim() && data.description) description.value = data.description;
-                document.getElementById('youtubeImportDuration').textContent = data.duration ? 'YouTube duration: ' + data.duration + '. Your uploaded audio determines the final track duration.' : ''; 
+                document.getElementById('youtubeImportDuration').textContent = data.duration ? 'YouTube duration: ' + data.duration + '. Your uploaded audio determines the final track duration.' : '';
                 document.getElementById('youtubeImportTitle').textContent = data.title;
                 document.getElementById('youtubeImportChannel').textContent = data.channel;
                 document.getElementById('youtubeImportLink').href = data.youtube_url;
