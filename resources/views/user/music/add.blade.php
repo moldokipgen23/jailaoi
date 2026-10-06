@@ -204,7 +204,7 @@
 
                             <details class="mb-4" style="border:1px solid #2ECC71;border-radius:10px;padding:16px;">
                                 <summary style="cursor:pointer;font-weight:600;">Import from YouTube</summary>
-                                <p class="mt-2">Start with a public YouTube video link to import its title and preview its thumbnail. Then upload your original audio and artwork.</p>
+                                <p class="mt-2">Start with a public YouTube video link to import available release details and preview its thumbnail. Then upload your original audio and artwork.</p>
                                 <label for="youtubeImportUrl">YouTube video link</label>
                                 <input type="url" id="youtubeImportUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">
                                 <button type="button" id="youtubeImportButton" class="btn btn-outline-primary mt-2">Import details</button>
@@ -214,7 +214,10 @@
                                     <p class="mt-2"><strong id="youtubeImportTitle"></strong><br><span id="youtubeImportChannel"></span></p>
                                     <a id="youtubeImportLink" target="_blank" rel="noopener noreferrer">View on YouTube</a>
                                     <button type="button" id="youtubeUseTitle" class="btn btn-sm btn-outline-primary ml-2">Use this title</button>
-                                    <p class="mt-2">This preview does not verify channel ownership. Import only releases you have rights to publish. Upload your own artwork; the thumbnail preview is not saved as cover art. Description, audio and lyrics are not imported.</p>
+                                    <button type="button" id="youtubeUseDescription" class="btn btn-sm btn-outline-primary mt-2" hidden>Use YouTube description</button>
+                                    <div class="mt-2"><label for="youtubeArtworkRights"><input type="checkbox" id="youtubeArtworkRights"> I own or have permission to use this thumbnail as release artwork.</label><br><button type="button" id="youtubeUseArtwork" class="btn btn-sm btn-outline-primary">Use thumbnail as artwork</button></div>
+                                    <p id="youtubeImportDuration" class="mt-2"></p>
+                                    <p class="mt-2">This preview does not verify channel ownership. Import only releases you have rights to publish. You can upload your own artwork or use the thumbnail only if you have rights to it. Full metadata needs administrator setup. Audio and lyrics are not downloaded.</p>
                                 </div>
                             </details>
 
@@ -474,8 +477,13 @@
     <script src="{{ asset('/assets/js/common.js')}}"></script>
 
     <script>
+        let youtubeImportedUrl = '';
         const youtubeImportButton = document.getElementById('youtubeImportButton');
         let youtubeImportedTitle = '';
+        let youtubeImportedDescription = null;
+        document.getElementById('youtubeUseDescription').addEventListener('click', function () {
+            if (youtubeImportedDescription !== null) document.querySelector('[name="description"]').value = youtubeImportedDescription;
+        });
         document.getElementById('youtubeUseTitle').addEventListener('click', function () {
             document.querySelector('[name="title"]').value = youtubeImportedTitle;
         });
@@ -485,7 +493,7 @@
             const url = document.getElementById('youtubeImportUrl').value.trim();
             if (!url) { status.textContent = 'Enter a YouTube video link first.'; return; }
             youtubeImportButton.disabled = true;
-            status.textContent = 'Getting YouTube details…'; preview.hidden = true;
+            status.textContent = 'Getting YouTube details…'; preview.hidden = true; document.getElementById('youtubeArtworkRights').checked = false;
             try {
                 const response = await fetch('{{ route('user.music.import.youtube') }}', {
                     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
@@ -493,7 +501,12 @@
                 });
                 const result = await response.json();
                 if (!response.ok || result.status !== 200) throw new Error(result.message || 'Could not import this video. Try again or enter details manually.');
-                const data = result.data; youtubeImportedTitle = data.title;
+                const data = result.data; youtubeImportedTitle = data.title; youtubeImportedUrl = data.youtube_url;
+                youtubeImportedDescription = data.description;
+                document.getElementById('youtubeUseDescription').hidden = data.mode !== 'full';
+                const description = document.querySelector('[name="description"]');
+                if (!description.value.trim() && data.description) description.value = data.description;
+                document.getElementById('youtubeImportDuration').textContent = data.duration ? 'YouTube duration: ' + data.duration + '. Your uploaded audio determines the final track duration.' : ''; 
                 document.getElementById('youtubeImportTitle').textContent = data.title;
                 document.getElementById('youtubeImportChannel').textContent = data.channel;
                 document.getElementById('youtubeImportLink').href = data.youtube_url;
@@ -504,9 +517,28 @@
                 const title = document.querySelector('[name="title"]');
                 if (!title.value.trim()) title.value = data.title;
                 preview.hidden = false;
-                status.textContent = 'Details ready. Existing edits were kept. Review the title, then continue with your original audio.';
+                status.textContent = data.mode === 'full' ? 'Full details ready. Existing edits were kept. Review them and upload your original audio.' : 'Basic details ready. Description and duration need YouTube API setup by your administrator.';
             } catch (error) { status.textContent = error.message || 'Import failed. Your music details were kept.'; }
             finally { youtubeImportButton.disabled = false; }
+        });
+
+        document.getElementById('youtubeUseArtwork').addEventListener('click', async function () {
+            const status = document.getElementById('youtubeImportStatus');
+            if (!youtubeImportedUrl || !document.getElementById('youtubeArtworkRights').checked) { status.textContent = 'Import a video and confirm your artwork rights first.'; return; }
+            const button = this; button.disabled = true;
+            try {
+                const response = await fetch('{{ route('user.music.import.youtube.artwork') }}', {
+                    method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+                    body:JSON.stringify({youtube_url:youtubeImportedUrl,rights_confirmed:true})
+                });
+                if (!response.ok) throw new Error('Could not import the thumbnail. Upload your artwork instead.');
+                const blob = await response.blob();
+                const transfer = new DataTransfer(); transfer.items.add(new File([blob], 'youtube-cover.jpg', {type:'image/jpeg'}));
+                const input = document.getElementById('imageUpload1'); input.files = transfer.files;
+                input.dispatchEvent(new Event('change', {bubbles:true}));
+                status.textContent = 'Thumbnail selected as portrait artwork. Review it in the Artwork step before publishing.';
+            } catch (error) { status.textContent = error.message || 'Use the normal artwork upload instead.'; }
+            finally { button.disabled = false; }
         });
 
         // ── Init ────────────────────────────────────────────────

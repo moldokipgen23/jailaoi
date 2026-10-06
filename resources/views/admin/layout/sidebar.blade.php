@@ -211,6 +211,9 @@
             </a>
         </li>
         @endif
+        @if((auth()->guard('admin')->user()->role ?? 'super_admin') === 'super_admin')
+        <li class="side_line {{ request()->routeIs('admin.youtube.*') ? 'active' : '' }}"><a href="{{ route('admin.youtube.index') }}"><i class="fa-brands fa-youtube"></i><span>YouTube Import</span></a></li>
+        @endif
         @if(\App\Http\Middleware\RoleMiddleware::canAccess('system.setting.index'))
         <li class="side_line {{ request()->routeIs('system.setting*') ? 'active' : '' }}">
             <a href="{{ route('system.setting.index') }}">
