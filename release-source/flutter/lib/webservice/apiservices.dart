@@ -1,3 +1,4 @@
+import 'package:jailaoi/utils/auth_token_policy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:jailaoi/utils/sharedpref.dart';
 import 'dart:convert';
@@ -59,7 +60,7 @@ class ApiService {
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = await SharedPref().read('auth_token');
-        if (token != null && token.contains('|')) {
+        if (AuthTokenPolicy.isSessionToken(token)) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         handler.next(options);
@@ -73,7 +74,8 @@ class ApiService {
         handler.next(error);
       },
       onResponse: (response, handler) async {
-        if (response.data is Map && response.data['token'] is String) {
+        if (AuthTokenPolicy.shouldSave(
+            response.requestOptions.path, response.data)) {
           await SharedPref().save('auth_token', response.data['token']);
         }
         handler.next(response);
@@ -1156,6 +1158,21 @@ class ApiService {
       }
     } catch (_) {}
     return {'status': null, 'is_artist': false, 'admin_note': ''};
+  }
+
+  Future<void> revokeSession() async {
+    final token = await SharedPref().read('auth_token');
+    if (!AuthTokenPolicy.isSessionToken(token)) return;
+    try {
+      await dio
+          .post('${baseurl}logout',
+              options: Options(
+                  receiveTimeout: const Duration(seconds: 3),
+                  sendTimeout: const Duration(seconds: 3)))
+          .timeout(const Duration(seconds: 3));
+    } catch (_) {
+      // Local sign-out must still complete when the device is offline.
+    }
   }
 
   Future<Map<String, dynamic>> getArtistDashboard() async {

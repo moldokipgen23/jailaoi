@@ -13,7 +13,7 @@
 @if($errors->any())<div class="alert alert-danger" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <div class="revenue-section">
 <form method="get" action="{{ route('admin.earnings.settlement') }}" class="d-flex flex-wrap align-items-end" style="gap:12px"><div><label for="revenue-month">Statement month</label><input id="revenue-month" type="month" name="month" value="{{ $month }}" max="{{ now()->subMonthNoOverflow()->format('Y-m') }}" class="form-control" required></div><button class="btn btn-outline-primary">View month</button><span class="revenue-status">{{ $legacy ? 'Historical settlement' : ($review?->status === 'settled' ? 'Settled' : ($review ? 'Awaiting review' : 'Not prepared')) }}</span></form>
-<p class="revenue-help mt-3 mb-0">INR · Monthly revenue pool · {{ 100 - $snapshot['platform_pct'] }}% artists / {{ $snapshot['platform_pct'] }}% platform. This period uses UTC transaction and stream timestamps.</p>
+<p class="revenue-help mt-3 mb-0">INR · Monthly revenue pool · @if($snapshot['platform_pct']===null) Historical split not recorded. @else {{ 100 - $snapshot['platform_pct'] }}% artists / {{ $snapshot['platform_pct'] }}% platform. @endif This period uses UTC transaction and stream timestamps.</p>
 </div>
 @if($legacy)<div class="alert alert-info">This month was settled before the review workflow. Totals below are the stored historical figures. Deduction details and allocation snapshots were not recorded; existing artist credits are preserved.</div>@endif
 <div class="revenue-grid">

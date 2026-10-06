@@ -1,3 +1,5 @@
+Current rollout status: see SECURITY_ROLLOUT.md. Strict identity is now active and signed-in admin review completed; mobile device verification remains pending. Earlier pending-status notes below describe the pre-rollout stage.
+
 # Revenue review and artist statements — 6 October 2026
 
 Deployed to portal.jailaoi.com. Monthly scheduling now prepares a review and never credits wallets automatically. Super-admin approval is required. Existing balances and historical settlements were not changed.

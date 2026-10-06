@@ -18,11 +18,12 @@ use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\SupportController;
 use App\Http\Controllers\Api\CashfreeController;
 
-Route::group(['middleware' => 'apipurchasecode'], function () {
+Route::group(['middleware' => ['apipurchasecode', 'api.identity']], function () {
 
     // -------------------- UserController --------------------
-    Route::post('register', [UserController::class, 'register']);
-    Route::post('login', [UserController::class, 'login']);
+    Route::post('register', [UserController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('login', [UserController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('logout', [UserController::class, 'logout']);
     Route::post('get_profile', [UserController::class, 'get_profile']);
     Route::post('update_profile', [UserController::class, 'update_profile']);
 

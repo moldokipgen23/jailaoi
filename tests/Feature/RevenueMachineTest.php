@@ -79,4 +79,12 @@ class RevenueMachineTest extends TestCase {
         $this->expectException(RuntimeException::class);app(RevenueSettlement::class)->approve('2026-09',$r['fingerprint'],7);
     }
 
+    public function test_artist_analytics_does_not_mix_all_time_earnings_with_selected_period(): void {
+        Schema::table('tbl_artist',fn(Blueprint $t)=>$t->string('image')->nullable());
+        DB::table('tbl_artist_earnings')->insert(['artist_id'=>1,'user_id'=>10,'content_id'=>99,'content_type'=>8,'amount'=>50,'settled_month'=>'2026-08','created_at'=>'2026-08-10']);
+        $view=(new \App\Http\Controllers\Admin\ArtistController)->analytics(\Illuminate\Http\Request::create('/admin/artist-analytics','GET',['period'=>'30d']));
+        $this->assertInstanceOf(\Illuminate\View\View::class,$view);
+        $this->assertSame('pool',$view->getData()['earningsModel']);$this->assertSame(0.0,$view->getData()['totalEstimate']);
+    }
+
 }

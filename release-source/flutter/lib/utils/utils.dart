@@ -1,0 +1,1430 @@
+import 'package:jailaoi/webservice/apiservices.dart';
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
+import 'dart:math' as number;
+import 'package:email_validator/email_validator.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_locales/flutter_locales.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:gradient_borders/gradient_borders.dart';
+import 'package:intl/intl.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
+import 'package:provider/provider.dart';
+import 'package:jailaoi/music/player_globals.dart';
+import 'package:jailaoi/pages/login.dart';
+import 'package:jailaoi/music/musicdetails.dart';
+import 'package:jailaoi/pages/splash.dart';
+import 'package:jailaoi/players/player_video.dart';
+import 'package:jailaoi/players/player_vimeo.dart';
+import 'package:jailaoi/players/player_youtube.dart';
+import 'package:jailaoi/provider/themeprovider.dart';
+import 'package:jailaoi/provider/updateprofileprovider.dart';
+import 'package:jailaoi/subscription/subscription.dart';
+import 'package:jailaoi/utils/adhelper.dart';
+import 'package:jailaoi/utils/color.dart';
+import 'package:jailaoi/utils/constant.dart';
+import 'package:jailaoi/utils/dimens.dart';
+import 'package:jailaoi/utils/sharedpref.dart';
+import 'package:jailaoi/widget/myimage.dart';
+import 'package:jailaoi/widget/mytext.dart';
+// import 'package:screen_protector/screen_protector.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+ValueNotifier<String> currentlyPlayingIdNotifier = ValueNotifier("");
+
+void printLog(String message) {
+  if (kDebugMode) {
+    return print(message);
+  }
+}
+
+class Utils {
+  ProgressDialog? prDialog;
+
+  /* Update Required profile data before Payment START ************************/
+  static Widget dataUpdateDialog(
+    BuildContext context, {
+    required bool isNameReq,
+    required bool isEmailReq,
+    required bool isMobileReq,
+    required TextEditingController nameController,
+    required TextEditingController emailController,
+    required TextEditingController mobileController,
+  }) {
+    return AnimatedPadding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.decelerate,
+      child: Container(
+        padding: const EdgeInsets.all(23),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /* Title & Subtitle */
+            Container(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MyText(
+                    color: black,
+                    text: "update_profile",
+                    multilanguage: true,
+                    textalign: TextAlign.start,
+                    fontsize: Dimens.textTitle,
+                    fontwaight: FontWeight.w700,
+                    maxline: 1,
+                    overflow: TextOverflow.ellipsis,
+                    fontstyle: FontStyle.normal,
+                  ),
+                  const SizedBox(height: 3),
+                  MyText(
+                    color: lightgray,
+                    text: "update_profile_desc",
+                    multilanguage: true,
+                    textalign: TextAlign.start,
+                    fontsize: Dimens.textMedium,
+                    fontwaight: FontWeight.w500,
+                    maxline: 3,
+                    overflow: TextOverflow.ellipsis,
+                    fontstyle: FontStyle.normal,
+                  )
+                ],
+              ),
+            ),
+
+            /* Fullname */
+            const SizedBox(height: 30),
+            if (isNameReq)
+              _buildTextFormField(
+                controller: nameController,
+                hintText: "full_name",
+                inputType: TextInputType.name,
+                readOnly: false,
+              ),
+
+            /* Email */
+            if (isEmailReq)
+              _buildTextFormField(
+                controller: emailController,
+                hintText: "email_address",
+                inputType: TextInputType.emailAddress,
+                readOnly: false,
+              ),
+
+            /* Mobile */
+            if (isMobileReq)
+              _buildTextFormField(
+                controller: mobileController,
+                hintText: "mobile_number",
+                inputType: const TextInputType.numberWithOptions(
+                    signed: false, decimal: false),
+                readOnly: false,
+              ),
+            const SizedBox(height: 5),
+
+            /* Cancel & Update Buttons */
+            Container(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  /* Cancel */
+                  InkWell(
+                    onTap: () {
+                      final profileEditProvider =
+                          Provider.of<UpdateProfileProvider>(context,
+                              listen: false);
+                      if (!profileEditProvider.loadingUpdate) {
+                        Navigator.pop(context, false);
+                      }
+                    },
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 75),
+                      height: 50,
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: lightgray,
+                          width: .5,
+                        ),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: MyText(
+                        color: lightgray,
+                        text: "Cancel",
+                        multilanguage: false,
+                        textalign: TextAlign.center,
+                        fontsize: Dimens.textTitle,
+                        maxline: 1,
+                        overflow: TextOverflow.ellipsis,
+                        fontwaight: FontWeight.w500,
+                        fontstyle: FontStyle.normal,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+
+                  /* Submit */
+                  Consumer<UpdateProfileProvider>(
+                    builder: (context, updateProfileProvider, child) {
+                      if (updateProfileProvider.loadingUpdate) {
+                        return Container(
+                          width: 100,
+                          height: 50,
+                          padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
+                          alignment: Alignment.center,
+                          child: pageLoader(),
+                        );
+                      }
+                      return InkWell(
+                        onTap: () async {
+                          SharedPref sharedPref = SharedPref();
+                          final fullName =
+                              nameController.text.toString().trim();
+                          final emailAddress =
+                              emailController.text.toString().trim();
+                          final mobileNumber =
+                              mobileController.text.toString().trim();
+
+                          printLog(
+                              "fullName =======> $fullName ; required ========> $isNameReq");
+                          printLog(
+                              "emailAddress ===> $emailAddress ; required ====> $isEmailReq");
+                          printLog(
+                              "mobileNumber ===> $mobileNumber ; required ====> $isMobileReq");
+                          if (isNameReq && fullName.isEmpty) {
+                            Utils.showSnackbar(
+                                context, "Enter your name", true);
+                          } else if (isEmailReq && emailAddress.isEmpty) {
+                            showToast("Enter email");
+                          } else if (isMobileReq && mobileNumber.isEmpty) {
+                            Utils.showSnackbar(
+                                context, "Enter mobile number", true);
+                          } else if (isEmailReq &&
+                              !EmailValidator.validate(emailAddress)) {
+                            Utils.showSnackbar(
+                                context, "Enter valid email", true);
+                          } else {
+                            final profileEditProvider =
+                                Provider.of<UpdateProfileProvider>(context,
+                                    listen: false);
+                            profileEditProvider.setUpdateLoading(true);
+
+                            await profileEditProvider.getUpdateDataForPayment(
+                                fullName, emailAddress, mobileNumber);
+                            if (!profileEditProvider.loadingUpdate) {
+                              profileEditProvider.setUpdateLoading(false);
+                              if (profileEditProvider
+                                      .updateprofileModel.status ==
+                                  200) {
+                                if (isNameReq) {
+                                  await sharedPref.save('username', fullName);
+                                }
+                                if (isEmailReq) {
+                                  await sharedPref.save(
+                                      'useremail', emailAddress);
+                                }
+                                if (isMobileReq) {
+                                  await sharedPref.save(
+                                      'usermobile', mobileNumber);
+                                }
+                                if (context.mounted) {
+                                  Navigator.pop(context, true);
+                                }
+                              }
+                            }
+                          }
+                        },
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 75),
+                          height: 50,
+                          padding: const EdgeInsets.only(left: 10, right: 10),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: colorPrimary,
+                            borderRadius: BorderRadius.circular(5),
+                            shape: BoxShape.rectangle,
+                          ),
+                          child: MyText(
+                            color: black,
+                            text: "Submit",
+                            textalign: TextAlign.center,
+                            fontsize: Dimens.textTitle,
+                            multilanguage: false,
+                            maxline: 1,
+                            overflow: TextOverflow.ellipsis,
+                            fontwaight: FontWeight.w700,
+                            fontstyle: FontStyle.normal,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Future<void> initializeOneSignal() async {
+    if (!kIsWeb) {
+      SharedPref sharedPre = SharedPref();
+      String? oneSignalAppId = await sharedPre.read("onesignal_apid");
+      printLog("initializeOneSignal AppId ==> $oneSignalAppId");
+      if (oneSignalAppId != null) {
+        OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+        // Initialize OneSignal
+        OneSignal.initialize(oneSignalAppId);
+        OneSignal.Notifications.requestPermission(true);
+        OneSignal.Notifications.addPermissionObserver((state) {
+          printLog("Has permission ==> $state");
+        });
+        OneSignal.User.pushSubscription.addObserver((state) {
+          printLog(
+              "pushSubscription state ==> ${state.current.jsonRepresentation()}");
+        });
+        OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+          /// preventDefault to not display the notification
+          event.preventDefault();
+          // Do async work
+          /// notification.display() to display after preventing default
+          event.notification.display();
+        });
+      }
+    }
+  }
+
+  static Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String hintText,
+    required TextInputType inputType,
+    required bool readOnly,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 45),
+      margin: const EdgeInsets.only(bottom: 25),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: inputType,
+        textInputAction: TextInputAction.next,
+        obscureText: false,
+        maxLines: 1,
+        readOnly: readOnly,
+        cursorColor: colorAccent,
+        cursorRadius: const Radius.circular(2),
+        decoration: InputDecoration(
+          filled: true,
+          isDense: false,
+          fillColor: transparent,
+          focusedBorder: const GradientOutlineInputBorder(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [colorPrimary, colorPrimary],
+            ),
+            width: 1,
+          ),
+          border: GradientOutlineInputBorder(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colorPrimary.withValues(alpha: 0.5),
+                colorPrimary.withValues(alpha: 0.5)
+              ],
+            ),
+            width: 1,
+          ),
+          label: MyText(
+            multilanguage: true,
+            color: lightgray,
+            text: hintText,
+            textalign: TextAlign.start,
+            fontstyle: FontStyle.normal,
+            fontsize: Dimens.textMedium,
+            fontwaight: FontWeight.w600,
+          ),
+        ),
+        textAlign: TextAlign.start,
+        textAlignVertical: TextAlignVertical.center,
+        style: GoogleFonts.inter(
+          textStyle: const TextStyle(
+            fontSize: 14,
+            color: black,
+            fontWeight: FontWeight.w600,
+            fontStyle: FontStyle.normal,
+          ),
+        ),
+      ),
+    );
+  }
+  /* *********************** Update Required profile data before Payment END */
+
+/* Navigation Animations */
+
+  static void bottomToTopNavigation(
+      BuildContext context, Widget routePage, isPushReplacement) {
+    if (isPushReplacement) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Slide transition from bottom to top
+            const begin = Offset(0.0, 1.0); // Start from the bottom
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Slide transition from bottom to top
+            const begin = Offset(0.0, 1.0); // Start from the bottom
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    }
+  }
+
+  static void rightToLeftNavigation(
+      BuildContext context, Widget routePage, isPushReplacement) {
+    if (isPushReplacement) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0); // Start from the right
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0); // Start from the right
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    }
+  }
+
+  static void leftToRightNavigation(
+      BuildContext context, Widget routePage, isPushReplacement) {
+    if (isPushReplacement) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(-1.0, 0.0); // Start from the left
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => routePage,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(-1.0, 0.0); // Start from the left
+            const end = Offset.zero; // End at the original position
+            const curve = Curves.easeInOut;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            // Apply the animation to the child widget
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 700),
+          reverseTransitionDuration: const Duration(milliseconds: 700),
+        ),
+      );
+    }
+  }
+
+/* Navigation Animations End */
+
+/* Play Audio */
+
+  static Future<void> playAudio(
+    BuildContext context,
+    String type,
+    int isPremium,
+    int isBuy,
+    String imgurl,
+    String title,
+    String songFrom,
+    String audiourl,
+    String albumn,
+    String discription,
+    String audioid,
+    String podcastid,
+    int position,
+    List audioList,
+  ) async {
+    printLog("audiourl ==========> $audiourl");
+    printLog("songFrom ==========> $songFrom");
+    printLog("albumn ============> $albumn");
+    printLog("isPremium =========> $isPremium");
+    printLog("isBuy =============> $isBuy");
+    printLog("audioList =========> ${audioList.length}");
+    if (type == "radio" || type == 'music') {
+      SharedPreferences pref = await SharedPreferences.getInstance();
+
+      String? downloadData = pref.getString(
+        "download_${Constant.userID}_$audioid",
+      );
+      String finalAudioUrl = audiourl;
+      if (downloadData != null) {
+        Map song = jsonDecode(downloadData);
+        finalAudioUrl = song["path"]; // LOCAL FILE PATH
+        printLog("Offline play path ===== $finalAudioUrl");
+      } else {
+        printLog("Online play url ===== $audiourl");
+      }
+      if (isPremium == 1) {
+        if (Constant.userID != null) {
+          if (isBuy == 1) {
+            musicManager.setInitialPlaylist(
+                position, songFrom, albumn, audioList, type);
+            currentlyPlayingIdNotifier.value = audioid;
+            isPlayingNotifier.value = true;
+          } else {
+            if (!context.mounted) return;
+            AdHelper.showFullscreenAd(context, Constant.interstialAdType, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const Subscription(openFrom: '');
+                  },
+                ),
+              );
+            });
+          }
+        } else {
+          if (!context.mounted) return;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const Login();
+              },
+            ),
+          );
+        }
+      } else {
+        if (!context.mounted) return;
+
+        AdHelper.showFullscreenAd(context, Constant.interstialAdType, () {
+          musicManager.setInitialPlaylist(
+              position, songFrom, albumn, audioList, type);
+          currentlyPlayingIdNotifier.value = audioid;
+          isPlayingNotifier.value = true;
+        });
+      }
+    } else {
+      if (isPremium == 1) {
+        if (Constant.userID != null) {
+          if (isBuy == 1) {
+            musicManager.setInitialPodcast(
+                position, audiourl, albumn, audioList, podcastid, type);
+          } else {
+            AdHelper.showFullscreenAd(context, Constant.interstialAdType, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const Subscription(openFrom: '');
+                  },
+                ),
+              );
+            });
+          }
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const Login();
+              },
+            ),
+          );
+        }
+      } else {
+        AdHelper.showFullscreenAd(context, Constant.interstialAdType, () {
+          musicManager.setInitialPodcast(
+            position,
+            songFrom,
+            albumn,
+            audioList,
+            podcastid,
+            type,
+          );
+        });
+      }
+    }
+  }
+
+  static void playOfflineSong(
+    BuildContext context,
+    Map item,
+    List downloads,
+  ) {
+    List offlineList = downloads.map((song) {
+      int audioId = int.tryParse(
+            song["id"]?.toString() ?? "0",
+          ) ??
+          0;
+      return {
+        "id": audioId,
+        "name": song["title"],
+        "artistName": song["artist"],
+        "image": song["image"],
+        "songUrl": song["path"],
+      };
+    }).toList();
+    int position = downloads.indexWhere(
+      (e) => e["id"].toString() == item["id"].toString(),
+    );
+    Utils.playAudio(
+      context,
+      "radio",
+      0,
+      1,
+      item["image"],
+      item["title"],
+      "offline",
+      item["path"],
+      "",
+      item["artist"],
+      item["id"].toString(),
+      "",
+      position < 0 ? 0 : position,
+      offlineList,
+    );
+  }
+
+  static void redirectToSelectPage({required BuildContext context}) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => const Login()));
+  }
+
+  static Future<void> redirectToMainPage(
+      {required BuildContext context}) async {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (BuildContext context) => const Splash()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  static BoxDecoration setBackground(Color color, double radius) {
+    return BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(radius),
+      shape: BoxShape.rectangle,
+    );
+  }
+
+  static Widget showBannerAd(BuildContext context) {
+    if (!kIsWeb) {
+      return Container(
+        constraints: BoxConstraints(
+          minHeight: 0,
+          minWidth: 0,
+          maxWidth: MediaQuery.of(context).size.width,
+        ),
+        child: AdHelper.bannerAd(context),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  static Future<void> loadAds(BuildContext context) async {
+    bool? isPremiumBuy = await Utils.checkPremiumUser();
+    printLog("loadAds isPremiumBuy :==> $isPremiumBuy");
+    if (context.mounted) {
+      AdHelper.getAds(context);
+    }
+    if (!kIsWeb && !isPremiumBuy) {
+      AdHelper.createInterstitialAd();
+      AdHelper.createRewardedAd();
+    }
+  }
+
+  static String dateformat(DateTime date) {
+    String formattedDate = DateFormat('EEE, d MMM').format(date);
+    return formattedDate;
+  }
+
+  static String getFormattedDate(String dateString) {
+    try {
+      // Jo tamari date String format ma hoy to pehla tene DateTime ma convert karo
+      DateTime dateTime = DateTime.parse(dateString);
+
+      // 'dd MMM' format: 09 Nov
+      // 'dd MMMM' format: 09 November
+      return DateFormat('dd MMM').format(dateTime);
+    } catch (e) {
+      return ""; // Jo date parse na thay to khali string return karshe
+    }
+  }
+
+  // FontFamily All app Text
+  static TextStyle googleFontStyle(int inter, double fontsize,
+      FontStyle fontstyle, Color color, FontWeight fontwaight) {
+    if (inter == 1) {
+      return GoogleFonts.poppins(
+          fontSize: fontsize,
+          fontStyle: fontstyle,
+          color: color,
+          fontWeight: fontwaight);
+    } else if (inter == 2) {
+      return GoogleFonts.lobster(
+          fontSize: fontsize,
+          fontStyle: fontstyle,
+          color: color,
+          fontWeight: fontwaight);
+    } else if (inter == 3) {
+      return GoogleFonts.rubik(
+          fontSize: fontsize,
+          fontStyle: fontstyle,
+          color: color,
+          fontWeight: fontwaight);
+    } else {
+      return GoogleFonts.inter(
+          fontSize: fontsize,
+          fontStyle: fontstyle,
+          color: color,
+          fontWeight: fontwaight);
+    }
+  }
+
+  static Future<void> saveUserCreds({
+    required dynamic userID,
+    required dynamic userName,
+    required dynamic userEmail,
+    required dynamic userMobile,
+    required dynamic usercountryname,
+    required dynamic usercountrycode,
+    required dynamic userImage,
+    required dynamic userPremium,
+    required dynamic userType,
+    dynamic userRole,
+  }) async {
+    SharedPref sharedPref = SharedPref();
+    if (userID != null) {
+      await sharedPref.save("userid", userID);
+      await sharedPref.save("username", userName);
+      await sharedPref.save("useremail", userEmail);
+      await sharedPref.save("usermobile", userMobile);
+      await sharedPref.save("usercountryname", usercountryname);
+      await sharedPref.save("usercountrycode", usercountrycode);
+      await sharedPref.save("userimage", userImage);
+      await sharedPref.save("userpremium", userPremium);
+      await sharedPref.save("usertype", userType);
+      await sharedPref.save("userrole", userRole ?? "user");
+    } else {
+      await ApiService().revokeSession();
+      await sharedPref.remove("auth_token");
+      await sharedPref.remove("userid");
+      await sharedPref.remove("username");
+      await sharedPref.remove("userimage");
+      await sharedPref.remove("useremail");
+      await sharedPref.remove("usermobile");
+      await sharedPref.remove("usercountryname");
+      await sharedPref.remove("usercountrycode");
+      await sharedPref.remove("userpremium");
+      await sharedPref.remove("usertype");
+      await sharedPref.remove("userrole");
+    }
+    Constant.userID = await sharedPref.read("userid");
+    Constant.userImage = await sharedPref.read("userimage");
+    Constant.isSubscription = await sharedPref.read("userpremium");
+    Constant.userRole = await sharedPref.read("userrole");
+    // JAILAOI FIX: Notify ThemeProvider so all screens rebuild after login/logout.
+    ThemeProvider.instance.notifyUserStateChanged();
+    printLog('setUserId userID ==> ${Constant.userID}');
+  }
+
+  static Future<bool> checkPremiumUser() async {
+    SharedPref sharedPre = SharedPref();
+    String? isPremiumBuy = await sharedPre.read("userpremium");
+    printLog('checkPremiumUser isPremiumBuy ==> $isPremiumBuy');
+    if (isPremiumBuy != null && isPremiumBuy == "1") {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static void updatePremium(String isPremiumBuy) async {
+    printLog('updatePremium isPremiumBuy ==> $isPremiumBuy');
+    SharedPref sharedPre = SharedPref();
+    await sharedPre.save("userpremium", isPremiumBuy);
+    String? isPremium = await sharedPre.read("userpremium");
+    printLog('updatePremium ===============> $isPremium');
+  }
+
+  static Future<bool> canPlaySong(
+    BuildContext context,
+    int isPremium,
+  ) async {
+    if (isPremium == 1) {
+      bool isUserPremium = await checkPremiumUser();
+
+      if (!context.mounted) return false;
+
+      if (!isUserPremium) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const Subscription(openFrom: ''),
+          ),
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static Future<void> setUserId(dynamic userID) async {
+    SharedPref sharedPref = SharedPref();
+    if (userID != null) {
+      await sharedPref.save("userid", userID);
+    } else {
+      await ApiService().revokeSession();
+      await sharedPref.remove("auth_token");
+      await sharedPref.remove("userid");
+      await sharedPref.remove("username");
+      await sharedPref.remove("userimage");
+      await sharedPref.remove("useremail");
+      await sharedPref.remove("usermobile");
+      await sharedPref.remove("usercountryname");
+      await sharedPref.remove("usercountrycode");
+      await sharedPref.remove("userpremium");
+      await sharedPref.remove("usertype");
+    }
+    Constant.userID = await sharedPref.read("userid");
+    // JAILAOI FIX: Notify ThemeProvider so all screens rebuild after login/logout.
+    ThemeProvider.instance.notifyUserStateChanged();
+    printLog('setUserId userID ==> ${Constant.userID}');
+  }
+
+  static void getCurrencySymbol() async {
+    SharedPref sharedPref = SharedPref();
+    Constant.currencySymbol = await sharedPref.read("currency_code") ?? "";
+    printLog('Constant currencySymbol ==> ${Constant.currencySymbol}');
+    Constant.currency = await sharedPref.read("currency") ?? "";
+    printLog('Constant currency ==> ${Constant.currency}');
+  }
+
+  static AppBar myAppBarWithBack(
+      BuildContext context, String appBarTitle, bool multilanguage) {
+    return AppBar(
+      elevation: 5,
+      backgroundColor: black,
+      centerTitle: true,
+      systemOverlayStyle: const SystemUiOverlayStyle(statusBarColor: black),
+      leading: IconButton(
+        autofocus: true,
+        focusColor: white.withValues(alpha: 0.5),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        icon: MyImage(
+          imagePath: "back1.png",
+          fit: BoxFit.contain,
+          height: 20,
+          width: 20,
+        ),
+      ),
+      title: MyText(
+        text: appBarTitle,
+        multilanguage: multilanguage,
+        fontsize: Dimens.textTitle,
+        fontstyle: FontStyle.normal,
+        fontwaight: FontWeight.w700,
+        textalign: TextAlign.center,
+        color: white,
+      ),
+    );
+  }
+
+  static AppBar myAppBarWithoutBack(
+      BuildContext context, String appBarTitle, bool multilanguage) {
+    return AppBar(
+      elevation: 5,
+      backgroundColor: colorPrimary,
+      centerTitle: true,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: colorPrimary,
+      ),
+      automaticallyImplyLeading: false,
+      title: MyText(
+        text: appBarTitle,
+        multilanguage: multilanguage,
+        fontsize: Dimens.textTitle,
+        fontstyle: FontStyle.normal,
+        fontwaight: FontWeight.w700,
+        textalign: TextAlign.center,
+        color: white,
+      ),
+    );
+  }
+
+  static Widget buildBackBtnDesign(BuildContext context) {
+    return MyImage(
+      height: 30,
+      width: 30,
+      imagePath: "back.png",
+    );
+  }
+
+  static void showToast(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 2,
+        backgroundColor: colorPrimary,
+        textColor: white,
+        fontSize: 14);
+  }
+
+  static Widget myAppbar(
+      BuildContext context, String title, String icon, onBack) {
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.14,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorAccent,
+            colorPrimary,
+          ],
+          end: Alignment.bottomLeft,
+          begin: Alignment.topRight,
+        ),
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(25), bottomRight: Radius.circular(25)),
+      ),
+      child: Column(
+        children: [
+          // Category AppBar With BackButton
+          AppBar(
+            backgroundColor: transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            titleSpacing: 10,
+            leading: InkWell(
+              onTap: onBack,
+              child: MyImage(width: 15, height: 15, imagePath: icon),
+            ),
+            title: MyText(
+                color: white,
+                text: title,
+                textalign: TextAlign.center,
+                fontsize: Dimens.textlargeExtraBig,
+                inter: 1,
+                maxline: 2,
+                fontwaight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+                fontstyle: FontStyle.normal),
+            centerTitle: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget pageLoader() {
+    return const Align(
+      alignment: Alignment.center,
+      child: CircularProgressIndicator(
+        color: brandGreen,
+      ),
+    );
+  }
+
+  static BoxDecoration setBGWithBorder(
+      Color color, Color borderColor, double radius, double border) {
+    return BoxDecoration(
+      color: color,
+      border: Border.all(
+        color: borderColor,
+        width: border,
+      ),
+      borderRadius: BorderRadius.circular(radius),
+      shape: BoxShape.rectangle,
+    );
+  }
+
+  static void showSnackbar(
+      BuildContext context, String message, bool multilanguage) {
+    final snackBar = SnackBar(
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      backgroundColor: Colors.transparent,
+      width: kIsWeb
+          ? ((MediaQuery.of(context).size.width > 1000)
+              ? (MediaQuery.of(context).size.width * 0.3)
+              : (MediaQuery.of(context).size.width))
+          : (MediaQuery.of(context).size.width),
+      content: Container(
+        constraints: const BoxConstraints(minHeight: kIsWeb ? 60 : 50),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: brandGradient(),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        padding: const EdgeInsets.all(kIsWeb ? 15 : 10),
+        child: MyText(
+          text: message,
+          multilanguage: multilanguage,
+          fontstyle: FontStyle.normal,
+          fontsize: Dimens.textMedium,
+          maxline: 5,
+          overflow: TextOverflow.ellipsis,
+          fontwaight: FontWeight.w500,
+          color: white,
+          textalign: TextAlign.center,
+        ),
+      ),
+    );
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
+  }
+
+  // Global Progress Dilog
+  void showProgress(BuildContext context) async {
+    prDialog = ProgressDialog(context);
+    prDialog = ProgressDialog(context,
+        type: ProgressDialogType.normal, isDismissible: false, showLogs: false);
+
+    prDialog!.style(
+      message: Locales.string(context, "pleasewait"),
+      borderRadius: 5,
+      progressWidget: Container(
+        padding: const EdgeInsets.all(8),
+        child: const CircularProgressIndicator(
+          color: brandGreen,
+          backgroundColor: white,
+          strokeWidth: 0.3,
+        ),
+      ),
+      maxProgress: 100,
+      progressTextStyle: const TextStyle(
+        color: black,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+      backgroundColor: white,
+      insetAnimCurve: Curves.easeInOut,
+      messageTextStyle: const TextStyle(
+        color: black,
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+      ),
+    );
+
+    await prDialog!.show();
+  }
+
+  static String millisecondsToProperTime(dynamic value) {
+    if (value == null) return "0 sec";
+
+    int ms = int.tryParse(value.toString()) ?? 0;
+    int totalSeconds = ms ~/ 1000;
+
+    int hours = totalSeconds ~/ 3600;
+    int minutes = (totalSeconds % 3600) ~/ 60;
+    int seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return "$hours hr $minutes min";
+    } else if (minutes > 0) {
+      return "$minutes min $seconds sec";
+    } else {
+      return "$seconds sec";
+    }
+  }
+
+  static String getYearFromDate(String? date) {
+    if (date == null || date.isEmpty) return "";
+    try {
+      DateTime dt = DateTime.parse(date);
+      return dt.year.toString();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  void hideProgress(BuildContext context) async {
+    prDialog = ProgressDialog(context);
+    if (prDialog!.isShowing()) {
+      prDialog!.hide();
+    }
+  }
+
+// KMB Text Generator Method
+  static String kmbGenerator(int num) {
+    if (num > 999 && num < 99999) {
+      return "${(num / 1000).toStringAsFixed(1)} K";
+    } else if (num > 99999 && num < 999999) {
+      return "${(num / 1000).toStringAsFixed(0)} K";
+    } else if (num > 999999 && num < 999999999) {
+      return "${(num / 1000000).toStringAsFixed(1)} M";
+    } else if (num > 999999999) {
+      return "${(num / 1000000000).toStringAsFixed(1)} B";
+    } else {
+      return num.toString();
+    }
+  }
+
+  static Future<void> redirectToUrl(String url) async {
+    printLog("_launchUrl url ===> $url");
+    if (await canLaunchUrl(Uri.parse(url.toString()))) {
+      await launchUrl(
+        Uri.parse(url.toString()),
+        mode: LaunchMode.platformDefault,
+      );
+    } else {
+      throw "Could not launch $url";
+    }
+  }
+
+  static Future<void> redirectToStore() async {
+    final appId =
+        Platform.isAndroid ? Constant.appPackageName : Constant.appleAppId;
+    final url = Uri.parse(
+      Platform.isAndroid
+          ? "market://details?id=$appId"
+          : "https://apps.apple.com/app/id$appId",
+    );
+    printLog("_launchUrl url ===> $url");
+    if (await canLaunchUrl(Uri.parse(url.toString()))) {
+      await launchUrl(
+        Uri.parse(url.toString()),
+        mode: LaunchMode.platformDefault,
+      );
+    } else {
+      throw "Could not launch $url";
+    }
+  }
+
+  static Future<void> shareApp(String shareMessage) async {
+    try {
+      await SharePlus.instance.share(ShareParams(text: shareMessage));
+    } catch (e) {
+      print("shareApp Exception ===> $e");
+    }
+  }
+
+  static void openPlayer({
+    required BuildContext context,
+    required String videoId,
+    required String videoUrl,
+    required String vUploadType,
+    required String videoThumb,
+    required String stoptime,
+    required bool iscontinueWatching,
+  }) async {
+    // 🔥 ANDROID & IOS – Youtube always open in official app
+    if (!kIsWeb && (vUploadType == "youtube" || videoUrl.contains("youtube"))) {
+      final uri = Uri.parse(videoUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+      return;
+    }
+
+    // 🖥 WEB only – keep iframe player
+    if (kIsWeb) {
+      if (!context.mounted) return;
+      if (vUploadType == "youtube") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlayerYoutube(videoId, videoUrl, vUploadType, videoThumb,
+                  stoptime, iscontinueWatching);
+            },
+          ),
+        );
+      } else if (vUploadType == "external") {
+        if (videoUrl.contains('youtube')) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return PlayerYoutube(videoId, videoUrl, vUploadType, videoThumb,
+                    stoptime, iscontinueWatching);
+              },
+            ),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return PlayerVideo(videoId, videoUrl, vUploadType, videoThumb,
+                    stoptime, iscontinueWatching);
+              },
+            ),
+          );
+        }
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlayerVideo(videoId, videoUrl, vUploadType, videoThumb,
+                  stoptime, iscontinueWatching);
+            },
+          ),
+        );
+      }
+    } else {
+      if (vUploadType == "vimeo") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlayerVimeo(videoId, videoUrl, vUploadType, videoThumb);
+            },
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlayerVideo(videoId, videoUrl, vUploadType, videoThumb,
+                  stoptime, iscontinueWatching);
+            },
+          ),
+        );
+      }
+    }
+  }
+
+  /* ***************** generate Unique OrderID START ***************** */
+  static String generateRandomOrderID() {
+    int getRandomNumber;
+    String? finalOID;
+    printLog("fixFourDigit =>>> ${Constant.fixFourDigit}");
+    printLog("fixSixDigit =>>> ${Constant.fixSixDigit}");
+
+    number.Random r = number.Random();
+    int ran5thDigit = r.nextInt(9);
+    printLog("Random ran5thDigit =>>> $ran5thDigit");
+
+    int randomNumber = number.Random().nextInt(9999999);
+    printLog("Random randomNumber =>>> $randomNumber");
+    if (randomNumber < 0) {
+      randomNumber = -randomNumber;
+    }
+    getRandomNumber = randomNumber;
+    printLog("getRandomNumber =>>> $getRandomNumber");
+
+    finalOID = "${Constant.fixFourDigit.toInt()}"
+        "$ran5thDigit"
+        "${Constant.fixSixDigit.toInt()}"
+        "$getRandomNumber";
+    printLog("finalOID =>>> $finalOID");
+
+    return finalOID;
+  }
+  /* ***************** generate Unique OrderID END ***************** */
+
+  static Widget buildLoadMoreBtn({
+    required BuildContext context,
+    required Function() onClick,
+  }) {
+    return Align(
+      alignment: Alignment.center,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(50, 50, 50, 50),
+        child: FittedBox(
+          child: InkWell(
+            onTap: onClick,
+            borderRadius: BorderRadius.circular(5),
+            child: Container(
+              alignment: Alignment.center,
+              height: 45,
+              decoration: BoxDecoration(
+                color: colorPrimary,
+                border: Border.all(
+                  color: colorPrimary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(5),
+                shape: BoxShape.rectangle,
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+              child: MyText(
+                multilanguage: true,
+                text: "moreitem",
+                textalign: TextAlign.center,
+                fontstyle: FontStyle.normal,
+                fontsize: Dimens.textMedium,
+                fontwaight: FontWeight.w500,
+                maxline: 1,
+                overflow: TextOverflow.ellipsis,
+                color: white,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void listenToPlayer() {
+    audioPlayer.playerStateStream.listen((state) {
+      bool isPlaying = state.playing;
+
+      // Update notifier so UI rebuilds
+      isPlayingNotifier.value = isPlaying;
+
+      print("PLAYER_CHANGED ----> $isPlaying");
+
+      if (!isPlaying) {
+        // paused
+        isPlayingNotifier.value = false;
+      } else {
+        // playing
+        isPlayingNotifier.value = true;
+      }
+    });
+  }
+
+/* -------------------------- Offile SOng Play helper Functions -------------------------------- */
+  static Future<void> requestPermissions() async {
+    if (Platform.isAndroid) {
+      // Android 13+ (API 33+) requires POST_NOTIFICATIONS for media
+      // playback foreground service — without it, the app crashes when
+      // just_audio tries to show the notification.
+      final notif = await Permission.notification.request();
+      if (notif.isGranted) {
+        log("POST_NOTIFICATIONS granted");
+      } else {
+        log("POST_NOTIFICATIONS denied — media notification may not show");
+      }
+
+      final audio = await Permission.audio.request();
+      if (audio.isGranted) {
+        log("RECORD_AUDIO granted");
+      }
+
+      final storage = await Permission.manageExternalStorage.request();
+      if (storage.isGranted) {
+        log("Manage External Storage granted");
+      }
+    }
+  }
+}
+
+// class ScreenSecurityService {
+//   static void enableScreenCapture() async {
+//     await ScreenProtector.preventScreenshotOn();
+//     if (Platform.isIOS) {
+//       await ScreenProtector.protectDataLeakageWithBlur();
+//     } else if (Platform.isAndroid) {
+//       await ScreenProtector.protectDataLeakageOn();
+//     }
+//   }
+
+//   static Future<void> allowScreenshot() async {
+//     await ScreenProtector.preventScreenshotOff();
+//     await ScreenProtector.protectDataLeakageOff();
+//   }
+// }

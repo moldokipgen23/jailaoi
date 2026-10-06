@@ -435,6 +435,7 @@ class ArtistController extends Controller
             }
 
             $artist = Artist::where('user_id', $user->id)->first();
+            if (!$artist || $user->role !== 'artist' || (int)$artist->status !== 1) return response()->json(['status'=>403,'message'=>'An approved active artist account is required.'],403);
             if ($artist && $artist->is_suspended) {
                 return response()->json([
                     'status'         => 423,

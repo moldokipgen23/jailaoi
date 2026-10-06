@@ -35,7 +35,7 @@
                 <div class="card custom-border-card text-center">
                     <div class="card-body py-3">
                         <h3 class="mb-0 text-primary">{{ number_format($totalPlays) }}</h3>
-                        <small class="text-muted">Total Plays</small>
+                        <small class="text-muted">Stream Credits (Shown Artists)</small>
                     </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                 <div class="card custom-border-card text-center">
                     <div class="card-body py-3">
                         <h3 class="mb-0 text-success">{{ $currency }} {{ number_format($totalEstimate, 2) }}</h3>
-                        <small class="text-muted">Est. Earnings (All Artists)</small>
+                        <small class="text-muted">{{ $earningsModel === 'pool' ? 'Settled Earnings (Selected Period)' : 'Estimated Earnings (Shown Artists)' }}</small>
                     </div>
                 </div>
             </div>
@@ -51,7 +51,7 @@
                 <div class="card custom-border-card text-center">
                     <div class="card-body py-3">
                         <h3 class="mb-0" style="color:#8b5cf6">{{ $artists->count() }}</h3>
-                        <small class="text-muted">Active Artists</small>
+                        <small class="text-muted">Artists with Credits</small>
                     </div>
                 </div>
             </div>
@@ -68,8 +68,14 @@
         {{-- Rate info --}}
         <div class="alert alert-info d-flex align-items-center mb-4" style="font-size:13px">
             <i class="fa-solid fa-circle-info mr-2"></i>
-            Current payout rate: <strong class="ml-1">{{ $currency }} {{ $rate }} per stream</strong>.
-            Estimated earnings shown for <em>all artists</em> — actual credits only go to approved monetized artists.
+            <div>
+            @if($earningsModel === 'pool')
+                Revenue pool is active. Earnings shown are settled credits from the selected period; there is no guaranteed fixed per-listen rate.
+                <a href="{{ route('admin.earnings.settlement') }}">Review revenue & settlements</a>
+            @else
+                Configured rate: <strong>{{ $currency }} {{ $rate }} per eligible stream credit</strong>. Estimates are not guaranteed payouts for unapproved artists.
+            @endif
+            </div>
         </div>
 
         {{-- Artist table --}}
@@ -86,7 +92,7 @@
                                 <th class="pl-3" style="width:50px">#</th>
                                 <th>Artist</th>
                                 <th class="text-center">Plays</th>
-                                <th class="text-center">Est. Earnings</th>
+                                <th class="text-center">{{ $earningsModel === 'pool' ? 'Settled Earnings' : 'Est. Earnings' }}</th>
                                 <th class="text-center">Monetization</th>
                                 <th class="text-center">Action</th>
                             </tr>
@@ -109,7 +115,7 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        @if($rate > 0)
+                                        @if($earningsModel === 'pool' || $rate > 0)
                                             <span class="{{ $artist['mon_status']==='approved' ? 'text-success font-weight-bold' : 'text-muted' }}">
                                                 {{ $currency }} {{ number_format($artist['est_earnings'], 2) }}
                                             </span>

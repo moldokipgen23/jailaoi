@@ -109,12 +109,15 @@
         </li>
         @endif
         @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.earnings.index'))
-        <li class="side_line {{ request()->routeIs('admin.earnings*') ? 'active' : '' }}">
+        <li class="side_line {{ request()->routeIs('admin.earnings.index') ? 'active' : '' }}">
             <a href="{{ route('admin.earnings.index') }}">
                 <i class="fa-solid fa-chart-line fa-2xl menu-icon"></i>
                 <span>Earnings</span>
             </a>
         </li>
+        @endif
+        @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.earnings.settlement'))
+        <li class="side_line {{ request()->routeIs('admin.earnings.settlement') ? 'active' : '' }}"><a href="{{ route('admin.earnings.settlement') }}"><i class="fa-solid fa-calculator fa-2xl menu-icon"></i><span>Revenue & Settlements</span></a></li>
         @endif
         @if(\App\Http\Middleware\RoleMiddleware::canAccess('admin.artist-analytics.index'))
         <li class="side_line {{ request()->routeIs('admin.artist-analytics*') ? 'active' : '' }}">

@@ -22,6 +22,24 @@ class UserController extends Controller
         $this->common = new Common;
     }
 
+    private function authenticatedResponse(User $user, string $message)
+    {
+        if ($user->status !== 1) {
+            return response()->json(['status' => 403, 'message' => 'This account is disabled.'], 403);
+        }
+        $expiresAt = now()->addDays(30);
+        $response = $this->common->API_Response(200, $message, [$user]);
+        $response['token'] = $user->createToken('listener', ['listener'], $expiresAt)->plainTextToken;
+        $response['token_expires_at'] = $expiresAt->toIso8601String();
+        return $response;
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()?->delete();
+        return response()->json(['status' => 200, 'message' => 'Signed out successfully.']);
+    }
+
     public function register(Request $request)
     {
         try {
@@ -41,7 +59,7 @@ class UserController extends Controller
                         }),
                     ],
                     'country_name' => 'required',
-                    'password' => 'required|min:4',
+                    'password' => 'required|min:8',
                     'gender' => 'required',
                 ],
             );
@@ -84,17 +102,44 @@ class UserController extends Controller
 
                         $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
 
-                        return $this->common->API_Response(200, __('api_msg.register_successfully'), array($user));
+                        return $this->authenticatedResponse($user, __('api_msg.register_successfully'));
                     }
                 }
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 422, 'message' => $e->validator->errors()->first()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::warning('Account API request failed', ['exception' => get_class($e)]);
+            return response()->json(['status' => 500, 'message' => 'Unable to complete this request. Please try again.'], 500);
         }
     }
     public function login(Request $request)
     {
         try {
+
+            $request->validate([
+                'type' => 'required|integer|in:1,2,3,4',
+                'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+                'identity_token' => 'required_if:type,1,2,3|string|max:16384',
+            ]);
+            if (in_array((int) $request->type, [1, 2, 3], true)) {
+                $claims = app(\App\Services\FirebaseIdentityVerifier::class)->verify($request->identity_token);
+                $provider = [1 => 'phone', 2 => 'google.com', 3 => 'apple.com'][(int) $request->type];
+                if (($claims['firebase']['sign_in_provider'] ?? '') !== $provider) {
+                    return response()->json(['status' => 422, 'message' => 'Please verify your sign-in method.'], 422);
+                }
+                if ((int) $request->type === 1) {
+                    $submitted = preg_replace('/\D/', '', $request->country_code . $request->mobile_number);
+                    if ($submitted !== preg_replace('/\D/', '', $claims['phone_number'] ?? '')) {
+                        return response()->json(['status' => 422, 'message' => 'Phone verification does not match.'], 422);
+                    }
+                } else {
+                    if (empty($claims['email']) || ($claims['email_verified'] ?? false) !== true) {
+                        return response()->json(['status' => 422, 'message' => 'A verified email is required.'], 422);
+                    }
+                    $request->merge(['email' => $claims['email']]);
+                }
+            }
 
             if ($request->type == 1) {
 
@@ -159,6 +204,9 @@ class UserController extends Controller
 
                 $user = User::where('mobile_number', $mobile_number)->where('country_code', $country_code)->first();
                 if (isset($user) && $user != null) {
+                    // A phone typed into a password/social profile is not verified account-linking proof.
+                    if ((int)$user->type !== 1) return response()->json(['status'=>403,'message'=>'Please use your original password or social sign-in. Linking phone sign-in requires account verification.'],403);
+                    if ($user->status !== 1) return response()->json(['status' => 403, 'message' => 'This account is disabled.'], 403);
 
                     User::where('id', $user['id'])->update(['device_type' => $device_type]);
                     User::where('id', $user['id'])->update(['device_token' => $device_token]);
@@ -168,7 +216,7 @@ class UserController extends Controller
                     $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
                     $user['is_buy'] = $this->common->is_any_package_buy($user['id']);
 
-                    return $this->common->API_Response(200, __('api_msg.login_successfully'), array($user));
+                    return $this->authenticatedResponse($user, __('api_msg.login_successfully'));
                 } else {
 
                     $insert = [
@@ -195,7 +243,7 @@ class UserController extends Controller
                         $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
                         $user['is_buy'] = $this->common->is_any_package_buy($user['id']);
 
-                        return $this->common->API_Response(200, __('api_msg.login_successfully'), array($user));
+                        return $this->authenticatedResponse($user, __('api_msg.login_successfully'));
                     } else {
                         return $this->common->API_Response(400, __('api_msg.data_not_save'));
                     }
@@ -207,6 +255,7 @@ class UserController extends Controller
 
                 $user = User::where('email', $email)->first();
                 if (isset($user) && $user != null) {
+                    if ($user->status !== 1) return response()->json(['status' => 403, 'message' => 'This account is disabled.'], 403);
 
                     User::where('id', $user['id'])->update(['device_type' => $device_type]);
                     User::where('id', $user['id'])->update(['device_token' => $device_token]);
@@ -216,7 +265,7 @@ class UserController extends Controller
                     $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
                     $user['is_buy'] = $this->common->is_any_package_buy($user['id']);
 
-                    return $this->common->API_Response(200, __('api_msg.login_successfully'), array($user));
+                    return $this->authenticatedResponse($user, __('api_msg.login_successfully'));
                 } else {
 
                     $email_array = explode('@', $request->email);
@@ -249,7 +298,7 @@ class UserController extends Controller
                             $this->common->Send_Mail(3, $user->email, '', '', 0, '', '');
                         }
 
-                        return $this->common->API_Response(200, __('api_msg.login_successfully'), array($user));
+                        return $this->authenticatedResponse($user, __('api_msg.login_successfully'));
                     } else {
                         return $this->common->API_Response(400, __('api_msg.data_not_save'));
                     }
@@ -272,7 +321,7 @@ class UserController extends Controller
                         $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
                         $user['is_buy'] = $this->common->is_any_package_buy($user['id']);
 
-                        return $this->common->API_Response(200, __('api_msg.login_successfully'), array($user));
+                        return $this->authenticatedResponse($user, __('api_msg.login_successfully'));
                     } else {
                         return $this->common->API_Response(400, __('api_msg.email_pass_worng'));
                     }
@@ -280,8 +329,11 @@ class UserController extends Controller
                     return $this->common->API_Response(400, __('api_msg.email_pass_worng'));
                 }
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 422, 'message' => $e->validator->errors()->first()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::warning('Account API request failed', ['exception' => get_class($e)]);
+            return response()->json(['status' => 500, 'message' => 'Unable to complete this request. Please try again.'], 500);
         }
     }
     public function get_profile(Request $request)
@@ -321,8 +373,11 @@ class UserController extends Controller
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 422, 'message' => $e->validator->errors()->first()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::warning('Account API request failed', ['exception' => get_class($e)]);
+            return response()->json(['status' => 500, 'message' => 'Unable to complete this request. Please try again.'], 500);
         }
     }
     public function update_profile(Request $request)
@@ -333,18 +388,32 @@ class UserController extends Controller
                 $request->all(),
                 [
                     'user_id' => 'required|numeric',
+                    'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+                    'password' => 'nullable|string|min:8',
+                    'current_password' => 'required_with:password',
                 ],
             );
             if ($validation->fails()) {
                 return $this->common->API_Response(400, $validation->errors()->first());
             }
 
+            if ($request->filled('password') && !Hash::check($request->current_password, $request->user()->password)) {
+                return response()->json(['status' => 422, 'message' => 'Current password is incorrect.'], 422);
+            }
             $user_id = $request['user_id'];
             $array = array();
 
             $data = User::where('id', $user_id)->first();
             if (!empty($data) && isset($data) && $data != null) {
 
+                // Profile edits cannot change sign-in identifiers without a separate verified change flow.
+                foreach (['email', 'mobile_number', 'country_code'] as $field) {
+                    if ($request->filled($field)) {
+                        $submitted=(string)$request->input($field);$existing=(string)$data->{$field};
+                        $normalize=$field==='email' ? fn($v)=>strtolower(trim($v)) : fn($v)=>preg_replace('/\D/','',$v);
+                        if($normalize($submitted)!==$normalize($existing))return response()->json(['status'=>422,'message'=>'Changing sign-in details requires a separate verification flow.'],422);
+                    }
+                }
                 if (isset($request->user_name) && $request->user_name != '') {
 
                     $check = User::where('user_name', $request->user_name)->first();
@@ -399,6 +468,10 @@ class UserController extends Controller
                 }
 
                 User::where('id', $user_id)->update($array);
+                if ($request->filled('password')) {
+                    $currentId=$request->user()->currentAccessToken()?->id;
+                    $data->tokens()->when($currentId,fn($q)=>$q->where('id','!=',$currentId))->delete();
+                }
 
                 $user = User::where('id', $user_id)->first();
                 $this->common->imageNameToUrl(array($user), 'image', $this->folder_user);
@@ -407,8 +480,11 @@ class UserController extends Controller
             } else {
                 return $this->common->API_Response(400, __('api_msg.data_not_found'));
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 422, 'message' => $e->validator->errors()->first()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::warning('Account API request failed', ['exception' => get_class($e)]);
+            return response()->json(['status' => 500, 'message' => 'Unable to complete this request. Please try again.'], 500);
         }
     }
 }

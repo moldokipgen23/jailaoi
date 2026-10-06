@@ -33,7 +33,8 @@ class OperationsHealth
             $negative=DB::table('tbl_artist')->where('wallet_balance','<',0)->count();
             $checks['finance']=['ok'=>$duplicateGroups===0&&$negative===0,'message'=>$duplicateGroups.' duplicate daily earning groups; '.$negative.' negative balances. Reconcile before affected payouts.'];
         }catch(\Throwable $e){$checks['configuration']=['ok'=>false,'message'=>'Configuration or financial checks could not complete.'];}
-        $checks['api_identity']=['ok'=>false,'message'=>'Mandatory API session verification is pending released-app compatibility verification.'];
+        $identity=(bool)config('services.revenue.identity_enforced',false);
+        $checks['api_identity']=['ok'=>$identity,'message'=>$identity?'Mandatory verified API sessions are active. Released-app sign-in still needs device verification.':'Mandatory API session verification is pending released-app compatibility verification.'];
         return ['checked_at'=>gmdate('c'),'checks'=>$checks,'issue_count'=>count(array_filter($checks,fn($c)=>!$c['ok']))];
     }
     public function save(array $report): void

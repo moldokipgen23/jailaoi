@@ -304,6 +304,7 @@ class ArtistController extends Controller
     public function analytics(Request $request)
     {
         try {
+            $request->validate(['period'=>'nullable|in:7d,30d,90d,1yr,all']);
             $period   = $request->get('period', '30d');
             $currency = General_Setting::where('key', 'payout_currency')->value('value') ?? 'USD';
             $rate     = (float) (General_Setting::where('key', 'payout_rate_per_stream')->value('value') ?? 0);
@@ -351,6 +352,7 @@ class ArtistController extends Controller
             $settledEarningsMap = [];
             if ($earningsModel === 'pool') {
                 $settledEarningsMap = ArtistEarning::whereIn('artist_id', $artistIds)
+                    ->when($since,fn($q)=>$q->where('created_at','>=',$since))
                     ->whereNotNull('settled_month')
                     ->groupBy('artist_id')
                     ->selectRaw('artist_id, SUM(amount) as total')
@@ -383,7 +385,7 @@ class ArtistController extends Controller
 
             return view('admin.artist.analytics', compact(
                 'artists', 'period', 'currency', 'rate',
-                'totalPlays', 'totalEstimate', 'monetizedCount'
+                'totalPlays', 'totalEstimate', 'monetizedCount', 'earningsModel'
             ));
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());

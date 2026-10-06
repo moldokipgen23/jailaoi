@@ -17,7 +17,7 @@ class RevenueController extends Controller {
         $legacy=$historical && !$review;
         if($legacy){
             $net=(float)$historical->platform_cut+(float)$historical->pool_amount;
-            $snapshot=['month'=>$month,'subscription_cents'=>(int)round($historical->total_revenue*100),'subscription_adjustment_cents'=>0,'ad_cents'=>(int)round(($historical->additional_revenue??0)*100),'deduction_cents'=>null,'net_cents'=>(int)round($net*100),'platform_pct'=>$net>0?round(100*$historical->platform_cut/$net,2):0,'platform_cents'=>(int)round($historical->platform_cut*100),'pool_cents'=>(int)round($historical->pool_amount*100),'total_streams'=>(int)$historical->total_streams,'blockers'=>[],'streams'=>[],'allocations'=>[]];
+            $snapshot=['month'=>$month,'subscription_cents'=>(int)round($historical->total_revenue*100),'subscription_adjustment_cents'=>0,'ad_cents'=>(int)round(($historical->additional_revenue??0)*100),'deduction_cents'=>null,'net_cents'=>(int)round($net*100),'platform_pct'=>$net>0?round(100*$historical->platform_cut/$net,2):null,'platform_cents'=>(int)round($historical->platform_cut*100),'pool_cents'=>(int)round($historical->pool_amount*100),'total_streams'=>(int)$historical->total_streams,'blockers'=>[],'streams'=>[],'allocations'=>[]];
         }else $snapshot=$review?json_decode($review->snapshot,true):$service->calculate($month);
         $entries=DB::table('tbl_revenue_entries')->where('month',$month)->orderByDesc('id')->get();
         $names=DB::table('tbl_artist')->whereIn('id',array_keys($snapshot['streams']))->pluck('name','id');

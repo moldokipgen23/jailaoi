@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'authadmin' => \App\Http\Middleware\AuthAdmin::class,
         'checkadmin' => \App\Http\Middleware\checkadmin::class,
         'installation' => \App\Http\Middleware\Installation::class,
+        'api.identity' => \App\Http\Middleware\ApiAuthentication::class,
         'apipurchasecode' => \App\Http\Middleware\ApiPurchaseCode::class,
         'authuser' => \App\Http\Middleware\AuthUser::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
