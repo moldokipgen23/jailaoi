@@ -20,6 +20,16 @@ class AuthUser
             Auth::guard('user')->logout();
             return redirect(route('user.login'));
         }
+        if (\App\Models\Artist::where('user_id', $user->id)->where('is_suspended', 1)->exists()) {
+            Auth::guard('user')->logout();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+            return $request->expectsJson()
+                ? response()->json(['status' => 423, 'message' => 'Artist access is suspended. Please contact support.'], 423)
+                : redirect(route('user.login'))->withErrors(['email' => 'Artist access is suspended. Please contact support.']);
+        }
         $response = $next($request);
         return $response;
     }

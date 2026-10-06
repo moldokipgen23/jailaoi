@@ -14,12 +14,14 @@ class PortalTokenLogin
     {
         $token = $request->query('portal_token');
 
-        if ($token && !Auth::guard('user')->check()) {
+        if (is_string($token) && preg_match('/^[A-Za-z0-9]{48}$/D', $token) && !Auth::guard('user')->check()) {
             $userId = Cache::pull("portal_token:{$token}");
             if ($userId) {
                 $user = User::find($userId);
-                if ($user) {
+                if ($user && $user->role === 'artist' && (int) $user->status === 1
+                    && !\App\Models\Artist::where('user_id', $user->id)->where('is_suspended', 1)->exists()) {
                     Auth::guard('user')->login($user);
+                    if ($request->hasSession()) $request->session()->regenerate();
                 }
             }
         }

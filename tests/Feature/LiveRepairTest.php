@@ -30,7 +30,7 @@ class LiveRepairTest extends TestCase
         Schema::create('tbl_package', function (Blueprint $t) {
             $t->id(); $t->decimal('price',12,2); $t->integer('status')->default(1); $t->integer('time')->default(1); $t->string('type')->default('month'); $t->timestamps();
         });
-        Schema::create('tbl_user', function (Blueprint $t) { $t->id(); $t->integer('status')->default(1); $t->timestamps(); });
+        Schema::create('tbl_user', function (Blueprint $t) { $t->id(); $t->integer('status')->default(1); $t->string('role')->default('user'); $t->timestamps(); });
         Schema::create('tbl_transaction', function (Blueprint $t) {
             $t->id(); $t->integer('user_id'); $t->integer('package_id'); $t->decimal('price',12,2);
             $t->string('description'); $t->string('transaction_id'); $t->string('expiry_date'); $t->integer('status'); $t->timestamps();
@@ -154,5 +154,50 @@ class LiveRepairTest extends TestCase
         $artist=new \App\Models\Artist(['id'=>1,'name'=>'Artist','wallet_balance'=>500]);
         $this->assertArrayNotHasKey('wallet_balance',$artist->toArray());
         $this->assertSame(500.0,$artist->wallet_balance);
+    }
+    private function artistAccessTables(): void
+    {
+        Schema::create('tbl_artist',function(Blueprint $t){$t->id();$t->integer('user_id');$t->integer('is_suspended')->default(0);});
+    }
+    public function test_suspended_artist_existing_web_session_is_blocked(): void
+    {
+        $this->artistAccessTables();
+        $user=\App\Models\User::find(42); $user->update(['role'=>'artist']);
+        DB::table('tbl_artist')->insert(['user_id'=>42,'is_suspended'=>1]);
+        $this->actingAs($user,'user');
+        $request=Request::create('/user/music','GET');$request->headers->set('Accept','application/json');
+        $response=(new \App\Http\Middleware\AuthUser)->handle($request,fn()=>response()->json(['status'=>200]));
+        $this->assertSame(423,$response->getStatusCode());
+        $this->assertFalse(\Illuminate\Support\Facades\Auth::guard('user')->check());
+    }
+    public function test_active_artist_web_session_remains_allowed(): void
+    {
+        $this->artistAccessTables();
+        $user=\App\Models\User::find(42);$user->update(['role'=>'artist']);
+        DB::table('tbl_artist')->insert(['user_id'=>42,'is_suspended'=>0]);
+        $this->actingAs($user,'user');
+        $response=(new \App\Http\Middleware\AuthUser)->handle(Request::create('/user/dashboard','GET'),fn()=>response()->json(['status'=>200]));
+        $this->assertSame(200,$response->getStatusCode());
+    }
+    public function test_suspended_artist_cannot_redeem_cached_portal_token(): void
+    {
+        $this->artistAccessTables();
+        \App\Models\User::find(42)->update(['role'=>'artist']);
+        DB::table('tbl_artist')->insert(['user_id'=>42,'is_suspended'=>1]);
+        $token=str_repeat('a',48);\Illuminate\Support\Facades\Cache::put('portal_token:'.$token,42,300);
+        $request=Request::create('/user/dashboard?portal_token='.$token,'GET');
+        (new \App\Http\Middleware\PortalTokenLogin)->handle($request,fn()=>response()->json([]));
+        $this->assertFalse(\Illuminate\Support\Facades\Auth::guard('user')->check());
+    }
+    public function test_active_artist_portal_token_can_only_be_used_once(): void
+    {
+        $this->artistAccessTables();
+        \App\Models\User::find(42)->update(['role'=>'artist']);
+        DB::table('tbl_artist')->insert(['user_id'=>42,'is_suspended'=>0]);
+        $token=str_repeat('a',48);\Illuminate\Support\Facades\Cache::put('portal_token:'.$token,42,300);
+        $request=Request::create('/user/dashboard?portal_token='.$token,'GET');
+        (new \App\Http\Middleware\PortalTokenLogin)->handle($request,fn()=>response()->json([]));
+        $this->assertSame(42,\Illuminate\Support\Facades\Auth::guard('user')->id());
+        $this->assertNull(\Illuminate\Support\Facades\Cache::get('portal_token:'.$token));
     }
 }
