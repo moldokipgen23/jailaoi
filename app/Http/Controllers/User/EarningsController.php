@@ -31,7 +31,7 @@ class EarningsController extends Controller
                 ? MonetizationApplication::where('artist_id', $artist->id)->where('status', 'approved')->exists()
                 : false;
             $kycApproved = $artist
-                ? ArtistKyc::where('user_id', $user->id)->where('status', 'approved')->exists()
+                ? ArtistKyc::where('user_id', $user->id)->where('artist_id', $artist->id)->latest()->value('status') === 'approved'
                 : false;
 
             $earningsModel = General_Setting::where('key', 'earnings_model')->value('value') ?? 'pool';
@@ -137,7 +137,9 @@ class EarningsController extends Controller
                 'rate'          => $stats['rate'] ?? 0,
             ]);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 
@@ -221,7 +223,7 @@ class EarningsController extends Controller
                 }
 
                 $latestKyc = ArtistKyc::where('user_id', $user->id)->where('artist_id', $artist->id)->latest()->lockForUpdate()->first();
-                if (!$latestKyc || $latestKyc->id !== $approvedPayout->id || $latestKyc->status !== 'approved' || $latestKyc->payment_details !== $approvedPayout->payment_details) {
+                if (!$latestKyc || $latestKyc->id !== $approvedPayout->id || $latestKyc->status !== 'approved' || $latestKyc->payment_method !== $approvedPayout->payment_method || $latestKyc->payment_details !== $approvedPayout->payment_details) {
                     DB::rollBack();
                     return response()->json(['status'=>400, 'errors'=>'Payout details changed. Please refresh and try again.']);
                 }
@@ -246,7 +248,9 @@ class EarningsController extends Controller
                 throw $e;
             }
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 
@@ -257,6 +261,8 @@ class EarningsController extends Controller
             'currency' => $this->setting('payout_currency', 'USD'),
             'rate' => (float) $this->setting('payout_rate_per_stream', 0),
             'min_withdrawal' => (float) $this->setting('min_withdrawal_amount', 200),
+            'min_streams' => (int) $this->setting('min_streams_for_payout', 1000),
+            'min_earned' => (float) $this->setting('min_earnings_for_payout', 200),
             'total_plays' => 0,
             'total_earned' => 0.0,
             'wallet_balance' => 0.0,

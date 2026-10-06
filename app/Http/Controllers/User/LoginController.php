@@ -67,6 +67,7 @@ class LoginController extends Controller
 
             // JAILAOI: user_penal_status=0 means normal/active; 1 means penalized/banned — only allow 0
             if (Auth()->guard('user')->attempt(['email' => $requestData['email'], 'password' => $requestData['password'], 'role' => 'artist', 'user_penal_status' => 0])) {
+                if ($request->hasSession()) $request->session()->regenerate();
                 // Update last login
                 $user = Auth()->guard('user')->user();
                 if ($user) {

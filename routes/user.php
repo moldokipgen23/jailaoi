@@ -31,12 +31,12 @@ Route::group(['middleware' => 'installation'], function () {
 
     // Login-Logout
     Route::get('login', [LoginController::class, 'login'])->name('user.login');
-    Route::post('login', [LoginController::class, 'save_login'])->name('user.save.login');
+    Route::post('login', [LoginController::class, 'save_login'])->name('user.save.login')->middleware('throttle:10,1');
     Route::get('logout', [LoginController::class, 'logout'])->name('user.logout');
 
     // JAILAOI: Public artist registration
     Route::get('register', [RegisterController::class, 'index'])->name('user.register');
-    Route::post('register', [RegisterController::class, 'store'])->name('user.register.store');
+    Route::post('register', [RegisterController::class, 'store'])->name('user.register.store')->middleware('throttle:10,1');
 
     // JAILAOI: Email verification
     Route::get('verify-email', [VerifyController::class, 'index'])->name('user.verify.index');
@@ -45,13 +45,13 @@ Route::group(['middleware' => 'installation'], function () {
 
     // JAILAOI: Password reset
     Route::get('password/forgot', [ForgotPasswordController::class, 'showForgot'])->name('user.password.forgot');
-    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('user.password.email');
+    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('user.password.email')->middleware('throttle:10,1');
     Route::get('password/reset', [ForgotPasswordController::class, 'showReset'])->name('user.password.reset');
-    Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.reset.update');
+    Route::post('password/update', [ForgotPasswordController::class, 'reset'])->name('user.password.reset.update')->middleware('throttle:10,1');
 
     // JAILAOI: Become an artist (outside authuser middleware — non-artists need access)
     Route::get('become-artist', [BecomeArtistController::class, 'index'])->name('user.become.artist');
-    Route::post('become-artist/login', [BecomeArtistController::class, 'login'])->name('user.become.artist.login');
+    Route::post('become-artist/login', [BecomeArtistController::class, 'login'])->name('user.become.artist.login')->middleware('throttle:10,1');
     Route::post('become-artist/apply', [BecomeArtistController::class, 'store'])->name('user.become.artist.store');
 
     Route::group(['middleware' => 'authuser', 'as' => 'user.'], function () {

@@ -67,7 +67,9 @@ class MusicController extends Controller
             }
             return view('user.music.index', $params);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
     public function create()
@@ -78,7 +80,9 @@ class MusicController extends Controller
 
             return view('user.music.add', $params);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
     // Pre-upload audio file immediately on select — returns stored filename.
@@ -102,7 +106,9 @@ class MusicController extends Controller
             \Illuminate\Support\Facades\Cache::put('artist-upload:' . $user['id'] . ':' . hash('sha256', (string) $filename), true, now()->addDay());
             return response()->json(['status' => 200, 'filename' => $filename]);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 
@@ -204,13 +210,15 @@ class MusicController extends Controller
                 return response()->json(['status' => 400, 'errors' => __('label.error_add_music')]);
             }
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
     public function edit($id)
     {
         try {
-            $params['data'] = Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->first();
+            $params['data'] = Content::where('id', $id)->where('content_type', 2)->where('channel_id', User_Data()['channel_id'])->first();
             if ($params['data'] != null) {
 
                 $params['category'] = Category::orderby('sort_order', 'asc')->latest()->get();
@@ -226,7 +234,9 @@ class MusicController extends Controller
                 return redirect()->back()->with('error', __('label.data_not_found'));
             }
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
     public function update(Request $request)
@@ -256,13 +266,18 @@ class MusicController extends Controller
             }
 
             $requestData = $request->only(['id', 'title', 'description', 'lyrics', 'album_id', 'category_id', 'language_id', 'hashtag_id', 'portrait_img', 'landscape_img', 'content_upload_type', 'content_duration', 'content', 'url', 'is_comment', 'is_like', 'is_download', 'is_rent', 'rent_price', 'rent_day', 'old_portrait_img', 'old_landscape_img', 'old_content', 'old_hashtag_id', 'old_portrait_img_storage_type', 'old_landscape_img_storage_type', 'old_content_storage_type', 'old_content_upload_type', 'music']);
-            $ownedContent = Content::where('id', $request->id)->where('channel_id', $user['channel_id'])->first();
+            $ownedContent = Content::where('id', $request->id)->where('content_type', 2)->where('channel_id', $user['channel_id'])->first();
             if (!$ownedContent) {
                 return response()->json(['status' => 404, 'message' => 'Music not found.'], 404);
+            }
+            if ($request->content_upload_type === 'server_video' && $ownedContent->content_upload_type !== 'server_video' && !$request->music) {
+                return response()->json(['status'=>422, 'errors'=>'Please upload an audio file before changing upload type.'], 422);
             }
             if ($request->music && $request->music !== $ownedContent->content && !\Illuminate\Support\Facades\Cache::get('artist-upload:' . $user['id'] . ':' . hash('sha256', (string) $request->music))) {
                 return response()->json(['status'=>422, 'errors'=>'Please upload your audio again. Uploads expire after 24 hours.'], 422);
             }
+            $requestData['content'] = $ownedContent->content;
+            $requestData['music'] = $requestData['music'] ?? '';
             $obsoleteMedia = [];
             foreach (['portrait_img', 'landscape_img', 'content', 'content_upload_type', 'hashtag_id', 'portrait_img_storage_type', 'landscape_img_storage_type', 'content_storage_type'] as $field) {
                 $requestData['old_' . $field] = $ownedContent->$field;
@@ -340,6 +355,8 @@ class MusicController extends Controller
                 return $content;
             });
             foreach ($obsoleteMedia as $media) {
+                // Never delete a file still referenced by the saved track.
+                if (in_array($media[1], [$data->content, $data->portrait_img, $data->landscape_img], true)) continue;
                 try { $this->common->deleteImageToFolder(...$media); }
                 catch (Exception $cleanupError) { Log::warning('Old artist media cleanup failed.'); }
             }
@@ -351,14 +368,16 @@ class MusicController extends Controller
                 return response()->json(['status' => 400, 'errors' => __('label.error_edit_music')]);
             }
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
     public function show($id)
     {
         try {
 
-            $data = Content::where('id', $id)->where('channel_id', User_Data()['channel_id'])->first();
+            $data = Content::where('id', $id)->where('content_type', 2)->where('channel_id', User_Data()['channel_id'])->first();
             if (isset($data)) {
 
                 $old_hashtag = explode(',', $data['hashtag_id']);
@@ -382,7 +401,9 @@ class MusicController extends Controller
             }
             return redirect()->route('user.music.index')->with('success', __('label.music_delete'));
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 
@@ -394,7 +415,7 @@ class MusicController extends Controller
         try {
             $user   = User_Data();
             $artist = Artist::where('user_id', $user['id'])->first();
-            if (!$artist) return; // Not a registered artist — skip
+            if (!$artist) throw new \RuntimeException('Artist profile is required to synchronize music.');
 
             $artistId  = (string) $artist->id;
             $uploadType = (($req['content_upload_type'] ?? '') === 'server_video') ? 1 : 2;

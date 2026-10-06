@@ -92,7 +92,7 @@
                                 </div>
                                 <div style="color:#6b7280;font-size:11px;margin-top:4px;">
                                     @if ($reachedMin)
-                                        <i class="fa-solid fa-check-circle" style="color:#34d399;"></i> You can request a withdrawal!
+                                        <i class="fa-solid fa-check-circle" style="color:#34d399;"></i> Minimum wallet balance reached. Check payout eligibility below.
                                     @else
                                         {{ $stats['currency'] }} {{ number_format(max(0, $min - $avail), 2) }} more needed
                                     @endif
@@ -128,6 +128,13 @@
                                     <a href="{{ route('user.kyc.index') }}" class="btn btn-sm btn-primary mt-1">
                                         Complete KYC &rarr;
                                     </a>
+                                </div>
+                            @elseif ($stats['has_pending_withdrawal'])
+                                <div class="alert alert-info">Your withdrawal is already awaiting review or payment. See its status below.</div>
+                            @elseif ($stats['total_plays'] < $stats['min_streams'] || $stats['total_earned'] < $stats['min_earned'])
+                                <div class="alert alert-info">
+                                    Payout requirements: {{ number_format($stats['min_streams']) }} eligible stream credits and {{ $stats['currency'] }} {{ number_format($stats['min_earned'], 2) }} in settled earnings.
+                                    Your progress: {{ number_format($stats['total_plays']) }} credits and {{ $stats['currency'] }} {{ number_format($stats['total_earned'], 2) }}.
                                 </div>
                             @elseif ($stats['available'] < $stats['min_withdrawal'])
                                 <div class="alert alert-info small">

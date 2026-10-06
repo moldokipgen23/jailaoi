@@ -34,21 +34,23 @@ class PasswordController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'current_password' => 'required',
-                'new_password' => 'required|min:4',
-                'confirm_password' => 'required|min:4|same:new_password',
+                'new_password' => 'required|string|min:8',
+                'confirm_password' => 'required|string|min:8|same:new_password',
             ]);
             if ($validator->fails()) {
                 $errs = $validator->errors()->all();
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
-            $user = User::where('id', $request['id'])->first();
+            $user = auth()->guard('user')->user();
             if (isset($user) && $user != null) {
 
                 if (Hash::check($request['current_password'], $user['password'])) {
 
                     $user['password'] = Hash::make($request['new_password']);
                     if ($user->save()) {
+                        $user->tokens()->delete();
+                        if ($request->hasSession()) $request->session()->regenerate();
                         return response()->json(['status' => 200, 'success' => __('label.password_change_successfully')]);
                     }
                 } else {

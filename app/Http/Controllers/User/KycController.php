@@ -56,7 +56,9 @@ class KycController extends Controller
                 'settings' => $settings,
             ]);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 
@@ -153,7 +155,9 @@ class KycController extends Controller
 
             return response()->json(['status' => 200, 'success' => $msg]);
         } catch (Exception $e) {
-            return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
+            if ($e instanceof \Illuminate\Validation\ValidationException) return response()->json(['status'=>422, 'errors'=>$e->validator->errors()->all()], 422);
+            \Illuminate\Support\Facades\Log::warning('Artist portal operation failed', ['controller'=>static::class, 'exception'=>get_class($e)]);
+            return response()->json(['status'=>500, 'errors'=>'Unable to complete this action. Please try again or contact support.'], 500);
         }
     }
 }
