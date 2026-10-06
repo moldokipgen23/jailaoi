@@ -67,6 +67,8 @@ Route::group(['middleware' => 'installation'], function () {
         Route::post('music/upload-audio', [MusicController::class, 'uploadAudio'])->name('music.upload.audio');
         Route::post('music/import-youtube', [\App\Http\Controllers\User\YouTubeImportController::class, 'preview'])->middleware('throttle:10,1')->name('music.import.youtube');
         Route::post('music/import-youtube-artwork', [\App\Http\Controllers\User\YouTubeImportController::class, 'artwork'])->middleware('throttle:10,1')->name('music.import.youtube.artwork');
+        Route::post('music/import-youtube-audio', [\App\Http\Controllers\User\YouTubeImportController::class, 'startAudio'])->middleware('throttle:3,1')->name('music.import.youtube.audio');
+        Route::get('music/youtube-audio/{id}', [\App\Http\Controllers\User\YouTubeImportController::class, 'audioStatus'])->whereUuid('id')->middleware('throttle:40,1')->name('music.import.youtube.audio.status');
         // Playlist
         Route::resource('playlist', PlaylistController::class)->only(['index', 'store', 'update']);
         Route::get('playlist/content/{id}', [PlaylistController::class, 'pl_index'])->name('playlist.content.index');
@@ -93,8 +95,6 @@ Route::group(['middleware' => 'installation'], function () {
 
             // Music
             Route::resource('music', MusicController::class)->only(['show']);
-            Route::post('music/import-youtube', [\App\Http\Controllers\User\YouTubeImportController::class, 'preview'])->middleware('throttle:10,1')->name('music.import.youtube');
-        Route::post('music/import-youtube-artwork', [\App\Http\Controllers\User\YouTubeImportController::class, 'artwork'])->middleware('throttle:10,1')->name('music.import.youtube.artwork');
         // Playlist
             Route::resource('playlist', PlaylistController::class)->only(['destroy']);
         });

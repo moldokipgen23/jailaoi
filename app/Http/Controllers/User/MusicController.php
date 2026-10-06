@@ -117,6 +117,16 @@ class MusicController extends Controller
         try {
             $user = User_Data();
 
+            $youtubeImport = null;
+            $youtubeImportId = $request->input('youtube_audio_import_id') ?: \Illuminate\Support\Facades\Cache::get('artist-youtube-upload:'.$user['id'].':'.hash('sha256', (string)$request->music));
+            if ($youtubeImportId) {
+                $youtubeImport = \App\Models\YouTubeAudioImport::where('user_id', $user['id'])->find($youtubeImportId);
+                if ($request->content_upload_type !== 'server_video' || !$youtubeImport || $youtubeImport->status !== 'ready' || $youtubeImport->expires_at->isPast() || $youtubeImport->content_id || $youtubeImport->filename !== $request->music || $youtubeImport->storage_driver !== getAudioStorageDriver()) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['music'=>'Imported audio is unavailable or already published. Import again or upload manually.']);
+                }
+                $seconds = $youtubeImport->duration_seconds;
+                $request->merge(['content_duration'=>sprintf('%02d:%02d:%02d', intdiv($seconds,3600), intdiv($seconds%3600,60), $seconds%60)]);
+            }
             $rules = [
                 'title' => 'required',
                 'category_id' => 'required',
@@ -197,9 +207,15 @@ class MusicController extends Controller
             foreach (array_keys($requestData) as $field) {
                 if (str_starts_with($field, 'old_')) unset($requestData[$field]);
             }
-            $data = \Illuminate\Support\Facades\DB::transaction(function () use ($requestData) {
+            $data = \Illuminate\Support\Facades\DB::transaction(function () use ($requestData, $youtubeImport) {
+                $lockedImport = null;
+                if ($youtubeImport) {
+                    $lockedImport = \App\Models\YouTubeAudioImport::whereKey($youtubeImport->id)->lockForUpdate()->first();
+                    if (!$lockedImport || $lockedImport->content_id || $lockedImport->status !== 'ready' || $lockedImport->expires_at->isPast()) throw \Illuminate\Validation\ValidationException::withMessages(['music'=>'This import is unavailable or already published.']);
+                }
                 $content = Content::create($requestData);
                 $this->mirrorToMusic($content, $requestData);
+                if ($lockedImport) $lockedImport->update(['content_id'=>$content->id]);
                 return $content;
             });
             if (isset($data->id)) {

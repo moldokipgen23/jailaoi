@@ -14,7 +14,7 @@ class YouTubeSettingsController extends Controller
     public function index(YouTubeMusicImport $import)
     {
         $this->authorizeAdmin();
-        return view('admin.youtube.index', ['configured'=>$import->apiKey() !== '']);
+        return view('admin.youtube.index', ['configured'=>$import->apiKey() !== '', 'audioSettings'=>app(\App\Services\YouTubeAudioAccess::class)->settings(), 'artists'=>\App\Models\Artist::where('is_suspended',0)->whereNotNull('user_id')->orderBy('name')->get(['user_id','name']), 'audioImports'=>\App\Models\YouTubeAudioImport::orderByDesc('created_at')->limit(25)->get()]);
     }
     public function save(Request $request)
     {
@@ -25,4 +25,12 @@ class YouTubeSettingsController extends Controller
         General_Setting::updateOrCreate(['key'=>'youtube_api_key_encrypted'], ['value'=>Crypt::encryptString($input['api_key'])]);
         return redirect()->route('admin.youtube.index')->with('success','YouTube API key saved securely. Test a video import to verify the configuration.');
     }
+    public function saveAudio(Request $request)
+    {
+        $this->authorizeAdmin();
+        $input = $request->validate(['enabled'=>'nullable|boolean', 'user_ids'=>'nullable|array|max:100', 'user_ids.*'=>'integer|distinct|exists:tbl_artist,user_id']);
+        General_Setting::updateOrCreate(['key'=>'youtube_audio_access'], ['value'=>json_encode(['enabled'=>(bool)($input['enabled'] ?? false), 'user_ids'=>array_map('intval',$input['user_ids'] ?? [])])]);
+        return redirect()->route('admin.youtube.index')->with('success','Experimental audio import access updated. No subscription charges are enabled.');
+    }
+
 }

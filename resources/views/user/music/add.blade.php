@@ -188,7 +188,7 @@
                         <div class="jlw-line" id="jlln1"></div>
                         <div class="jlw-step">
                             <div class="jlw-c" id="jlc2">2</div>
-                            <div class="jlw-l" id="jll2">Upload Audio</div>
+                            <div class="jlw-l" id="jll2">Add Audio</div>
                         </div>
                         <div class="jlw-line" id="jlln2"></div>
                         <div class="jlw-step">
@@ -204,7 +204,7 @@
 
                             <details class="mb-4" style="border:1px solid #2ECC71;border-radius:10px;padding:16px;">
                                 <summary style="cursor:pointer;font-weight:600;">Import from YouTube</summary>
-                                <p class="mt-2">Start with a public YouTube video link to import available release details and preview its thumbnail. Then upload your original audio and artwork.</p>
+                                <p class="mt-2">Start with a public YouTube video link to import available release details and preview its thumbnail. Then import audio if test access is enabled, or upload your original audio. Review the artwork before publishing.</p>
                                 <label for="youtubeImportUrl">YouTube video link</label>
                                 <input type="url" id="youtubeImportUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">
                                 <button type="button" id="youtubeImportButton" class="btn btn-outline-primary mt-2">Import details</button>
@@ -286,7 +286,7 @@
                             <a href="{{ route('user.music.index') }}" class="jlw-bcancel">Cancel</a>
                             <div class="jlw-sp"></div>
                             <button type="button" class="jlw-bnext" onclick="jlNext(1)">
-                                Next: Upload Audio &nbsp;<i class="fa-solid fa-arrow-right"></i>
+                                Next: Add Audio &nbsp;<i class="fa-solid fa-arrow-right"></i>
                             </button>
                         </div>
                     </div>
@@ -294,10 +294,22 @@
                     {{-- ── STEP 2: Upload Audio ────────────────── --}}
                     <div class="jlw-panel" id="jlp2">
                         <div class="card custom-border-card jlw-card">
-                            <div class="jlw-title"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Audio File</div>
+                            <div class="jlw-title"><i class="fa-solid fa-cloud-arrow-up"></i> Add Audio</div>
 
                             {{-- Hidden field stores pre-uploaded filename returned by uploadAudio() --}}
                             <input type="hidden" name="music" id="uploadedFilename">
+                            <input type="hidden" name="youtube_audio_import_id" id="youtubeAudioImportId">
+                            @if(app(\App\Services\YouTubeAudioAccess::class)->allows((int)(User_Data()['id'] ?? 0)))
+                            <div class="mb-4 p-3" style="border:1px solid #2ECC71;border-radius:12px;">
+                                <h2 style="font-size:18px;">Import audio from YouTube <small>Experimental</small></h2>
+                                <label for="youtubeAudioUrl">Your public YouTube video link</label>
+                                <input type="url" id="youtubeAudioUrl" class="form-control" placeholder="Paste your video link">
+                                <label class="mt-2"><input type="checkbox" id="youtubeAudioRights"> I own or have permission to publish this audio on JailaOi.</label>
+                                <p class="small">Up to 15 minutes / 100 MB. 3 attempts per day, 20 per month. YouTube may block downloads; manual upload remains available. No subscription charge during testing.</p>
+                                <button type="button" id="youtubeAudioStart" class="btn btn-primary">Import audio</button>
+                                <p id="youtubeAudioStatus" role="status" aria-live="polite" class="mt-2"></p>
+                            </div>
+                            @endif
 
                             <div id="jlf-audio">
                                 {{-- Idle: drag-drop / click to pick --}}
@@ -502,11 +514,13 @@
                 const result = await response.json();
                 if (!response.ok || result.status !== 200) throw new Error(result.message || 'Could not import this video. Try again or enter details manually.');
                 const data = result.data; youtubeImportedTitle = data.title; youtubeImportedUrl = data.youtube_url;
+                const audioUrl = document.getElementById('youtubeAudioUrl');
+                if (audioUrl && !audioUrl.value) audioUrl.value = data.youtube_url;
                 youtubeImportedDescription = data.description;
                 document.getElementById('youtubeUseDescription').hidden = data.mode !== 'full';
                 const description = document.querySelector('[name="description"]');
                 if (!description.value.trim() && data.description) description.value = data.description;
-                document.getElementById('youtubeImportDuration').textContent = data.duration ? 'YouTube duration: ' + data.duration + '. Your uploaded audio determines the final track duration.' : '';
+                document.getElementById('youtubeImportDuration').textContent = data.duration ? 'YouTube duration: ' + data.duration + '. The final audio file determines the track duration.' : '';
                 document.getElementById('youtubeImportTitle').textContent = data.title;
                 document.getElementById('youtubeImportChannel').textContent = data.channel;
                 document.getElementById('youtubeImportLink').href = data.youtube_url;
@@ -517,7 +531,7 @@
                 const title = document.querySelector('[name="title"]');
                 if (!title.value.trim()) title.value = data.title;
                 preview.hidden = false;
-                status.textContent = data.mode === 'full' ? 'Full details ready. Existing edits were kept. Review them and upload your original audio.' : 'Basic details ready. Description and duration need YouTube API setup by your administrator.';
+                status.textContent = data.mode === 'full' ? 'Details ready. Existing edits were kept. Continue to add audio in step 2.' : 'Basic details ready. Description and duration need YouTube API setup by your administrator.';
             } catch (error) { status.textContent = error.message || 'Import failed. Your music details were kept.'; }
             finally { youtubeImportButton.disabled = false; }
         });
@@ -540,6 +554,72 @@
             } catch (error) { status.textContent = error.message || 'Use the normal artwork upload instead.'; }
             finally { button.disabled = false; }
         });
+
+        const youtubeAudioStart = document.getElementById('youtubeAudioStart');
+        let youtubeAudioBusy = false;
+        const youtubeAudioSessionKey = 'jailaoi-youtube-audio-{{ (int)(User_Data()['id'] ?? 0) }}';
+        const youtubeAudioStatusBase = @json(url('/user/music/youtube-audio'));
+        function youtubeAudioRemember(id) { try { if (id) sessionStorage.setItem(youtubeAudioSessionKey,id); else sessionStorage.removeItem(youtubeAudioSessionKey); } catch (_) {} }
+        function youtubeAudioControls(busy) {
+            youtubeAudioBusy = busy;
+            if (youtubeAudioStart) youtubeAudioStart.disabled = busy;
+            document.getElementById('audioFileInput').disabled = busy;
+            const url = document.getElementById('youtubeAudioUrl'); if (url) url.disabled = busy;
+            document.getElementById('jl-reupload').style.pointerEvents = busy ? 'none' : '';
+        }
+        async function youtubeAudioJson(response) {
+            if (response.status === 401 || response.status === 419) throw new Error('Your session expired. Refresh and sign in again.');
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || Object.values(result.errors || {}).flat().join(' ') || 'Import request failed. Try again later.');
+            return result;
+        }
+        async function youtubeAudioPoll(id) {
+            const status = document.getElementById('youtubeAudioStatus');
+            const labels = {queued:'Waiting for the import worker…',checking:'Checking your video…',downloading:'Downloading audio…',converting:'Preparing audio for playback…',saving:'Saving audio…'};
+            for (let attempt = 0; attempt < 180; attempt++) {
+                let data;
+                try {
+                    const result = await youtubeAudioJson(await fetch(youtubeAudioStatusBase + '/' + encodeURIComponent(id), {headers:{Accept:'application/json'}}));
+                    data = result.data;
+                } catch (error) {
+                    status.textContent = error.message + ' Refresh this page to check the import again.';
+                    youtubeAudioControls(false);
+                    return;
+                }
+                if (data.status === 'ready') {
+                    $('#uploadedFilename').val(data.filename); $('#youtubeAudioImportId').val(data.id);
+                    $('#timePicker').val(data.duration); $('#jl-durval').text(data.duration); $('#jl-dur').show();
+                    $('#jl-drop, #jl-uploading, #jl-aerr').hide();
+                    $('#jl-updone').text(data.title || 'YouTube audio'); $('#jl-uploaded').show();
+                    status.textContent = 'Audio imported. Review your release and continue to artwork.';
+                    if (!$('[name="title"]').val().trim()) $('[name="title"]').val(data.title || '');
+                    youtubeAudioControls(false); return;
+                }
+                if (['failed','expired','published'].includes(data.status)) {
+                    status.textContent = data.message || 'Audio import failed. Upload your original audio or try later.';
+                    youtubeAudioRemember(null); youtubeAudioControls(false); return;
+                }
+                status.textContent = labels[data.phase] || 'Import in progress…';
+                await new Promise(resolve => setTimeout(resolve,5000));
+            }
+            status.textContent = 'Import is taking longer than expected. Refresh to check its status.';
+            youtubeAudioControls(false);
+        }
+        if (youtubeAudioStart) {
+            youtubeAudioStart.addEventListener('click', async function () {
+                const status = document.getElementById('youtubeAudioStatus');
+                if (!document.getElementById('youtubeAudioRights').checked) { status.textContent = 'Confirm your rights to publish this audio first.'; return; }
+                if ($('#jl-uploading').is(':visible')) { status.textContent = 'Wait for your current upload to finish.'; return; }
+                if ($('#uploadedFilename').val() && !confirm('Replace the current audio with a YouTube import if it succeeds?')) return;
+                youtubeAudioControls(true); status.textContent = 'Starting audio import…';
+                try {
+                    const result = await youtubeAudioJson(await fetch(@json(route('user.music.import.youtube.audio')), {method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json','X-CSRF-TOKEN':@json(csrf_token())},body:JSON.stringify({youtube_url:document.getElementById('youtubeAudioUrl').value.trim(),rights_confirmed:true})}));
+                    youtubeAudioRemember(result.data.id); await youtubeAudioPoll(result.data.id);
+                } catch (error) { status.textContent = error.message || 'Unable to start audio import.'; youtubeAudioControls(false); }
+            });
+            let savedId = null; try { savedId = sessionStorage.getItem(youtubeAudioSessionKey); } catch (_) {}
+            if (savedId && /^[a-f0-9-]{36}$/i.test(savedId)) { youtubeAudioControls(true); youtubeAudioPoll(savedId); }
+        }
 
         // ── Init ────────────────────────────────────────────────
         $('#category_id').select2();
@@ -569,7 +649,10 @@
 
             // Audio selected → auto-upload immediately
             $('#audioFileInput').on('change', function(){
+                if (youtubeAudioBusy) return;
                 var f = this.files[0]; if(!f) return;
+                $('#youtubeAudioImportId').val('');
+                youtubeAudioRemember(null);
                 jlDetectDur(f);
                 jlStartUpload(f);
             });
@@ -580,6 +663,8 @@
                 $('#jl-uploaded').hide();
                 $('#jl-drop').show();
                 $('#uploadedFilename').val('');
+                $('#youtubeAudioImportId').val('');
+                youtubeAudioRemember(null);
                 document.getElementById('audioFileInput').value = '';
             });
 
@@ -695,7 +780,7 @@
                 var uploaded = $('#uploadedFilename').val();
                 var uploading = $('#jl-uploading').is(':visible');
                 var aerr = document.getElementById('jl-aerr');
-                if(uploading){
+                if(uploading || youtubeAudioBusy){
                     toastr.warning('Please wait for upload to finish');
                     ok = false;
                 } else if(!uploaded){
@@ -741,6 +826,7 @@
 
         // ── Save (original logic + XHR upload progress) ─────────
         function save_music(){
+            if (youtubeAudioBusy || !jlValidate(2)) return;
             var Check_Admin = '<?php echo Demo_Mode(); ?>';
             if(Check_Admin == 1){
                 $('#jl-pubnav').hide();
@@ -762,6 +848,7 @@
                     },
                     success:function(resp){
                         $('#jl-saving').hide();
+                        if (resp.status === 200) youtubeAudioRemember(null);
                         get_responce_message(resp, 'music', '{{ route("user.music.index") }}');
                     },
                     error:function(xhr, textStatus, errorThrown){

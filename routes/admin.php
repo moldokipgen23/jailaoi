@@ -85,6 +85,7 @@ Route::group(['middleware' => 'installation'], function () {
 
         Route::get('youtube-import', [\App\Http\Controllers\Admin\YouTubeSettingsController::class, 'index'])->name('admin.youtube.index');
         Route::post('youtube-import', [\App\Http\Controllers\Admin\YouTubeSettingsController::class, 'save'])->middleware('throttle:5,1')->name('admin.youtube.save');
+        Route::post('youtube-import/audio-access', [\App\Http\Controllers\Admin\YouTubeSettingsController::class, 'saveAudio'])->middleware('throttle:5,1')->name('admin.youtube.audio.save');
         Route::get('operations/health', [\App\Http\Controllers\Admin\OperationsController::class, 'index'])->name('admin.operations.health');
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');

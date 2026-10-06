@@ -1,0 +1,27 @@
+[Unit]
+Description=JailaOi experimental YouTube audio import worker
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jailaoi-portal
+Group=jailaoi-portal
+WorkingDirectory=/home/jailaoi-portal/htdocs/portal.jailaoi.com
+ExecStart=/usr/bin/php8.4 artisan queue:work youtube_audio --queue=youtube-audio --sleep=3 --tries=1 --timeout=600 --memory=256 --max-jobs=1 --max-time=300
+Restart=always
+RestartSec=3
+TimeoutStopSec=650
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/jailaoi-portal/htdocs/portal.jailaoi.com/storage /home/jailaoi-portal/htdocs/portal.jailaoi.com/bootstrap/cache
+UMask=0077
+MemoryMax=512M
+CPUQuota=50%
+Nice=10
+LimitFSIZE=125829120
+
+[Install]
+WantedBy=multi-user.target

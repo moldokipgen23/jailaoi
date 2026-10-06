@@ -30,6 +30,14 @@ return [
 
     'connections' => [
 
+        'youtube_audio' => [
+            'driver' => 'database',
+            'table' => 'jobs',
+            'queue' => 'youtube-audio',
+            'retry_after' => 720,
+            'after_commit' => true,
+        ],
+
         'sync' => [
             'driver' => 'sync',
         ],

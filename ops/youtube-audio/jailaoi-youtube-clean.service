@@ -1,0 +1,12 @@
+[Unit]
+Description=Expire stalled JailaOi YouTube audio imports
+
+[Service]
+Type=oneshot
+User=jailaoi-portal
+Group=jailaoi-portal
+WorkingDirectory=/home/jailaoi-portal/htdocs/portal.jailaoi.com
+ExecStart=/usr/bin/php8.4 artisan youtube:clean-imports
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077

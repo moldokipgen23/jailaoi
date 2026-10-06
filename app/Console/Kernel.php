@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('youtube:clean-imports')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('jailaoi:backup-db')->dailyAt('02:00')->timezone('Asia/Kolkata')->withoutOverlapping();
         $schedule->command('jailaoi:health-check')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('app:update-summary')->weeklyOn(1, '00:00')->withoutOverlapping()->then(function () {
