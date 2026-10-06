@@ -196,7 +196,7 @@ Route::group(['middleware' => 'installation'], function () {
         Route::get('earnings', [WithdrawalController::class, 'earningsOverview'])->name('admin.earnings.index');
         Route::get('artist-analytics', [ArtistController::class, 'analytics'])->name('admin.artist-analytics.index');
         // JAILAOI: Revenue Pool Settlement
-        Route::get('earnings/settlement', [ArtistController::class, 'settleIndex'])->name('admin.earnings.settlement');
+        Route::get('earnings/settlement', [\App\Http\Controllers\Admin\RevenueController::class, 'index'])->name('admin.earnings.settlement');
 
         // JAILAOI: Support Tickets
         Route::get('support-tickets', [SupportTicketController::class, 'index'])->name('admin.support-tickets.index');
@@ -274,7 +274,9 @@ Route::group(['middleware' => 'installation'], function () {
             Route::post('withdrawals/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
             Route::post('withdrawals/mark-paid', [WithdrawalController::class, 'markPaid'])->name('admin.withdrawals.mark-paid');
             // JAILAOI: Revenue Pool Settlement
-            Route::post('earnings/settlement/run', [ArtistController::class, 'runSettlement'])->name('admin.earnings.run-settlement');
+            Route::post('earnings/settlement/run', [\App\Http\Controllers\Admin\RevenueController::class, 'prepare'])->name('admin.earnings.run-settlement');
+            Route::post('earnings/settlement/approve', [\App\Http\Controllers\Admin\RevenueController::class, 'approve'])->name('admin.earnings.approve-settlement');
+            Route::post('earnings/settlement/entry', [\App\Http\Controllers\Admin\RevenueController::class, 'entry'])->name('admin.earnings.revenue-entry');
             // JAILAOI: Play Errors
             Route::get('play-errors', [PlayErrorController::class, 'index'])->name('admin.play-errors');
         });

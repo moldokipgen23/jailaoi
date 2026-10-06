@@ -126,22 +126,16 @@ class LiveRepairTest extends TestCase
     }
     public function test_settlement_preview_includes_paid_purchases_that_are_no_longer_active(): void
     {
-        Schema::create('tbl_earnings_settlements',function(Blueprint $t){$t->id();$t->string('month');});
-        Schema::create('tbl_artist_earnings',function(Blueprint $t){$t->id();$t->integer('artist_id');$t->string('settled_month')->nullable();$t->timestamps();});
-        Schema::create('tbl_monetization_applications',function(Blueprint $t){$t->id();$t->integer('artist_id');$t->string('status');});
+        RevenueMachineTest::tables();
         DB::table('tbl_transaction')->insert(['user_id'=>42,'package_id'=>7,'price'=>99,'description'=>'cashfree','transaction_id'=>'paid_previous','expiry_date'=>'2026-10-01','status'=>0,'created_at'=>'2026-09-15']);
+        DB::table('tbl_cashfree_orders')->insert(['order_id'=>'paid_previous','user_id'=>42,'package_id'=>7,'amount'=>99,'status'=>'paid']);
         $this->artisan('earnings:settle',['--month'=>'2026-09','--pretend'=>true])->expectsOutput('  Subscription revenue:          99')->assertSuccessful();
     }
-    public function test_forced_settlement_preview_counts_previously_settled_plays(): void
+    public function test_forced_settlement_cannot_overwrite_historical_credits(): void
     {
-        Schema::create('tbl_earnings_settlements',function(Blueprint $t){$t->id();$t->string('month');});
-        Schema::create('tbl_artist_earnings',function(Blueprint $t){$t->id();$t->integer('artist_id');$t->string('settled_month')->nullable();$t->timestamps();});
-        Schema::create('tbl_monetization_applications',function(Blueprint $t){$t->id();$t->integer('artist_id');$t->string('status');});
-        DB::table('tbl_earnings_settlements')->insert(['month'=>'2026-09']);
-        DB::table('tbl_monetization_applications')->insert(['artist_id'=>1,'status'=>'approved']);
-        DB::table('tbl_artist_earnings')->insert(['artist_id'=>1,'settled_month'=>'2026-09','created_at'=>'2026-09-15']);
-        $this->artisan('earnings:settle',['--month'=>'2026-09','--pretend'=>true,'--force'=>true])->expectsOutput('  Eligible streams (approved):    1')->assertSuccessful();
+        $this->artisan('earnings:settle',['--month'=>'2026-09','--force'=>true])->assertFailed();
     }
+
     public function test_unknown_content_types_are_rejected_without_database_queries(): void
     {
         foreach (['get_content_by_artist','get_related_data','search_content','get_favorite_list','get_comment'] as $method) {

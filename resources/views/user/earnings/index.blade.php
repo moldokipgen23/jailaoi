@@ -17,55 +17,7 @@
                 </div>
             @endif
 
-            {{-- ========== HOW YOU EARN INFO BOX ========== --}}
-            <div class="card mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #6c63ff33;">
-                <div class="card-body">
-                    <h5 class="mb-3" style="color:#a78bfa; font-weight:700;">
-                        <i class="fa-solid fa-circle-info me-2"></i> How You Earn on JailaOi
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-start">
-                                <div style="width:36px;height:36px;border-radius:50%;background:#6c63ff22;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;">
-                                    <i class="fa-solid fa-play" style="color:#a78bfa;font-size:14px;"></i>
-                                </div>
-                                <div>
-                                    <div style="color:#fff;font-weight:600;font-size:14px;">Per Stream Earnings</div>
-                                    <div style="color:#aaa;font-size:13px;">You earn <strong style="color:#a78bfa;">{{ $stats['currency'] }} {{ number_format($stats['rate'], 4) }}</strong> for every unique play of your tracks.</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-start">
-                                <div style="width:36px;height:36px;border-radius:50%;background:#06b6d422;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;">
-                                    <i class="fa-solid fa-users" style="color:#22d3ee;font-size:14px;"></i>
-                                </div>
-                                <div>
-                                    <div style="color:#fff;font-weight:600;font-size:14px;">Unique Listener Counts</div>
-                                    <div style="color:#aaa;font-size:13px;">Each listener counts once per song — grow your fan base to increase earnings.</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-start">
-                                <div style="width:36px;height:36px;border-radius:50%;background:#10b98122;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;">
-                                    <i class="fa-solid fa-wallet" style="color:#34d399;font-size:14px;"></i>
-                                </div>
-                                <div>
-                                    <div style="color:#fff;font-weight:600;font-size:14px;">Minimum Payout</div>
-                                    <div style="color:#aaa;font-size:13px;">Request a withdrawal once your balance reaches <strong style="color:#34d399;">{{ $stats['currency'] }} {{ number_format($stats['min_withdrawal'], 2) }}</strong>.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <hr style="border-color:#ffffff15;margin:4px 0 12px;">
-                    <div style="color:#aaa;font-size:12px;">
-                        <i class="fa-solid fa-shield-halved me-1" style="color:#a78bfa;"></i>
-                        Earnings are credited automatically. Withdrawal requests are reviewed within 3–5 business days.
-                        Payouts are sent via your chosen payment method after admin approval.
-                    </div>
-                </div>
-            </div>
+            @include('user.earnings.revenue-overview')
 
             {{-- ========== STAT CARDS ========== --}}
             <div class="row stat-card-row mb-4">

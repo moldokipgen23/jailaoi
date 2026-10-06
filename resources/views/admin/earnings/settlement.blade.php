@@ -1,186 +1,39 @@
 @extends('admin.layout.page-app')
-@section('page_title', 'Revenue Pool Settlement')
-@section('tab_title', 'Settlement')
-
+@section('page_title', 'Revenue & artist payouts')
+@section('tab_title', 'Revenue')
 @section('content')
-    @include('admin.layout.sidebar')
-
-    <div class="right-content">
-        @include('admin.layout.header')
-
-        <div class="body-content">
-            <h1 class="page-title-sm">Revenue Pool Settlement</h1>
-
-            <div class="border-bottom row mb-3">
-                <div class="col-sm-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Revenue Pool Settlement</li>
-                    </ol>
-                </div>
-            </div>
-
-            @if(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
-            {{-- Current Model Status --}}
-            <div class="card custom-border-card mb-4">
-                <h5 class="card-header">Earnings Model</h5>
-                <div class="card-body">
-                    @if($model === 'pool')
-                        <span class="badge badge-success" style="font-size:14px;padding:6px 14px;">Revenue Pool (55% to Artists)</span>
-                        <p class="mt-2 mb-0 text-muted">
-                            Artists earn 55% of monthly subscription revenue, distributed proportionally by stream share.
-                            Settlements run automatically on the 5th of each month.
-                        </p>
-                    @else
-                        <span class="badge badge-warning" style="font-size:14px;padding:6px 14px;">Per Stream (Fixed Rate)</span>
-                        <p class="mt-2 mb-0 text-muted">
-                            Artists earn a fixed rate per stream. Change to Pool mode in
-                            <a href="{{ route('setting') }}#payout-settings">Settings → Artist Payout Settings</a>.
-                        </p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Current Month (unsettled) --}}
-            <div class="card custom-border-card mb-4">
-                <h5 class="card-header">Current Month ({{ now()->format('F Y') }})</h5>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="stat-card">
-                                <h3 class="text-info">{{ number_format($unsettledPlays) }}</h3>
-                                <p class="text-muted mb-0">Unsettled Plays</p>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <p class="text-muted mb-0 mt-2">
-                                <i class="fa-solid fa-info-circle"></i>
-                                Current month plays are recorded in real-time.
-                                Earnings for this month will be calculated and distributed on the
-                                5th of next month via automated settlement.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Previous Month Settlement Action --}}
-            <div class="card custom-border-card mb-4">
-                <h5 class="card-header">Settle Previous Month ({{ $prevMonth }})</h5>
-                <div class="card-body">
-                    @if($alreadySettled)
-                        <div class="alert alert-success py-2">
-                            <i class="fa-solid fa-check-circle"></i>
-                            {{ $prevMonth }} has already been settled.
-                            <a href="{{ route('admin.earnings.settlement') }}" class="ml-2">Refresh</a>
-                        </div>
-                    @else
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <h3 class="text-primary">{{ number_format($prevMonthPlays) }}</h3>
-                                    <p class="text-muted mb-0">Eligible Streams</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <h3 class="text-success">₹{{ number_format($prevMonthRevenue, 2) }}</h3>
-                                    <p class="text-muted mb-0">Subscription Revenue</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <h3 class="text-warning">₹{{ number_format($prevMonthRevenue * 0.55, 2) }}</h3>
-                                    <p class="text-muted mb-0">Est. Artist Pool (55%)</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn btn-success" onclick="runSettlement('{{ $prevMonth }}')">
-                            <i class="fa-solid fa-calculator"></i> Run Settlement for {{ $prevMonth }}
-                        </button>
-                        <small class="text-muted d-block mt-2">
-                            <i class="fa-solid fa-info-circle"></i>
-                            This distributes 55% of {{ $prevMonth }} subscription revenue among approved artists
-                            based on their share of total streams.
-                        </small>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Past Settlements --}}
-            <div class="card custom-border-card">
-                <h5 class="card-header">Settlement History</h5>
-                <div class="card-body">
-                    @if($settlements->isEmpty())
-                        <p class="text-muted">No settlements have been run yet.</p>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Month</th>
-                                        <th>Revenue</th>
-                                        <th>Platform Cut (45%)</th>
-                                        <th>Artist Pool (55%)</th>
-                                        <th>Total Streams</th>
-                                        <th>Rate/Stream</th>
-                                        <th>Settled At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($settlements as $s)
-                                        <tr>
-                                            <td><strong>{{ $s->month }}</strong></td>
-                                            <td>₹{{ number_format($s->total_revenue, 2) }}</td>
-                                            <td>₹{{ number_format($s->platform_cut, 2) }}</td>
-                                            <td>₹{{ number_format($s->pool_amount, 2) }}</td>
-                                            <td>{{ number_format($s->total_streams) }}</td>
-                                            <td>₹{{ number_format($s->rate_per_stream, 4) }}</td>
-                                            <td>{{ $s->settled_at ? date('d M Y', strtotime($s->settled_at)) : '-' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    function runSettlement(month) {
-        if (!confirm('Run settlement for ' + month + '? This will distribute artist earnings and cannot be undone.')) {
-            return;
-        }
-
-        $('#dvloader').show();
-        $.ajax({
-            type: 'POST',
-            url: '{{ route("admin.earnings.run-settlement") }}',
-            data: {
-                _token: '{{ csrf_token() }}',
-                month: month
-            },
-            success: function(resp) {
-                $('#dvloader').hide();
-                if (resp.status === 200) {
-                    toastr.success('Settlement completed successfully!');
-                    setTimeout(function() { location.reload(); }, 1500);
-                } else {
-                    toastr.error('Settlement failed: ' + (resp.errors || 'Unknown error'));
-                    if (resp.output) console.log(resp.output);
-                }
-            },
-            error: function(xhr) {
-                $('#dvloader').hide();
-                toastr.error('Request failed: ' + xhr.statusText);
-            }
-        });
-    }
-    </script>
+@include('admin.layout.sidebar')
+<div class="right-content">@include('admin.layout.header')
+<div class="body-content">
+<style>
+.revenue-hero{background:linear-gradient(120deg,#123329,#14304a);color:#fff;padding:24px;border-radius:16px;margin-bottom:24px}.revenue-hero p{color:#e0eee9;margin:8px 0 0}.revenue-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}.revenue-metric{background:#fff;border:1px solid #ddd;border-radius:12px;padding:18px;color:#172a24}.revenue-metric small{display:block;color:#52655d}.revenue-metric strong{font-size:24px;display:block;margin-top:8px}.revenue-section{background:#fff;border:1px solid #ddd;border-radius:14px;padding:20px;margin-bottom:20px;color:#172a24}.revenue-section label{font-weight:600}.revenue-section h2{font-size:20px}.revenue-section .form-control{border:1px solid #859b91}.revenue-status{font-weight:700}.revenue-help{color:#52655d;font-size:14px}.revenue-section table{color:#172a24}.revenue-section caption{caption-side:top;color:#52655d}.revenue-section button:focus,.revenue-section input:focus,.revenue-section select:focus{outline:3px solid #3498db;outline-offset:2px}
+</style>
+<div class="revenue-hero"><h1 style="font-size:26px;color:inherit;margin:0">Revenue & artist payouts</h1><p>Confirm revenue, review artist shares, then approve one settlement. No wallet credit happens during calculation.</p></div>
+@foreach(['error'=>'danger','success'=>'success'] as $key=>$type) @if(session($key))<div class="alert alert-{{ $type }}" role="status">{{ session($key) }}</div>@endif @endforeach
+@if($errors->any())<div class="alert alert-danger" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+<div class="revenue-section">
+<form method="get" action="{{ route('admin.earnings.settlement') }}" class="d-flex flex-wrap align-items-end" style="gap:12px"><div><label for="revenue-month">Statement month</label><input id="revenue-month" type="month" name="month" value="{{ $month }}" max="{{ now()->subMonthNoOverflow()->format('Y-m') }}" class="form-control" required></div><button class="btn btn-outline-primary">View month</button><span class="revenue-status">{{ $review?->status === 'settled' ? 'Settled' : ($review ? 'Awaiting review' : 'Not prepared') }}</span></form>
+<p class="revenue-help mt-3 mb-0">INR · Monthly revenue pool · {{ 100 - $snapshot['platform_pct'] }}% artists / {{ $snapshot['platform_pct'] }}% platform. This period uses UTC transaction and stream timestamps.</p>
+</div>
+<div class="revenue-grid">
+@foreach(['Subscription revenue'=>$snapshot['subscription_cents']+$snapshot['subscription_adjustment_cents'],'Confirmed ad income'=>$snapshot['ad_cents'],'Refunds, fees & taxes'=>$snapshot['deduction_cents'],'Net revenue'=>$snapshot['net_cents'],'Artist pool'=>$snapshot['pool_cents'],'Platform share'=>$snapshot['platform_cents']] as $label=>$cents)<div class="revenue-metric"><small>{{ $label }}</small><strong>₹{{ number_format($cents/100,2) }}</strong></div>@endforeach
+</div>
+<div class="revenue-section"><h2>1. Reconcile revenue</h2><p class="revenue-help">Cashfree paid orders and recorded recurring charges are matched to subscription records. Confirm provider totals and refunds before approval. Subscription expiry does not remove a paid purchase from revenue. Ad income is entered from a provider statement, never estimated from clicks.</p>
+@if(!empty($snapshot['unmatched_payments']))<div class="table-responsive"><table class="table"><caption>Payments requiring provider reconciliation. Do not add a duplicate payment as new revenue.</caption><thead><tr><th>Record reference</th><th>Recorded amount</th><th>Recorded provider</th></tr></thead><tbody>@foreach($snapshot['unmatched_payments'] as $payment)<tr><td>transaction:{{ $payment['id'] }}</td><td>₹{{ $payment['amount'] }}</td><td>{{ $payment['provider'] }}</td></tr>@endforeach</tbody></table></div>@endif
+@if($snapshot['blockers'])<div class="alert alert-warning" role="alert"><strong>Approval blocked</strong><ul class="mb-0">@foreach($snapshot['blockers'] as $blocker)<li>{{ $blocker }}</li>@endforeach</ul></div>@endif
+@if(auth('admin')->user()?->role === 'super_admin' && $review?->status !== 'settled' && ! $settlements->contains('month',$month))
+<form method="post" action="{{ route('admin.earnings.revenue-entry') }}">@csrf<input type="hidden" name="month" value="{{ $month }}">
+<div class="row"><div class="col-md-3 mb-3"><label for="entry-kind">Entry type</label><select id="entry-kind" name="kind" class="form-control"><option value="ad_income">Confirmed ad income</option><option value="subscription_income">Reconciled subscription income</option><option value="refund">Refund deduction</option><option value="payment_fee">Payment fee deduction</option><option value="tax">Tax deduction</option></select></div><div class="col-md-3 mb-3"><label for="entry-amount">Amount (INR)</label><input id="entry-amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99" class="form-control" required></div><div class="col-md-6 mb-3"><label for="entry-reference">Unique statement reference</label><input id="entry-reference" name="reference" maxlength="190" class="form-control" required aria-describedby="reference-help"><small id="reference-help">For an unmatched payment, use transaction:ID and its exact amount. Confirm it was collected before adding it.</small></div></div>
+<label for="entry-note">Reconciliation notes</label><textarea id="entry-note" name="note" minlength="10" maxlength="2000" class="form-control mb-3" required></textarea>
+<label class="d-block"><input type="checkbox" name="confirmed" value="1" required> I checked this amount against the provider or accounting statement, in INR.</label><button class="btn btn-outline-primary mt-2">Record confirmed entry</button>
+</form>@endif
+@if($entries->isNotEmpty())<div class="table-responsive mt-3"><table class="table"><caption>Recorded adjustments are retained for audit.</caption><thead><tr><th>Type</th><th>Amount</th><th>Reference</th><th>Notes</th></tr></thead><tbody>@foreach($entries as $entry)<tr><td>{{ str_replace('_',' ',$entry->kind) }}</td><td>₹{{ number_format($entry->amount_cents/100,2) }}</td><td>{{ $entry->reference }}</td><td>{{ $entry->note }}</td></tr>@endforeach</tbody></table></div>@endif
+</div>
+<div class="revenue-section"><h2>2. Review artist shares</h2><p class="revenue-help">{{ number_format($snapshot['total_streams']) }} eligible artist stream credits. Credits can differ from public play counts. Collaborative tracks create a credit for each eligible artist. Artist allocations are rounded to paise and add up exactly to the pool.</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Artist</th><th>Eligible credits</th><th>Pool share</th><th>Wallet credit</th></tr></thead><tbody>@forelse($snapshot['streams'] as $id=>$count)<tr><td>{{ $names[$id] ?? 'Artist '.$id }}</td><td>{{ number_format($count) }}</td><td>{{ number_format($snapshot['total_streams'] ? 100*$count/$snapshot['total_streams'] : 0,2) }}%</td><td>₹{{ number_format(($snapshot['allocations'][$id]??0)/100,2) }}</td></tr>@empty<tr><td colspan="4">No eligible artists for this month. No funds will be distributed.</td></tr>@endforelse</tbody></table></div>
+@if(auth('admin')->user()?->role === 'super_admin' && $review?->status !== 'settled' && ! $settlements->contains('month',$month))<form method="post" action="{{ route('admin.earnings.run-settlement') }}">@csrf<input name="month" type="hidden" value="{{ $month }}"><button class="btn btn-outline-primary">Calculate / refresh review</button></form>@endif
+</div>
+@if(auth('admin')->user()?->role === 'super_admin' && $review && $review->status==='review')<div class="revenue-section"><h2>3. Approve settlement</h2><p class="revenue-help">Any change to revenue, stream records or eligibility invalidates this review. Approval creates artist statements and credits wallets once. It does not send a bank payment.</p><form method="post" action="{{ route('admin.earnings.approve-settlement') }}">@csrf<input type="hidden" name="month" value="{{ $month }}"><input type="hidden" name="fingerprint" value="{{ $review->fingerprint }}"><label class="d-block"><input type="checkbox" name="reconciled" value="1" required @disabled(count($snapshot['blockers'])>0)> I reconciled collected payments, ad statements, refunds, fees and taxes and reviewed artist allocations.</label><button class="btn btn-success mt-3" @disabled(count($snapshot['blockers'])>0)>Approve ₹{{ number_format($snapshot['pool_cents']/100,2) }} artist settlement</button></form></div>@endif
+<div class="revenue-section"><h2>Settlement history</h2><div class="table-responsive"><table class="table"><thead><tr><th>Month</th><th>Subscriptions</th><th>Ads</th><th>Platform share</th><th>Artist pool</th><th>Credits</th><th>Approved at</th></tr></thead><tbody>@forelse($settlements as $s)<tr><td><a href="{{ route('admin.earnings.settlement',['month'=>$s->month]) }}">{{ $s->month }}</a></td><td>₹{{ number_format($s->total_revenue,2) }}</td><td>₹{{ number_format($s->additional_revenue??0,2) }}</td><td>₹{{ number_format($s->platform_cut,2) }}</td><td>₹{{ number_format($s->pool_amount,2) }}</td><td>{{ number_format($s->total_streams) }}</td><td>{{ $s->settled_at }}</td></tr>@empty<tr><td colspan="7">No settlements yet. Prepare a completed month to begin.</td></tr>@endforelse</tbody></table></div></div>
+</div></div>
 @endsection

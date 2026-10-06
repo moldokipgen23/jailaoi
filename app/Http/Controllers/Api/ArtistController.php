@@ -515,17 +515,19 @@ class ArtistController extends Controller
             $kyc_row = ArtistKyc::where('artist_id', $artist->id)->latest()->first();
             $kyc_status = $kyc_row ? $kyc_row->status : null;
 
-            // Recent 5 tracks
-            $recent_tracks = Song::where('artist_id', $artist->id)
-                ->where('status', 1)
-                ->orderByDesc('id')
-                ->take(5)
-                ->get(['id', 'name as title', 'image', 'total_play']);
-            $this->common->imageNameToUrl($recent_tracks, 'image', 'images/radio');
+            // Recent published uploads across music, radio and podcasts.
+            $recent_tracks = collect();
+            foreach ([['model'=>Music::class,'type'=>8,'folder'=>'images/music','title'=>'title','image'=>'portrait_img'], ['model'=>Song::class,'type'=>1,'folder'=>'images/radio','title'=>'name','image'=>'image'], ['model'=>Podcast::class,'type'=>2,'folder'=>'images/podcast','title'=>'title','image'=>'portrait_img']] as $source) {
+                $rows=$source['model']::whereRaw('FIND_IN_SET(?, artist_id)',[$artist->id])->where('status',1)->orderByDesc('created_at')->take(5)->get();
+                $this->common->imageNameToUrl($rows,$source['image'],$source['folder']);
+                foreach($rows as $row)$recent_tracks->push(['id'=>$row->id,'content_type'=>$source['type'],'title'=>$row->{$source['title']},'image'=>$row->{$source['image']},'total_play'=>$row->total_play,'created_at'=>$row->created_at?->toIso8601String()]);
+            }
+            $recent_tracks=$recent_tracks->sortByDesc('created_at')->take(5)->values();
 
             $this->common->imageNameToUrl([$artist], 'image', $this->folder_artist);
 
             return $this->common->API_Response(200, __('api_msg.get_record_successfully'), [[
+                'revenue_overview'       => app(\App\Services\ArtistRevenueOverview::class)->forArtist($artist),
                 'artist'                => $artist->toArray(),
                 'is_suspended'          => $artist->is_suspended ?? 0,
                 'suspend_reason'        => $artist->suspend_reason ?? '',

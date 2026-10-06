@@ -57,7 +57,7 @@ class EarningsController extends Controller
 
                 foreach ($rows as $row) {
                     $title = '—';
-                    if ($row->content_type == 8) {
+                    if (in_array((int) $row->content_type, [3, 8], true)) {
                         $music = Music::find($row->content_id);
                         if ($music) $title = $music->title;
                     } elseif ($row->content_type == 1) {
@@ -122,6 +122,7 @@ class EarningsController extends Controller
             }
 
             return view('user.earnings.index', [
+                'revenueOverview' => app(\App\Services\ArtistRevenueOverview::class)->forArtist($artist),
                 'artist'        => $artist,
                 'stats'         => $stats,
                 'withdrawals'   => $withdrawals,
