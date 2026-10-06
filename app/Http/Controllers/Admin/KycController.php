@@ -91,8 +91,8 @@ class KycController extends Controller
         try {
             $kyc = ArtistKyc::with(['artist', 'user'])->findOrFail($id);
 
-            $kyc->id_front_img_url = $this->common->Get_Image($this->folder_kyc, $kyc->id_front_img);
-            $kyc->id_back_img_url  = $this->common->Get_Image($this->folder_kyc, $kyc->id_back_img);
+            $kyc->id_front_img_url = route('admin.kyc.document', ['id'=>$kyc->id, 'side'=>'front']);
+            $kyc->id_back_img_url  = route('admin.kyc.document', ['id'=>$kyc->id, 'side'=>'back']);
 
             // payment_details is cast to array by the model
             $kyc->payment_details_display = $kyc->payment_details ?: [];
@@ -101,6 +101,13 @@ class KycController extends Controller
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
         }
+    }
+
+    public function document($id, $side)
+    {
+        abort_unless(in_array($side, ['front', 'back'], true), 404);
+        $kyc = ArtistKyc::findOrFail($id);
+        return app(\App\Services\KycDocuments::class)->response($kyc->{'id_' . $side . '_img'});
     }
 
     public function approve(Request $request)

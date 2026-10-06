@@ -153,13 +153,17 @@ class EarningsController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'amount' => 'required|numeric|min:0.01',
-                'payment_method' => 'required|string|max:50',
-                'payment_details' => 'required|string',
+                'amount' => 'required|numeric|min:0.01|decimal:0,2',
             ]);
             if ($validator->fails()) {
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
+
+            $approvedPayout = ArtistKyc::where('user_id', $user->id)->where('artist_id', $artist->id)->latest()->first();
+            if (!$approvedPayout || $approvedPayout->status !== 'approved') {
+                return response()->json(['status'=>400, 'errors'=>'Your latest KYC must be approved before withdrawing.']);
+            }
+            $payoutDetails = app(\App\Services\ArtistPayoutDetails::class)->validate($approvedPayout->payment_method, $approvedPayout->payment_details);
 
             // Check monetization + KYC approval
             $monetizationApproved = MonetizationApplication::where('artist_id', $artist->id)->where('status', 'approved')->exists();
@@ -216,6 +220,11 @@ class EarningsController extends Controller
                     return response()->json(['status' => 400, 'errors' => 'You already have a pending withdrawal request. Complete or cancel it first.']);
                 }
 
+                $latestKyc = ArtistKyc::where('user_id', $user->id)->where('artist_id', $artist->id)->latest()->lockForUpdate()->first();
+                if (!$latestKyc || $latestKyc->id !== $approvedPayout->id || $latestKyc->status !== 'approved' || $latestKyc->payment_details !== $approvedPayout->payment_details) {
+                    DB::rollBack();
+                    return response()->json(['status'=>400, 'errors'=>'Payout details changed. Please refresh and try again.']);
+                }
                 // Deduct from wallet (atomic)
                 $artist->wallet_balance = round((float) $artist->wallet_balance - $amount, 4);
                 $artist->save();
@@ -225,8 +234,8 @@ class EarningsController extends Controller
                     'artist_id' => $artist->id,
                     'user_id' => $user->id,
                     'amount' => $amount,
-                    'payment_method' => $request->payment_method,
-                    'payment_details' => $request->payment_details,
+                    'payment_method' => $approvedPayout->payment_method,
+                    'payment_details' => json_encode($payoutDetails),
                     'status' => 'pending',
                 ]);
 

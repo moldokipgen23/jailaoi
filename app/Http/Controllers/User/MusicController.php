@@ -99,6 +99,7 @@ class MusicController extends Controller
             $artist = \App\Models\Artist::where('user_id', $user['id'] ?? 0)->first();
             $artistSlug = $artist ? (Str::slug($artist->name, '-') ?: 'various') : 'various';
             $filename = $this->common->saveAudioFile($request->file('audio'), $this->folder, 'music_', $artistSlug);
+            \Illuminate\Support\Facades\Cache::put('artist-upload:' . $user['id'] . ':' . hash('sha256', (string) $filename), true, now()->addDay());
             return response()->json(['status' => 200, 'filename' => $filename]);
         } catch (Exception $e) {
             return response()->json(['status' => 400, 'errors' => $e->getMessage()]);
@@ -114,8 +115,8 @@ class MusicController extends Controller
                 'title' => 'required',
                 'category_id' => 'required',
                 'language_id' => 'required',
-                'portrait_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'landscape_img' => 'image|mimes:jpeg,png,jpg|max:5120',
+                'portrait_img' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+                'landscape_img' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
                 'content_upload_type' => 'required',
                 'content_duration' => 'required|after_or_equal:00:00:01',
                 'is_comment' => 'required',
@@ -125,7 +126,7 @@ class MusicController extends Controller
             if ($request['content_upload_type'] == 'server_video') {
                 $rules['music'] = 'required|string'; // pre-uploaded filename from uploadAudio()
             } else {
-                $rules['url'] = 'required';
+                $rules['url'] = 'required|url';
             }
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
@@ -133,6 +134,9 @@ class MusicController extends Controller
                 return response()->json(['status' => 400, 'errors' => $errs]);
             }
 
+            if ($request->content_upload_type === 'server_video' && !\Illuminate\Support\Facades\Cache::get('artist-upload:' . $user['id'] . ':' . hash('sha256', (string) $request->music))) {
+                return response()->json(['status'=>422, 'errors'=>'Please upload your audio again. Uploads expire after 24 hours.'], 422);
+            }
             $requestData = $request->only(['id', 'title', 'description', 'lyrics', 'album_id', 'category_id', 'language_id', 'hashtag_id', 'portrait_img', 'landscape_img', 'content_upload_type', 'content_duration', 'content', 'url', 'is_comment', 'is_like', 'is_download', 'is_rent', 'rent_price', 'rent_day', 'old_portrait_img', 'old_landscape_img', 'old_content', 'old_hashtag_id', 'old_portrait_img_storage_type', 'old_landscape_img_storage_type', 'old_content_storage_type', 'old_content_upload_type', 'music']);
             $storage_type = Storage_Type();
             $requestData['portrait_img_storage_type'] = $storage_type;
@@ -187,10 +191,14 @@ class MusicController extends Controller
             foreach (array_keys($requestData) as $field) {
                 if (str_starts_with($field, 'old_')) unset($requestData[$field]);
             }
-            $data = Content::create($requestData);
+            $data = \Illuminate\Support\Facades\DB::transaction(function () use ($requestData) {
+                $content = Content::create($requestData);
+                $this->mirrorToMusic($content, $requestData);
+                return $content;
+            });
             if (isset($data->id)) {
                 // JAILAOI: Mirror to tbl_music so the Flutter app can play it immediately
-                $this->mirrorToMusic($data, $requestData);
+
                 return response()->json(['status' => 200, 'success' => __('label.success_add_music')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_add_music')]);
@@ -230,8 +238,8 @@ class MusicController extends Controller
                 'title' => 'required',
                 'category_id' => 'required',
                 'language_id' => 'required',
-                'portrait_img' => 'image|mimes:jpeg,png,jpg|max:5120',
-                'landscape_img' => 'image|mimes:jpeg,png,jpg|max:5120',
+                'portrait_img' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+                'landscape_img' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
                 'content_upload_type' => 'required',
                 'content_duration' => 'required|after_or_equal:00:00:01',
                 'is_comment' => 'required',
@@ -239,7 +247,7 @@ class MusicController extends Controller
                 'is_download' => 'required',
             ];
             if ($request['content_upload_type'] != 'server_video') {
-                $rules['url'] = 'required';
+                $rules['url'] = 'required|url';
             }
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
@@ -252,6 +260,10 @@ class MusicController extends Controller
             if (!$ownedContent) {
                 return response()->json(['status' => 404, 'message' => 'Music not found.'], 404);
             }
+            if ($request->music && $request->music !== $ownedContent->content && !\Illuminate\Support\Facades\Cache::get('artist-upload:' . $user['id'] . ':' . hash('sha256', (string) $request->music))) {
+                return response()->json(['status'=>422, 'errors'=>'Please upload your audio again. Uploads expire after 24 hours.'], 422);
+            }
+            $obsoleteMedia = [];
             foreach (['portrait_img', 'landscape_img', 'content', 'content_upload_type', 'hashtag_id', 'portrait_img_storage_type', 'landscape_img_storage_type', 'content_storage_type'] as $field) {
                 $requestData['old_' . $field] = $ownedContent->$field;
             }
@@ -277,14 +289,14 @@ class MusicController extends Controller
                 $requestData['portrait_img_storage_type'] = $storage_type;
                 $requestData['portrait_img'] = $this->common->saveImage($file1, $this->folder_img, 'port_', $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_portrait_img']);
+                $obsoleteMedia[] = [$this->folder_img, $requestData['old_portrait_img']];
             }
             if (isset($requestData['landscape_img'])) {
                 $file2 = $requestData['landscape_img'];
                 $requestData['landscape_img_storage_type'] = $storage_type;
                 $requestData['landscape_img'] = $this->common->saveImage($file2, $this->folder_img, 'land_', $artistSlug);
 
-                $this->common->deleteImageToFolder($this->folder_img, $requestData['old_landscape_img']);
+                $obsoleteMedia[] = [$this->folder_img, $requestData['old_landscape_img']];
             }
             if ($requestData['content_upload_type'] == 'server_video') {
 
@@ -295,7 +307,7 @@ class MusicController extends Controller
                         $requestData['content_storage_type'] = $storage_type;
                         // music is a pre-uploaded filename from uploadAudio()
                         $requestData['content'] = $requestData['music'];
-                        $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
+                        $obsoleteMedia[] = [$this->folder, $requestData['old_content']];
                     }
                 } else {
 
@@ -304,7 +316,7 @@ class MusicController extends Controller
 
                         // music is a pre-uploaded filename from uploadAudio()
                         $requestData['content'] = $requestData['music'];
-                        $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
+                        $obsoleteMedia[] = [$this->folder, $requestData['old_content']];
                     } else {
                         $requestData['content'] = '';
                     }
@@ -312,7 +324,7 @@ class MusicController extends Controller
             } else {
 
                 $requestData['content_storage_type'] = $storage_type;
-                $this->common->deleteImageToFolder($this->folder, $requestData['old_content']);
+                $obsoleteMedia[] = [$this->folder, $requestData['old_content']];
 
                 $requestData['content'] = "";
                 if ($requestData['url']) {
@@ -322,10 +334,18 @@ class MusicController extends Controller
             unset($requestData['music'], $requestData['url'], $requestData['old_content_upload_type'], $requestData['old_hashtag_id'], $requestData['old_content'], $requestData['old_portrait_img'], $requestData['old_landscape_img'], $requestData['old_portrait_img_storage_type'], $requestData['old_landscape_img_storage_type'], $requestData['old_content_storage_type']);
             $requestData['content_duration'] = $this->common->time_to_milliseconds($requestData['content_duration']);
 
-            $data = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
+            $data = \Illuminate\Support\Facades\DB::transaction(function () use ($requestData) {
+                $content = Content::updateOrCreate(['id' => $requestData['id']], $requestData);
+                $this->mirrorToMusic($content, $requestData);
+                return $content;
+            });
+            foreach ($obsoleteMedia as $media) {
+                try { $this->common->deleteImageToFolder(...$media); }
+                catch (Exception $cleanupError) { Log::warning('Old artist media cleanup failed.'); }
+            }
             if (isset($data->id)) {
                 // JAILAOI: Keep tbl_music mirror in sync
-                $this->mirrorToMusic($data, $requestData);
+
                 return response()->json(['status' => 200, 'success' => __('label.success_edit_music')]);
             } else {
                 return response()->json(['status' => 400, 'errors' => __('label.error_edit_music')]);
@@ -380,30 +400,29 @@ class MusicController extends Controller
             $uploadType = (($req['content_upload_type'] ?? '') === 'server_video') ? 1 : 2;
             $duration   = $content->content_duration ?? 0;
 
+            $existingMirror = Music::where('jailaoi_content_id', $content->id)->first();
             Music::updateOrCreate(
                 ['jailaoi_content_id' => $content->id],
                 [
                     'title'        => $content->title ?? '',
                     'artist_id'    => $artistId,
-                    'album_name'   => '',
+                    'album_name'   => $content->album_id ? (\App\Models\Album::find($content->album_id)->name ?? '') : '',
                     'category_id'  => $content->category_id ?? 0,
                     'language_id'  => $content->language_id ?? 0,
-                    'is_premium'   => 0,
                     'duration'     => $duration,
                     'upload_type'  => $uploadType,
                     'music'        => $content->content ?? '',
                     'lyrics'       => $content->lyrics ?? '',
                     'description'  => $content->description ?? '',
                     'portrait_img' => $content->portrait_img ?? '',
-                    'landscape_img'=> '',
+                    'landscape_img'=> $content->landscape_img ?? '',
                     'ogtag_img'    => '',
-                    'total_play'   => 0,
-                    'status'       => 1,
+                    'status'       => $existingMirror ? $existingMirror->status : ($content->status ?? 1),
                 ]
             );
         } catch (Exception $e) {
             Log::error('mirrorToMusic failed for content#' . $content->id . ': ' . $e->getMessage());
-            // Never throw — don't let mirror failure break the artist portal
+            throw $e;
         }
     }
 

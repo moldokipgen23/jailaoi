@@ -10,6 +10,7 @@
 
         <div class="body-content">
             <!-- mobile title -->
+            <p>Identity documents and payout details are managed in <a href="{{ route('user.kyc.index') }}">KYC Verification</a>.</p>
             <h1 class="page-title-sm">{{__('label.profile')}}</h1>
 
             <div class="border-bottom row mb-3">
@@ -61,7 +62,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>{{__('label.email')}}<span class="text-danger">*</span></label>
-                                            <input type="email" name="email" value="{{ $data['email'] }}" class="form-control" placeholder="{{__('label.email_here')}}">
+                                            <input type="email" readonly name="email" value="{{ $data['email'] }}" class="form-control" placeholder="{{__('label.email_here')}}">
                                         </div>
                                     </div>
                                 </div>
@@ -75,7 +76,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label>{{__('label.mobile_number')}}<span class="text-danger">*</span></label>
-                                            <input type="text" name="mobile_number" value="{{ $data['mobile_number'] }}" class="form-control" placeholder="{{__('label.mobile_number_here')}}">
+                                            <input type="text" readonly name="mobile_number" value="{{ $data['mobile_number'] }}" class="form-control" placeholder="{{__('label.mobile_number_here')}}">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
@@ -225,7 +226,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card custom-border-card">
+                <div hidden class="card custom-border-card">
                     <h5 class="card-header">{{__('label.banking_info')}}</h5>
                     <div class="card-body">
                         <div class="form-row">

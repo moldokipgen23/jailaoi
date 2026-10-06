@@ -11,6 +11,26 @@
         <div class="body-content">
             <h1 class="page-title-sm">Dashboard</h1>
 
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 style="font-size:20px;">Your artist workspace</h2>
+                    <p>Manage your music, review listening activity, and complete the steps needed for payouts.</p>
+                    <div class="d-flex flex-wrap" style="gap:10px;">
+                        <a class="btn btn-primary" href="{{ route('user.music.create') }}">Upload music</a>
+                        <a class="btn btn-outline-primary" href="{{ route('user.music.index') }}">Manage music</a>
+                        <a class="btn btn-outline-primary" href="{{ route('user.earnings.index') }}">Earnings &amp; statements</a>
+                    </div>
+                    <h3 style="font-size:16px;margin-top:20px;">Get ready for payouts</h3>
+                    <ul style="padding-left:20px;">
+                        <li><a href="{{ route('user.profile.index') }}">Review your profile</a></li>
+                        <li><a href="{{ route('user.music.index') }}">Music catalogue</a> — {{ number_format($musicCount) }} active music tracks</li>
+                        <li><a href="{{ route('user.kyc.index') }}">Identity &amp; payout verification</a> — {{ ucfirst(str_replace('_', ' ', $kycStatus ?? 'not started')) }}</li>
+                        <li><a href="{{ route('user.monetization.index') }}">Monetization application</a> — {{ ucfirst(str_replace('_', ' ', $monetizationStatus ?? 'not applied')) }}</li>
+                    </ul>
+                    <p class="mb-0">Plays and eligible stream credits are different. In revenue-pool mode, earnings become final after the monthly settlement is approved. <a href="{{ route('user.earnings.index') }}">See your payout requirements</a>.</p>
+                </div>
+            </div>
+
             {{-- ── Top stat cards ── --}}
             <div class="row stat-card-row mb-3">
                 <div class="col-xl-3 col-md-6 col-12 mb-3">
@@ -68,7 +88,7 @@
                             </div>
                             @if ($pendingPlays > 0)
                             <div style="color:#f59e0b;font-size:12px;margin-top:6px;">
-                                <i class="fa-solid fa-clock me-1"></i> {{ number_format($pendingPlays) }} plays pending settlement
+                                <i class="fa-solid fa-clock me-1"></i> {{ number_format($pendingPlays) }} stream credits pending settlement
                             </div>
                             @endif
                             <a href="{{ route('user.earnings.index') }}" style="display:inline-block;margin-top:14px;padding:7px 16px;background:#10b981;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
@@ -84,11 +104,11 @@
                         <div class="card-body">
                             <h6 style="font-weight:700;margin-bottom:16px;"><i class="fa-solid fa-layer-group me-2" style="color:#6c63ff;"></i>Content Breakdown</h6>
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span style="color:#6b7280;font-size:13px;"><i class="fa-solid fa-music me-2" style="color:#6c63ff;"></i>Songs</span>
+                                <span style="color:#6b7280;font-size:13px;"><i class="fa-solid fa-music me-2" style="color:#6c63ff;"></i>Radio</span>
                                 <span style="font-weight:700;">{{ $songCount }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span style="color:#6b7280;font-size:13px;"><i class="fa-solid fa-compact-disc me-2" style="color:#10b981;"></i>Albums / Music</span>
+                                <span style="color:#6b7280;font-size:13px;"><i class="fa-solid fa-compact-disc me-2" style="color:#10b981;"></i>Music Tracks</span>
                                 <span style="font-weight:700;">{{ $musicCount }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
@@ -133,7 +153,7 @@
             @if (!empty($monthlyTrend))
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 style="font-weight:700;margin-bottom:16px;"><i class="fa-solid fa-chart-bar me-2" style="color:#6c63ff;"></i>Monthly Plays (Last 6 Months)</h6>
+                    <h6 style="font-weight:700;margin-bottom:16px;"><i class="fa-solid fa-chart-bar me-2" style="color:#6c63ff;"></i>Eligible Stream Credits (Last 6 Months)</h6>
                     @php $maxPlays = max(array_column($monthlyTrend, 'plays')) ?: 1; @endphp
                     <div class="row align-items-end" style="min-height:100px;">
                         @foreach ($monthlyTrend as $m)
@@ -153,7 +173,7 @@
             @if ($topSongs->count())
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 style="font-weight:700;margin-bottom:16px;"><i class="fa-solid fa-trophy me-2" style="color:#f59e0b;"></i>Top Songs by Plays</h6>
+                    <h6 style="font-weight:700;margin-bottom:16px;"><i class="fa-solid fa-trophy me-2" style="color:#f59e0b;"></i>Top Music Tracks by Plays</h6>
                     @foreach ($topSongs as $i => $song)
                     <div class="d-flex align-items-center mb-3">
                         <div style="width:24px;color:#6b7280;font-size:13px;font-weight:700;">{{ $i + 1 }}</div>

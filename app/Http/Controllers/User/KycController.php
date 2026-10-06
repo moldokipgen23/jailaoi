@@ -87,8 +87,8 @@ class KycController extends Controller
                 'nationality'      => 'required|string|max:100',
                 'id_type'          => 'required|in:' . $allowedIdTypes,
                 'id_number'        => 'required|string|max:100',
-                'id_front_img'     => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable' : 'required|image|mimes:jpeg,png,jpg|max:5120',
-                'id_back_img'      => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable' : 'required|image|mimes:jpeg,png,jpg|max:5120',
+                'id_front_img'     => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable|image|mimes:jpeg,png,jpg|max:5120' : 'required|image|mimes:jpeg,png,jpg|max:5120',
+                'id_back_img'      => ($request->input('_keep_existing_images') && $approvedKyc) ? 'nullable|image|mimes:jpeg,png,jpg|max:5120' : 'required|image|mimes:jpeg,png,jpg|max:5120',
                 'address'          => 'required|string|max:500',
                 'city'             => 'required|string|max:100',
                 'country'          => 'required|string|max:100',
@@ -109,20 +109,17 @@ class KycController extends Controller
                 return response()->json(['status' => 400, 'errors' => $validator->errors()->all()]);
             }
 
+            $decoded = app(\App\Services\ArtistPayoutDetails::class)->validate($request->payment_method, $request->payment_details);
+
             // JAILAOI: keep existing images when artist updates payment details after approval
             if ($request->input('_keep_existing_images') && $approvedKyc) {
                 $id_front = $approvedKyc->id_front_img;
                 $id_back  = $approvedKyc->id_back_img;
             } else {
-                $id_front = $this->common->saveImage($request->file('id_front_img'), $this->folder_kyc, 'kyc_front_');
-                $id_back  = $this->common->saveImage($request->file('id_back_img'), $this->folder_kyc, 'kyc_back_');
+                $id_front = app(\App\Services\KycDocuments::class)->store($request->file('id_front_img'));
+                $id_back  = app(\App\Services\KycDocuments::class)->store($request->file('id_back_img'));
             }
 
-            $paymentDetails = $request->payment_details;
-            $decoded = json_decode($paymentDetails, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $decoded = ['raw' => $paymentDetails];
-            }
 
             $kycData = [
                 'artist_id'        => $artist->id,
@@ -139,7 +136,7 @@ class KycController extends Controller
                 'city'             => $request->city,
                 'country'          => $request->country,
                 'payment_method'   => $request->payment_method,
-                'payment_details'  => json_encode($decoded),
+                'payment_details'  => $decoded,
                 'status'           => 'submitted',
                 'admin_note'       => null,
                 'reviewed_at'      => null,

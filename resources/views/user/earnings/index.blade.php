@@ -148,19 +148,8 @@
                                                    placeholder="{{ number_format($stats['available'], 2) }}" required>
                                             <div class="form-text">Max: {{ $stats['currency'] }} {{ number_format($stats['available'], 2) }}</div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label small fw-semibold">Payment Method</label>
-                                            <select name="payment_method" class="form-control" required>
-                                                <option value="upi">UPI</option>
-                                                <option value="bank">Bank Transfer (NEFT/IMPS)</option>
-                                                <option value="paypal">PayPal</option>
-                                                <option value="mobile_money">Mobile Money</option>
-                                            </select>
-                                        </div>
                                         <div class="col-12 mb-3">
-                                            <label class="form-label small fw-semibold">Payment Details</label>
-                                            <input type="text" name="payment_details" class="form-control"
-                                                   placeholder="PayPal email / bank account / mobile number" required>
+                                            <p class="form-text">Payment goes to your approved KYC payout account. <a href="{{ route('user.kyc.index') }}">Review or update payout details</a>. Changes require approval.</p>
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100">

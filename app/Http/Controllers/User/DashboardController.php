@@ -65,11 +65,11 @@ class DashboardController extends Controller
 
         // --- Top songs by plays ---
         $topSongs = $artist
-            ? Song::where('artist_id', $artist->id)
+            ? Music::whereRaw('FIND_IN_SET(?, artist_id)', [$artist->id])
                 ->where('status', 1)
                 ->orderByDesc('total_play')
                 ->take(5)
-                ->get(['id', 'name', 'image', 'total_play'])
+                ->get(['id', 'title as name', 'portrait_img as image', 'total_play'])
             : collect();
 
         // --- Monthly plays trend (last 6 months) ---

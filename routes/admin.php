@@ -189,6 +189,7 @@ Route::group(['middleware' => 'installation'], function () {
         // JAILAOI: KYC
         Route::get('kyc', [KycController::class, 'index'])->name('admin.kyc.index');
         Route::get('kyc/view/{id}', [KycController::class, 'view'])->name('admin.kyc.view');
+        Route::get('kyc/document/{id}/{side}', [KycController::class, 'document'])->name('admin.kyc.document');
         // JAILAOI: Withdrawals
         Route::get('withdrawals', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
         Route::get('withdrawals/show/{id}', [WithdrawalController::class, 'show'])->name('admin.withdrawals.show');

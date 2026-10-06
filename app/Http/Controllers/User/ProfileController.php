@@ -40,6 +40,13 @@ class ProfileController extends Controller
     {
         try {
             $id = User_Data()['id'];
+            $identity = User::findOrFail($id);
+            if (strtolower(trim((string) $request->email)) !== strtolower(trim((string) $identity->email)) || (string) $request->mobile_number !== (string) $identity->mobile_number || (string) $request->country_code !== (string) $identity->country_code) {
+                return response()->json(['status'=>422, 'errors'=>'Changing sign-in email or phone requires verification. Please contact support.'], 422);
+            }
+            if ($request->hasFile('front_id_proof') || $request->hasFile('back_id_proof')) {
+                return response()->json(['status'=>422, 'errors'=>'Please submit identity documents using KYC Verification.'], 422);
+            }
             $rules = [
                 'channel_name' => 'required|min:2|unique:tbl_user,channel_name,' . $id,
                 'description' => 'required',
